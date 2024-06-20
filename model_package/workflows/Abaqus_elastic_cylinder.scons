@@ -1,0 +1,155 @@
+#! /usr/bin/env python
+
+"""
+    TODO
+"""
+
+import pathlib
+
+import waves
+
+# Inherit the parent construction environment
+Import("env")
+Import("workflow_name")
+Import("model")
+Import("params")
+
+# set project-wide paths with os-agnostic path separators
+DNS_Abaqus_abspath = pathlib.Path(env["DNS_Abaqus_abspath"])
+filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
+
+# Simulation variables
+build_directory = pathlib.Path(Dir('.').abspath)
+workflow_name = build_directory.name
+workflow_configuration = [env["project_configuration"], workflow_name]
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+
+# Build DNS
+journal_file = f"DNS_{model}"
+build_script = "build_elastic_cylinder.py"
+journal_options = f" --model-name {journal_file}"
+journal_options += f" --diam {params['diam']}"
+journal_options += f" --height {params['height']}"
+journal_options += f" --seed {params['seed']}"
+journal_options += f" --material-E {params['material_E']}"
+journal_options += f" --material-nu {params['material_nu']}"
+journal_options += f" --material-rho {params['material_rho']}"
+journal_options += f" --disp-fact {params['disp']}"
+journal_options += f" --num-steps {params['num_steps']}"
+journal_options += f" --BCs {params['micro_BC']}"
+workflow.extend(env.AbaqusJournal(
+    target = [f"{journal_file}.cae", f"{journal_file}.inp"],
+    source = [f"{DNS_Abaqus_abspath / build_script}"],
+    journal_options = journal_options
+))
+
+# Modify input file
+mod_script = "modify_input.py"
+script_options = f'--input-file {journal_file}.inp --output-file {journal_file}_job.inp'
+workflow.extend(env.PythonScript(
+    target = [f"{journal_file}_job.inp"],
+    source = [f"{DNS_Abaqus_abspath / mod_script}", f"{journal_file}.inp"],
+    script_options = script_options
+))
+
+# Abaqus solve
+solve_source_list = []
+solve_source_list.append([f"{journal_file}_job.inp"])
+job_name = pathlib.Path(f"{journal_file}_run")
+abaqus_options = '-double both'
+## Solve
+workflow.extend(env.AbaqusSolver(
+    target = [f"{job_name}.sta"],
+    source = solve_source_list,
+    job_name = job_name,
+    abaqus_options = abaqus_options
+))
+
+# Extract Abaqus
+extract_source_list = [f"{job_name}.odb"]
+frames = [i for i in range(0,params['num_steps']+1)]
+frame_string = ""
+for f in frames:
+    if f < params['num_steps']:
+        frame_string += f"{f},"
+    else:
+        frame_string += f"{f}"
+report_args = f"all history frame={frame_string}"
+#report_args = "all sets"
+#report_args = "all"
+workflow.extend(env.AbaqusExtract(
+    target = [f"{job_name}.h5", f"{job_name}_datasets.h5"],
+    source = extract_source_list,
+    odb_report_args = report_args
+))
+
+# Post-processing step #1 - force vs. displacement
+plot_name = f"{job_name}_force_displacement"
+plot_script = "extract_history.py"
+post_processing_source = [f"{job_name}_datasets.h5"]
+script_options = "--input-file " + " ".join(str(path) for path in post_processing_source)
+script_options += " --output-file ${TARGET.file} --x-units 'mm' --y-units 'N'"
+script_options += " --x-path 'ASSEMBLY/HistoryOutputs/LOAD_HERE/U3'"
+script_options += " --y-path 'ASSEMBLY/HistoryOutputs/LOAD_HERE/RF3'"
+script_options += " --x-label 'Displacement' --y-label 'Force'"
+script_options += f" --csv_file {plot_name}.csv"
+workflow.extend(env.PythonScript(
+    target = [f"{plot_name}.png", f"{plot_name}.csv"],
+    source = [f"{DNS_Abaqus_abspath / plot_script}"] + post_processing_source,
+    script_options = script_options
+))
+
+# Post-processing step #2 - picture of final frame with Mises Stress
+frames_file = f"{job_name}_Cauchy33"
+frames_script = "extract_frames.py"
+script_options = f"--input-file {job_name}.odb --output-file {frames_file}.png"
+if 'field_frame' in params.keys():
+    script_options += f" --frame {params['field_frame']}"
+else:
+    script_options += f" --frame {params['num_steps']}"
+script_options += f" --field S"
+workflow.extend(env.AbaqusJournal(
+    target = [f"{frames_file}.png"],
+    source = [f"{DNS_Abaqus_abspath / frames_script}"] + extract_source_list,
+    journal_options = script_options
+))
+
+# Extract to XDMF filter input
+main_XDMF_name = f"FILTER_INPUT_{model}"
+filter_inputs = [f"{str(build_directory / main_XDMF_name)}.{ext}" for ext in ['xdmf', 'h5']]
+script_options = f"--output-file {str(build_directory / main_XDMF_name)}"
+cauchy_stresses = "DNS_all_33_stresses.csv"
+XDMF_script = "ODBextract_to_XDMF.py"
+script_options += f" --input-file {job_name}_datasets.h5"
+script_options += f" --elem-path {params['block_name']}/FieldOutputs/ALL_ELEMENTS"
+script_options += f" --node-path {params['block_name']}/FieldOutputs/ALL_NODES"
+script_options += f" --mesh-path {params['block_name']}/Mesh"
+script_options += f" --ref-density {params['material_rho']}"
+script_options += f" --dump-all-33-stresses {cauchy_stresses}"
+workflow.extend(env.PythonScript(
+    target = filter_inputs + [cauchy_stresses],
+    source = [f"{DNS_Abaqus_abspath / XDMF_script}", f"{job_name}.h5"],
+    script_options = script_options
+))
+
+# Specify bounding information
+bounding_csv = f"{model}_bounds.csv"
+bounding_script = "force_bounds.py"
+rad = params['diam']/2
+script_options = f"--xmin {-rad} --xmax {rad} --ymin {-rad} --ymax {rad} --zmin 0.0 --zmax {params['height']}"
+script_options += f" --output-file {bounding_csv}"
+workflow.extend(env.PythonScript(
+    target=bounding_csv,
+    source=[str(filter_source_abspath / bounding_script)],
+    script_options=script_options))
+
+# add bounding_csv to params to import into other workflows
+params['bounding_csv'] = str(build_directory / bounding_csv)
+
+# add filter_inputs to params to import into other workflows
+params['filter_inputs'] = filter_inputs
+
+env.Alias(workflow_name, workflow)
+Return("workflow")
