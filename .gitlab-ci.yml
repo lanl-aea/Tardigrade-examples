@@ -1,0 +1,94 @@
+stages:
+  - environment
+  - test_docs
+  - publish
+
+before_script:
+  # Assumes CI executes on AEA compute servers
+  - aea_compute_path="/projects/aea_compute"
+  - aea_modulefiles="${aea_compute_path}/modulefiles"
+  - module use ${aea_modulefiles}
+  - module use ${PWD}/modulefiles
+  # Prefer the CI environment and fall back to AEA environment(s)
+  - project_environment="tardigrade-examples-env"
+  - environment_choices="${project_environment} aea-beta"
+  - for env in ${environment_choices}; do if [[ -d "${aea_compute_path}/${env}" ]]; then environment=${env}; break; fi; done
+  - echo ${project_environment}
+  - module load ${environment}
+  - conda info
+  # TODO: kick off 'environment' job for missing environments instead of re-creating the environment build logic here
+  # https://re-git.lanl.gov/aea/python-projects/waves/-/issues/8
+  - environment_path="${aea_compute_path}/${project_environment}"
+  - conda_options='--force'
+  - |
+      if [[ ! -d ${environment_path} ]]; then
+          export ALL_PROXY="proxyout.lanl.gov:8080"
+          export HTTP_PROXY="http://$ALL_PROXY"
+          export HTTPS_PROXY=$HTTP_PROXY
+          conda env create --prefix ${environment_path} --file environment.yml ${conda_options}
+          chmod -R 755 ${environment_path}
+          unset ALL_PROXY
+          unset HTTP_PROXY
+          unset HTTPS_PROXY
+      fi
+  - if [[ ${project_environment} != ${environment} ]]; then module unload ${environment}; module load ${project_environment}; fi
+
+
+environment:
+  stage: environment
+  variables:
+    GIT_STRATEGY: clone
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"
+    #- if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      changes:
+        - "modulefiles/*"
+        - "environment.yml"
+  script:
+    # Set LANL proxies
+    - export ALL_PROXY="proxyout.lanl.gov:8080"
+    - export HTTP_PROXY="http://$ALL_PROXY"
+    - export HTTPS_PROXY=$HTTP_PROXY
+    # Re-build the Conda environment on changes to environment files
+    - conda env create --prefix ${environment_path} --file environment.yml ${conda_options}
+    # Remove write permissions from group to avoid accidental environment changes
+    - chmod -R 755 ${environment_path}
+    # place the common modulefiles in an accessible location
+    - cp ${PWD}/modulefiles/* ${aea_modulefiles}
+    # Link SCons man pages to the expected MANPATH location
+    - ln ${environment_path}/scons.1 ${environment_path}/man/man1/scons.1
+    - ln ${environment_path}/sconsign.1 ${environment_path}/man/man1/sconsign.1
+    - ln ${environment_path}/scons-time.1 ${environment_path}/man/man1/scons-time.1
+  tags:
+    - shell-aea
+
+# test that docs build without publishing
+test_docs:
+  stage: test_docs
+  variables:
+    GIT_STRATEGY: clone
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  script:
+    - scons html
+  tags:
+    - shell-aea
+
+# It MUST be called pages
+pages:
+  stage: publish
+  variables:
+    GIT_STRATEGY: clone
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "dev"
+  script:
+    - mkdir -p public/dev
+    - scons html
+    - cp -r build/docs/html/* public/dev
+  artifacts:
+    paths:
+      # It MUST be called public
+      - public
+  tags:
+    - shell-aea
