@@ -1,0 +1,103 @@
+# Project paths
+test*.txt
+
+# SCons variant dir
+build/
+peta_data_copy/
+.sconsign.dblite
+config.log
+
+# Software config file
+config.yml
+config.*
+
+# Compiled source
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.pyc
+
+# Packages
+# It's better to unpacke these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+*.tbz2
+
+# Log and databases
+*.log
+*.sql
+*.sqlite
+
+# OS generated files
+.DS_store
+.DS_store?
+._*
+.Spolight-V100
+.Trashes
+enthumbs.db
+Thumbs.db
+*~
+*.nfs*
+
+# IPython .log File
+*.log/
+
+# Python cache directory
+__pycache__/
+
+# Python pytest coverage
+*.converage*
+htmlcov/
+tests/htmlcov
+cobertura.xml
+test_results.xml
+
+
+# Sphinx files
+docs/_build/*
+docs/_static/*
+docs/_templates/*
+docs/*.pdf
+
+# Output .txt File
+*_output.txt
+
+# Gitignore~ File
+*.gitignore~
+
+# Abaqus files
+*.rpt
+*.rec
+*.rpy
+*.rpy*
+*.dat
+*.odb
+*.cae
+*.sim
+
+# Binary Files
+*.h5
+*.pickle
+
+
+# Text Editor Temp/Working Files
+*.swp
+*.bak
+
+# Cubit working files
+cubit[0-9][0-9].jou
+hisotyr[0-9][0-9].jou
+.pynb_checkpoints/
+
+# Autocomplete files
+.scons_autocomplete
