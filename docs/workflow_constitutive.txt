@@ -1,0 +1,189 @@
+In this repository, all material parameters are denoted with a superscript
+asterisk :math:`\left( \right)^*` to aid in differentiation from other
+symbols.
+
+.. _workflow_constitutive_linear_elasticity:
+
+------------------------------
+Micromorphic Linear Elasticity
+------------------------------
+
+The model of Micromorphic Linear elasticity intoduced by Eringen and
+Suhubi :cite:`eringen_nonlinear_1964` is defined in the reference
+configuration for the second Piola Kirchoff stress, symmetric micro
+stress, and couple stress as follows:
+
+.. math::
+    :label: constitutive_case_4
+
+    S_{KL} &= \left(\lambda^* + \tau^*\right) E_{MM} \delta_{KL} 
+        + 2\left(\mu^* + \sigma^*\right) E_{KL} 
+        + \eta^* \mathcal{E}_{MM} \delta_{KL} 
+        + \kappa^* \mathcal{E}_{KL}
+        + \nu^* \mathcal{E}_{LK}
+
+    \Sigma_{KL} &= \left(\lambda^* + 2\tau^*\right) E_{MM} \delta_{KL} 
+        + 2\left(\mu^* + 2\sigma^*\right) E_{KL} 
+        + \left(2\eta^* - \tau^*\right) \mathcal{E}_{MM} \delta_{KL}
+
+        &+ \left(\nu^* + \kappa^* - \sigma\right) 
+        \left(\mathcal{E}_{KL} + \mathcal{E}_{LK}\right)
+
+    M_{KLM} &= \tau_1^* \left(\delta_{LM}\Gamma_{KPP} + \delta_{MK} \Gamma_{PPL}\right)
+        + \tau_2^*  \left(\delta_{LM}\Gamma_{NKN} + \delta_{LK} \Gamma_{PPM}\right)
+
+        &+ \tau_3^* \delta_{LM} \Gamma_{NNK}
+        + \tau_4^* \delta_{MK} \Gamma_{LPP}
+        + \tau_5^* \left(\delta_{LK}\Gamma_{MPP} + \delta_{MK} \Gamma_{NLN}\right)
+
+        &+ \tau_6^* \delta_{LK} \Gamma_{NMN}
+        + \tau_7^* \Gamma_{LMK}
+        + \tau_8^* \left(\Gamma_{KLM} \Gamma_{MKL}\right)
+        + \tau_9^* \Gamma_{LKM}
+
+        &+ \tau_{10}^* \Gamma_{MLK}
+        + \tau_{11}^* \Gamma_{KML}
+
+If parameters :math:`\tau^*`, :math:`\sigma^*`, :math:`\eta^*`,
+:math:`\kappa^*`, :math:`\nu^*`, and :math:`\tau_1^*` through 
+:math:`\tau_{11}^*` are set to zero (with the exception of :math:`\tau_7^*`
+which must be non-zero to satisfy positive definiteness of the free energy
+function :cite:`smith_inequalities_1968`), then the constitutive equations
+reduce as follows.
+
+.. math::
+    :label: constitutive_case_1
+
+    S_{KL} &= \lambda^* E_{MM} \delta_{KL} 
+        + 2\mu^* E_{KL}
+
+    \Sigma_{KL} &= \lambda^* E_{MM} \delta_{KL} 
+        + 2\mu^* E_{KL}
+
+    M_{KLM} &= \tau_7^* \Gamma_{LMK}
+
+Here the second Piola-Kirchhoff and symmetric micro-stresses are equivalent
+and classical Saint Venant Kirchhoff elasticity is recovered. The Saint
+Venant-Kirchhoff model is an extension of classical linear elasticity
+to the geometrically non-linear regime (e.g. large deformations)
+:cite:`ogden_non-linear_1997`. For this special case, the micromorphic
+material parameters :math:`\lambda^*` and :math:`\mu^*` are equivalent to the classical Lam\'e parameters.
+
+Another simplification can be made in which the components of the higher order
+are set to zero (again with the exception that :math:`\tau_7` must be
+non-zero). After setting :math:`\tau_1` to :math:`\tau_6` and :math:`\tau_8`
+to :math:`\tau_{11}` to zero, the simplified equations become:
+
+.. math::
+    :label: constitutive_case_2&3
+
+    S_{KL} &= \left(\lambda^* + \tau^*\right) E_{MM} \delta_{KL} 
+        + 2\left(\mu^* + \sigma^*\right) E_{KL} 
+        + \eta^* \mathcal{E}_{MM} \delta_{KL} 
+        + \kappa^* \mathcal{E}_{KL}
+        + \nu^* \mathcal{E}_{LK}
+
+    \Sigma_{KL} &= \left(\lambda^* + 2\tau^*\right) E_{MM} \delta_{KL} 
+        + 2\left(\mu^* + 2\sigma^*\right) E_{KL} 
+        + \left(2\eta^* - \tau^*\right) \mathcal{E}_{MM} \delta_{KL}
+
+        &+ \left(\nu^* + \kappa^* - \sigma\right) 
+        \left(\mathcal{E}_{KL} + \mathcal{E}_{LK}\right)
+
+    M_{KLM} &= 
+        + \tau_7^* \Gamma_{LMK}
+
+Here :math:`\tau_7` may be either set to a fixed value or determined through
+a calibration process.
+
+The reference configuration stresses may be pushed forward to the current configuration with:
+
+.. math::
+    :label: ref_to_current_map
+
+    \sigma_{ij} &= \frac{1}{J} F_{iI} S_{IJ} F_{jJ}
+
+    s_{ij} &= \frac{1}{J} F_{iI} \Sigma_{IJ} F_{jJ}
+
+    m_{ijk} &= \frac{1}{J} F_{iI} \chi_{kK} M_{IJK} F_{jJ}
+
+
+where :math:`J` is the Jacobian of deformation defined as the determinant of the deformation gradient :math:`\mathbf{F}`.
+
+.. note::
+
+    All elastic material properties are denoted with a star notation :math:`\left(\right)^*`
+    to help differentiate from other terms
+
+.. _linear_elastic_constraints:
+
+Constraints on Elastic Parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The parameters of the micromorphic linear elastic model of Eringen and Suhubi
+:cite:`eringen_nonlinear_1964` may not be selected arbitrarily and may depend on each other.
+Smith 1968 :cite:`smith_inequalities_1968` proposed restrictions on the 18 parameters to maintain
+positive definiteness of the quadratic strain energy function
+(shown in equation :math:numref:`{number} <elastic_helmholtz>`.
+The constraints on second Piola-Kirchhoff and symmetric micro-stresses are written as:
+
+.. math::
+    :label: linear_elastic_constraints_1
+
+    \lambda &> 0
+
+    \kappa + \nu &> 2\sigma
+
+    \left(\kappa + \nu - 2\sigma\right) \mu &> 2\sigma^2
+
+    3\lambda + 2\mu &> 0
+
+    \kappa + \nu +3\eta &> 3\tau + 2\sigma
+
+    \left(\kappa + \nu + 2\eta - 3\tau - 2\sigma\right)\left(3\lambda + 2\mu\right) &> \left(3\tau + 2\sigma\right)^2
+
+    \kappa - \nu &> 0
+
+    4\mu \left(\kappa + \nu - 2\sigma\right) &> 2\sigma
+
+For the higher order stress parameters, a matrix form may be utilized.
+Define the matrix :math:`\mathbf{T}` as:
+
+.. math::
+    :label: T_matrix
+
+    \mathbf{T} &= 
+    \begin{bmatrix}
+        \tau_1 + \tau_2 + 3\tau_3 + \tau_7 + \tau_{10} & 3\tau_1 + \tau_4 + 3\tau_5 + \tau_8 + \tau_{11} & 3\tau_2 + \tau_5 + \tau_6 + \tau_8 + \tau_9 \\
+        3\tau_1 + \tau_2 + \tau_3 + \tau_8 + \tau_{11} & \tau_1 + 3\tau_4 + \tau_5 + \tau_7 + \tau_9 & \tau_2 + 3\tau_5 + \tau_6 + \tau_8 + \tau_{10} \\
+        \tau_1 + 3\tau_2 + \tau_3 + \tau_8 + \tau_9 & \tau_1 + \tau_4 + 3\tau_5 + \tau_8 + \tau_{10} & \tau_2 + \tau_5 + 3\tau_6 + \tau_7 + \tau_{11} \\
+    \end{bmatrix}
+
+The constraints on terms :math:`\tau_1` to :math:`\tau_{11}` may then be expressed as:
+
+.. math::
+    :label: linear_elastic_constraints_2
+
+    \tau_7 + 2\tau_8 &> |\tau_9 + \tau_{10} + \tau_{11}|
+
+    \tau_7 - \tau_8 &> \frac{1}{\sqrt{2}} |\left(\tau_9 - \tau_{10}\right)^2 + \left(\tau_{10} - \tau_{11}\right)^2 + \left(\tau_{11} - \tau_9\right)^2|^{\frac{1}{2}}
+
+    tr\left(\mathbf{T}\right) &> 0
+
+    tr\left(co\left(\mathbf{T}\right)\right) &> 0
+
+    det\left(\mathbf{T}\right) &> 0
+
+where :math:`tr\left(\cdot\right)` is the trace, :math:`co\left(\mathbf{\cdot}\right)` is the cofactor, and
+:math:`det\left(\cdot\right)` is the determinant of a matrix.
+
+------------------------------
+Micromorphic Elasto-Plasticity
+------------------------------
+
+..
+   TODO: Describe elasto-plastic model
+
+.. note::
+
+    Discussion coming soon!

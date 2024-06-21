@@ -1,0 +1,115 @@
+#! /usr/bin/env python
+
+""" elastic_cylinder compression workflow in Abaqus/Standard
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``abaqus_source_abspath`` - String absolute path to the Abaqus journal files
+  * ``abaqus`` - String path for the Abaqus executable
+  * ``Tardigrade-filter`` - String path for the Micromorphic Filter
+  * ``Tardigrade-MOOSE`` - String path for the Tardigrade-MOOSE application
+  * ``project_name`` - String project name
+  * ``version`` - String project version
+TODO! Finish this docstrings
+"""
+
+import pathlib
+
+import waves
+import xarray
+
+from model_package.DNS_Abaqus import simulation_variables_nominal
+
+# Inherit the parent construction environment
+Import('env')
+
+# set project-wide paths with os-agnostic path separators
+DNS_Abaqus_abspath = pathlib.Path(env["DNS_Abaqus_abspath"])
+filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
+calibrate_source_abspath = pathlib.Path(env["calibrate_source_abspath"])
+Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+model_package_abspath = pathlib.Path(env["model_package_abspath"])
+
+# Simulation variables
+build_directory = pathlib.Path(Dir('.').abspath)
+workflow_name = build_directory.name
+workflow_configuration = [env["project_configuration"], workflow_name]
+output_file_type = "h5"
+model = "elastic_cylinder_clamped"
+params = simulation_variables_nominal.elastic_cylinder_clamp
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+
+# specify targets for visualizing Micromorphic Filter output
+viz_targs =  (
+    ('plot-cauchy-couple', 'cauchy_couple.png'),
+    ('plot-cauchy-stress', 'cauchy_stress.png'),
+    ('plot-PK2-stress', 'PK2_stress.png'),
+    ('plot-symm-stress', 'symm_stress.png'),
+    ('plot-SIGMA-stress', 'SIGMA_stress.png'),
+    ('plot-stress-diff', 'stress_diff.png'),
+    ('plot-body-couples', 'body_couples.png'),
+    ('plot-spin-inertias', 'micro_spin_inertias.png'),
+    ('plot-spin-diff', 'spin_diff.png'),
+    ('plot-stress-norms', 'stress_norms.png'),
+    ('csv-cauchy', 'cauchy.csv'),
+    ('csv-symm', 'symm.csv'),
+    ('csv-stress-diff', 'stress_diff.csv'),
+    ('csv-m', 'm_stress.csv'),
+    ('csv-M', 'M_stress.csv'),
+    )
+params['viz_targs'] = viz_targs
+
+# ---------- DNS ---------------------------------------------------------------
+# Run common DNS sconscript
+workflow.extend(
+    SConscript("Abaqus_elastic_cylinder.scons",
+               exports=["env", "workflow_name", "model", "params"],
+               duplicate=False))
+filter_inputs = params['filter_inputs']
+
+# ---------- FILTER ------------------------------------------------------------
+parameters = {'seed_size': params['height'],
+              'num_domains': 1,}
+filter_results = f"FILTER_RESULTS_{model}_1"
+filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
+params['filter_targs'] = filter_targs
+# Run common filter sconscript
+if env['filter']:
+    workflow.extend(
+        SConscript("filter.scons",
+                   exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
+                   duplicate=False))
+
+# ---------- CALIBRATE ---------------------------------------------------------
+# Run common calibration sconscript
+case = params['calibration_case']
+if env['calibrate']:
+    filter_file = str(build_directory / filter_targs[0])
+    params['filter_file'] = filter_file
+    workflow.extend(
+        SConscript("calibrate_element.scons",
+                   exports=["env", "parameters", "workflow_name", "model", "params"],
+                   duplicate=False))
+params['parameter_sets'] = [f'calibrated_parameters_case_{case}_elem_0.yml']
+
+# ---------- Tardigrade-MOOSE --------------------------------------------------
+# Run common Tardigrade-MOOSE sconscript
+if env['macro']:
+    workflow.extend(
+        SConscript("tardigrade_moose.scons",
+                   exports=["env", "parameters", "workflow_name", "model", "params"],
+                   duplicate=False))
+
+# ---------- ARCHIVE -----------------------------------------------------------
+# Archive
+archive_DNS = True
+if archive_DNS:
+    archive_name = f"{env['project_name']}-{env['version']}"
+    archive_target = env.Tar(
+        target=archive_name,
+        source=workflow + workflow_configuration)
+
+# Collector alias based on parent directory name
+env.Alias(workflow_name, workflow)
+env.Alias(f"{workflow_name}_archive", archive_target)

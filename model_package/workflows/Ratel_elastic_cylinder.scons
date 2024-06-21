@@ -1,0 +1,125 @@
+#! /usr/bin/env python
+
+"""
+    TODO
+"""
+
+import pathlib
+
+import waves
+
+# Inherit the parent construction environment
+Import("env")
+Import("workflow_name")
+Import("model")
+Import("params")
+
+# set project-wide paths with os-agnostic path separators
+DNS_Ratel_abspath = pathlib.Path(env["DNS_Ratel_abspath"])
+filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
+Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+
+# Simulation variables
+build_directory = pathlib.Path(Dir('.').abspath)
+workflow_name = build_directory.name
+workflow_configuration = [env["project_configuration"], workflow_name]
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+
+# Define bounding information from DNS extents
+bounding_csv = f"{model}_bounds.csv"
+bounding_script = "force_bounds.py"
+rad = params['diam']/2
+script_options = f"--xmin {-rad} --xmax {rad} --ymin {-rad} --ymax {rad} --zmin 0.0 --zmax {params['height']}"
+script_options += f" --output-file {bounding_csv}"
+workflow.extend(env.PythonScript(
+    target=bounding_csv,
+    source=[str(filter_source_abspath / bounding_script)],
+    script_options=script_options
+    ))
+
+# Build DNS mesh
+mesh_script = "cylinder_from_bounds.py"
+mesh_file = f"DNS_{model}_mesh.e"
+script_options = f"--output-file {mesh_file.split('.')[0]}"
+script_options += f" --bounds-file {bounding_csv}"
+script_options += f" --seed-size {params['seed']}"
+if params['cut'] == True:
+    script_options += f" --cut cut"
+workflow.extend(env.PythonScript(
+    target=[mesh_file],
+    source=[str(Tardigrade_MOOSE_source_abspath / mesh_script), bounding_csv],
+    script_options=script_options,
+    ))
+
+# Build options file
+options_script = "build_options_file.py"
+options_file = "ratel_input.yml"
+script_options = f"--output-file {options_file}"
+script_options += f" --material-E {params['material_E']}"
+script_options += f" --material-nu {params['material_nu']}"
+script_options += f" --material-rho {params['material_rho']:.10f}"
+script_options += f" --top-id {params['top_surface_id']}"
+script_options += f" --bottom-id {params['bottom_surface_id']}"
+script_options += f" --num-steps {params['num_steps']}"
+script_options += f" --displacement {-1*params['disp']*params['height']}"
+script_options += f" --BCs {params['micro_BC']}"
+workflow.extend(env.PythonScript(
+    target=[options_file],
+    source=[str(DNS_Ratel_abspath / options_script)],
+    script_options=script_options,
+    ))
+
+# Ratel solve
+## TODO: Figure out why targets always rebuild for Ratel jobs
+DNS_results_root = f"DNS_{model}_results"
+force_results = f"{DNS_results_root}_forces.csv"
+ratel_targets = [f"{DNS_results_root}_{n}.vtu" for n in list(range(0,params['num_steps']+1))]
+workflow.extend(env.RatelSolver(
+    target=ratel_targets + [force_results],
+    source=[options_file, mesh_file],
+    Ratel_program=env['Ratel'],
+    options_file=options_file,
+    mesh_file=mesh_file,
+    monitor_file=f"{DNS_results_root}.vtu",
+    force_file=force_results,
+    stdout_file = f"{ratel_targets[0]}.stdout"
+))
+
+# Post-processing step - force vs. displacement
+plot_script = "plot_force_displacement.py"
+plot_targets = [f"{DNS_results_root}_force_displacement.png", f"{DNS_results_root}_force_displacement.csv"]
+script_options = f"--csv-file {force_results}"
+script_options += f" --output-file {plot_targets[0]}"
+script_options += f" --output-csv {plot_targets[1]}"
+script_options += " --face-id 1"
+script_options += f" --final-disp {params['disp']*params['height']}"
+workflow.extend(env.PythonScript(
+    target=[plot_targets],
+    source=[str(DNS_Ratel_abspath / plot_script)],
+    script_options=script_options,
+    ))
+
+# Extract to XDMF filter input
+main_XDMF_name = f"FILTER_INPUT_{model}"
+filter_inputs = [f"{str(build_directory / main_XDMF_name)}.{ext}" for ext in ['xdmf', 'h5']]
+script_options = f"--output-file {str(build_directory / main_XDMF_name)}"
+cauchy_stresses = "DNS_all_33_stresses.csv"
+XDMF_script = "vtk_to_xdmf.py"
+script_options += f" --input-files {' '.join(ratel_targets)}"
+script_options += f" --dump-all-33-stresses {cauchy_stresses}"
+workflow.extend(env.PythonScript(
+    target = filter_inputs + [cauchy_stresses],
+    source = [f"{DNS_Ratel_abspath / XDMF_script}", ratel_targets],
+    script_options = script_options,
+    ))
+
+# add bounding_csv to params to import into other workflows
+params['bounding_csv'] = str(build_directory / bounding_csv)
+
+# add filter_inputs to params to import into other workflows
+params['filter_inputs'] = filter_inputs
+
+env.Alias(workflow_name, workflow)
+Return("workflow")

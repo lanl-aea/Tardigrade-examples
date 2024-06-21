@@ -1,0 +1,29 @@
+.. _small_strain_solution:
+
+***************************************************************
+Solution to small strain linear elasticity for uni-axial stress
+***************************************************************
+
+The solution to infinitesimal (small) strain linear elasticity for uni-axial stress
+is as follows. All stresses are zero except for the :math:`33` component which is homogeneous
+through the cylinder.
+
+.. math::
+
+    \sigma_{11} &= \sigma_{22} = \sigma_{12} = \sigma_{13} = \sigma_{23} = 0
+
+    \varepsilon_{33} &= \frac{\Delta_h}{h_0} = \frac{-0.05 mm}{5.0 mm} = -1.0\%
+
+    \sigma_{33} &= E^* \varepsilon_{33} = 165.0 MPa \cdot -1.0\% = -1.650 MPa
+
+The cylinder will expand laterally due to Poisson's effect corresponding to the lateral
+strain (:math:`\varepsilon_L = \varepsilon_{11} = \varepsilon_{22}`). The total force
+acting on the cylinder, :math:`F_3` may then be calculated according to the resulting
+stress and final area, :math:`A_f`.
+
+.. math::
+
+    \varepsilon_L &= - \nu^* \cdot \varepsilon_{33} = 0.0039
+
+    F_3 &= \sigma_{33} A_f = \frac{\pi \sigma_{33}}{4} \left[ d_0 \left( 1 + \varepsilon_{L} \right) \right]^2 = -32.651 N
+

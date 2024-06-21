@@ -1,0 +1,184 @@
+#! /usr/bin/env python
+
+""" TODO
+
+"""
+
+import pathlib
+
+import waves
+import numpy
+import SCons.Defaults
+
+from model_package.DNS_Ratel import simulation_variables_nominal
+
+# Inherit the parent construction environment
+Import('env')
+
+# set project-wide paths with os-agnostic path separators
+DNS_Ratel_abspath = pathlib.Path(env["DNS_Ratel_abspath"])
+filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
+calibrate_source_abspath = pathlib.Path(env["calibrate_source_abspath"])
+Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+model_package_abspath = pathlib.Path(env["model_package_abspath"])
+peta_data_copy_abspath = pathlib.Path(env["peta_data_copy_abspath"])
+
+# Simulation variables
+build_directory = pathlib.Path(Dir('.').abspath)
+workflow_name = build_directory.name
+workflow_configuration = [env["project_configuration"], workflow_name]
+output_file_type = "h5"
+model = "F83"
+params = simulation_variables_nominal.F83
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+
+# specify targets for visualizing Micromorphic Filter output
+viz_targs =  (
+    ('plot-stress-norms', 'stress_norms.png'),
+    ('csv-cauchy', 'cauchy.csv'),
+    ('csv-PK2', 'PK2.csv'),
+    ('csv-GLstrain', 'GLstrain.csv'),
+    ('csv-estrain', 'estrain.csv'),
+    ('csv-ref-mod', 'ref_moduli.csv'),
+    ('csv-cur-mod', 'cur_moduli.csv'),
+    ('csv-symm', 'symm.csv'),
+    ('csv-stress-diff', 'stress_diff.csv'),
+    ('csv-m', 'm_stress.csv'),
+    ('csv-M', 'M_stress.csv'),
+    ('csv-stress33-all', 'all_33_stresses.csv'),
+    )
+params['viz_targs'] = viz_targs
+
+# ---------- Process existing DNS ----------------------------------------------
+results_files = [f"{peta_data_copy_abspath}/{file.split('/')[-1]}" for file in params['DNS_files']]
+
+# Filter prep - Extract results to XDMF
+main_XDMF_name = f"FILTER_INPUT_{model}"
+filter_inputs = [f"{str(build_directory / main_XDMF_name)}.{ext}" for ext in ['xdmf', 'h5']]
+cauchy_stresses = "DNS_all_33_stresses.csv"
+XDMF_script = "vtk_to_xdmf.py"
+script_options = f"--input-files {' '.join(results_files)}"
+script_options += f" --output-file {str(build_directory / main_XDMF_name)}"
+script_options += f" --dump-all-33-stresses {cauchy_stresses}"
+workflow.extend(env.PythonScript(
+    target=filter_inputs + [cauchy_stresses],
+    source=[str(DNS_Ratel_abspath / XDMF_script)] + results_files,
+    script_options=script_options))
+
+# Get bounding information from DNS extents
+bounding_csv = f"{model}_bounds.csv"
+bounding_script = "bounds_from_DNS.py"
+script_options = f"--dns-file {filter_inputs[0]}"
+script_options += f" --output-file {bounding_csv}"
+workflow.extend(env.PythonScript(
+    target=bounding_csv,
+    source=[str(filter_source_abspath / bounding_script)] + filter_inputs,
+    script_options=script_options))
+params['bounding_csv'] = str(build_directory / bounding_csv)
+
+# # ---------- FILTER ----------------------------------------------------------
+# setup several options for different studies
+if params['cut'] == False:
+    if 'cubit' not in env.keys():
+        raise NotImplementedError("Without access to Cubit, this workflow can not be completed!")
+    parameter_schema = dict(
+        parameter_samples = numpy.array([
+            [5.0, 1],
+            [2.5, 4],
+            [2.0, 36],
+            [1.0, 160],
+            [0.5, 930],
+            #[0.375, 2067],
+            #[0.25, 7080],
+            ], dtype=object),
+        parameter_names = numpy.array(["seed_size", "num_domains"])
+    )
+elif params['cut'] == True:
+    parameter_schema = dict(
+        parameter_samples = numpy.array([
+            [5.0, 1],
+            [2.5, 24],
+            [1.5, 48],
+            [1.0, 192],
+            [0.5, 960],
+            #[0.375, 2520],
+            #[0.25, 7680],
+            ], dtype=object),
+        parameter_names = numpy.array(["seed_size", "num_domains"])
+    )
+else:
+    print('Specify valid option!')
+
+parameter_generator = waves.parameter_generators.CustomStudy(parameter_schema)
+for set_name, parameters in parameter_generator.parameter_study_to_dict().items():
+    set_name = pathlib.Path(set_name)
+
+    domain_number = parameters['num_domains']
+    seed_size = parameters['seed_size']
+
+    filter_results = f"FILTER_RESULTS_{model}_{int(domain_number)}"
+    filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
+    params['filter_targs'] = filter_targs
+
+    # ---------- FILTER --------------------------------------------------------
+    # Run common filter sconscript
+    if env['filter']:
+        variant_dir = build_directory / set_name
+        workflow.extend(
+            SConscript("filter.scons", variant_dir=variant_dir,
+                       exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
+                       duplicate=False))
+
+    # ---------- CALIBRATE -----------------------------------------------------
+    case = params['calibration_case']
+    if env['calibrate']:
+        filter_file = str(build_directory / set_name / filter_targs[0])
+        params['filter_file'] = filter_file
+        variant_dir = build_directory / set_name
+        # Run common calibration sconscript
+        workflow.extend(
+            SConscript("calibrate_element.scons", variant_dir=variant_dir,
+                       exports=["env", "parameters", "workflow_name", "model", "params"],
+                       duplicate=False))
+    if domain_number == 1:
+        params['parameter_sets'] = [f'calibrated_parameters_case_{case}_elem_0.yml']
+    else:
+        params['parameter_sets'] = [f'parameter_set{i}/calibrated_parameters_case_{case}_elem_{i}.yml' for i in range(0, int(domain_number))]
+
+    # ---------- Tardigrade-MOOSE ----------------------------------------------
+    # Run common Tardigrade-MOOSE sconscript
+    if env['macro']:
+        variant_dir = build_directory / set_name
+        workflow.extend(
+            SConscript("tardigrade_moose.scons", variant_dir=variant_dir,
+                       exports=["env", "parameters", "workflow_name", "model", "params"],
+                       duplicate=False))
+
+
+# ---------- Collect Results across Studies ------------------------------------
+# Run common post-processing sconscript
+if env['summary']:
+    study = parameter_generator.parameter_study_to_dict()
+    set_names = [pathlib.Path(set_name) for set_name, _ in study.items()]
+    num_domains = [str(study[key]['num_domains']) for key in study.keys()]
+    dns_forces = "FIX_THIS.csv"
+
+    workflow.extend(
+        SConscript("summarize_multi_domain.scons",
+                   exports=["env", "workflow_name", "model", "params", "set_names", "num_domains", "dns_forces"],
+                   duplicate=False))
+
+# ---------- ARCHIVE -----------------------------------------------------------
+# Archive
+archive_DNS = True
+if archive_DNS:
+    archive_name = f"{env['project_name']}-{env['version']}"
+    archive_target = env.Tar(
+        target=archive_name,
+        source=workflow + workflow_configuration)
+
+# Collector alias based on parent directory name
+env.Alias(workflow_name, workflow)
+env.Alias(f"{workflow_name}_archive", archive_target)
