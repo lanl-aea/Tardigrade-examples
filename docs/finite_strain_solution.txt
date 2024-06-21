@@ -1,0 +1,97 @@
+.. _finite_strain_solution:
+
+*********************************************************************
+Solution to finite deformation linear elasticity for uni-axial stress
+*********************************************************************
+
+The Micromorphic Filter provides homogenized stresses and deformations
+in the finite strain regime. Therefore, it is possible that homogenized
+DNS results may differ from the input DNS results which may be run in
+either the small or finite strain regimes. Here, the applied nominal
+strain of -1% corresponds to a stretch, :math:`\alpha_3`, of 0.99. The
+lateral stretches, (:math:`\alpha_L = \alpha_1 = \alpha_2`), will be
+equal and unknown. The applied uniform deformation gradient is therefore:
+
+.. math::
+
+    \left[\mathbf{F}\right] =
+    \begin{bmatrix}
+        \alpha_L & 0 & 0 \\
+        0 & \alpha_L & 0 \\
+        0 & 0 & \alpha_3 \\
+    \end{bmatrix}
+
+The Green-Lagrange strain is:
+
+.. math::
+
+    \mathbf{E} &= \frac{1}{2} \left(\mathbf{F}^T \mathbf{F} - \mathbf{I} \right)
+    &= \frac{1}{2}
+    \begin{bmatrix}
+        \left(\alpha_L^2 - 1\right) & 0 & 0 \\
+        0 & \left(\alpha_L^2 - 1\right) & 0 \\
+        0 & 0 & \left(\alpha_3^2 - 1\right) \\
+    \end{bmatrix}
+
+The second Piola-Kirchhoff stress for the Saint Venant Kirchhoff model
+:cite:`ogden_non-linear_1997` may then be calculated. First, the elastic Modulus,
+:math:`E^*`, and Poisson ratio, :math:`\nu^*`, need to be converted to the
+Lame\'e constant, :math:`\lambda^*`, and shear modulus, :math:`\mu^*`, according to:
+
+.. math::
+   :label: verification_lame_parameters
+
+    \lambda^* &= \frac{E^* \nu^*}{\left(1 + \nu^* \right) \left(1 - 2\nu^*\right)} ~ 210.4 MPa
+
+    \mu^* &= \frac{E^*}{2\left(1 + \nu^* \right)} ~ 59.35 MPa
+
+The second Piola-Kirchhoff stress is thus:
+
+.. math::
+
+    \mathbf{S} = \lambda^* tr\left(\mathbf{E}\right) \mathbf{I} + 2\mu^*\mathbf{E}
+
+where :math:`tr(\mathbf{E})` is the sum of the diagonal components of the Green-Lagrange strain:
+
+.. math::
+
+    tr\left(\mathbf{E}\right) = E_{kk} =  E_{11} + E_{22} + E_{33} = \left(\alpha_L^2 -1\right) + \frac{1}{2}\left(\alpha_3^2 -1\right)
+
+The stress may be pushed forward to the current configuration to calculate the Cauchy
+stress, which is calculated by the Micromorphic Filter, as:
+
+.. math::
+
+    \mathbf{\sigma} = \frac{1}{J} \mathbf{F S F^T}
+
+The total applied force is then calculated based on the lateral stretch,
+:math:`\alpha_L`, as:
+
+.. math::
+
+    F_3 = \sigma_{33} A_f = \frac{\pi \sigma_{33}}{4} \left(d_0 \alpha_L\right)
+
+To solve this system of equations, one must first determine the unknown lateral stretch,
+:math:`\alpha_L`, which may be determined by recognizing that the lateral normal stresses
+will be zero.
+
+.. math::
+
+    S_{11} &= S_{22} = 0
+
+    S_{11} &= \lambda^* \left[\left(\alpha_L^2 -1\right) + \frac{1}{2}\left(\alpha_3^2 - 1 \right)\right] + \mu^* \left(\alpha_L^2 - 1\right) = 0
+
+    &\rightarrow \alpha_L = \sqrt{\frac{\left(3 - \alpha_3^2\right)\frac{\lambda^*}{2}  + \mu^*}{\lambda^* + \mu^*}}
+
+Upon substitution of :math:`\alpha_3 = 0.99`, the lateral stretch is found to be :math:`\alpha_L = 1.003873`.
+
+Finally, the stresses of interest and total force will be equal to:
+
+.. math::
+   :label: finite_deformation_results
+
+    S_{33} &= -1.64175 MPa
+
+    \sigma_{33} &= -1.61282 MPa
+
+    F_3 &= -31.91 N

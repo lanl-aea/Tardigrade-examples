@@ -1,0 +1,180 @@
+#! /usr/bin/env python
+"""
+    TODO
+"""
+import pathlib
+
+import waves
+
+# Inherit the parent construction environment
+Import("env")
+Import("workflow_name")
+Import("model")
+Import("params")
+Import("set_names")
+Import("num_domains")
+Import("dns_forces")
+
+# Set project-wide paths
+filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
+calibrate_source_abspath = pathlib.Path(env["calibrate_source_abspath"])
+Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+
+# workflow variables
+build_directory = pathlib.Path(Dir(".").abspath)
+workflow_configuration = [env["project_configuration"], workflow_name]
+case = params['calibration_case']
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+
+# Statistics for homogenized quanties
+collect_script = 'collect_multi_domain_stats.py'
+for stat in ['cauchy', 'PK2', 'estrain', 'GLstrain', 'ref_moduli', 'cur_moduli', 'stress_diff', 'm_stress', 'M_stress']:
+    csv_files = [str(set_name / f"{stat}.csv") for set_name in set_names]
+    output_file = f'collected_{stat}.csv'
+    script_options = f"--csv-files {' '.join(csv_files)}"
+    script_options += f" --num-domains {' '.join(num_domains)}"
+    script_options += f" --output-file {output_file}"
+    workflow.extend(env.PythonScript(
+        target=[output_file],
+        source=[f"{filter_source_abspath / collect_script}"] + csv_files,
+        script_options=script_options
+        ))
+
+# Box and Whisker plot for Cauchy 33, just homogenization results
+csv_files = [str(set_name / "all_33_stresses.csv") for set_name in set_names]
+output_file = f'cauchy33_box_plot_noDNS.png'
+script_options = f"--csv-files {' '.join(csv_files)}"
+script_options += f" --num-domains {' '.join(num_domains)}"
+script_options += f" --box-plot {output_file}"
+workflow.extend(env.PythonScript(
+    target=[output_file],
+    source=[f"{filter_source_abspath / collect_script}"] + csv_files,
+    script_options=script_options
+    ))
+
+# Box and Whisker plot for Cauchy 33, DNS and homogenization results
+csv_files = [str(set_name / "all_33_stresses.csv") for set_name in set_names]
+csv_files.append('DNS_all_33_stresses.csv')
+output_file = f'cauchy33_box_plot.png'
+script_options = f"--csv-files {' '.join(csv_files)}"
+script_options += f" --num-domains {' '.join(num_domains)} DNS"
+script_options += f" --box-plot {output_file}"
+workflow.extend(env.PythonScript(
+    target=[output_file],
+    source=[f"{filter_source_abspath / collect_script}"] + csv_files,
+    script_options=script_options
+    ))
+
+#Box and Whisker plot for Cauchy 33, just DNS results
+csv_files = ['DNS_all_33_stresses.csv']
+output_file = f'cauchy33_box_plot_DNS.png'
+script_options = f"--csv-files {' '.join(csv_files)}"
+script_options += f" --num-domains DNS"
+script_options += f" --box-plot {output_file}"
+script_options += " --narrow True"
+workflow.extend(env.PythonScript(
+    target=[output_file],
+    source=[f"{filter_source_abspath / collect_script}"] + csv_files,
+    script_options=script_options
+    ))
+
+# Collect balance equation errors from Micromorphic Filter
+collect_error = 'collect_multi_domain_errors.py'
+csv_files = [str(set_name / f"FILTER_RESULTS_{model}_{int(domain)}_errors.csv") for set_name, domain in zip(set_names, num_domains)]
+output_file = f'collected_balance_errors.png'
+script_options = f"--csv-files {' '.join(csv_files)}"
+script_options += f" --num-domains {' '.join(num_domains)}"
+script_options += f" --output-file {output_file}"
+workflow.extend(env.PythonScript(
+    target=[output_file],
+    source=[f"{filter_source_abspath / collect_error}"] + csv_files,
+    script_options=script_options
+    ))
+
+# Create joint probability distribution plot for calibrated parameters
+#TODO: fix for single domain cases! Currently skipping them
+joint_script = 'joint_probability_distributions.py'
+csv_files = [str(set_name / f"Calibration_results_{int(domain)}_domains_case_{case}.csv") for set_name, domain in zip(set_names[1:], num_domains[1:])]
+output_file = f'joint_probability_distributions_case_{case}.png'
+script_options = f"--output-file {output_file}"
+script_options += f" --csv-files {' '.join(csv_files)}"
+script_options += f" --num-domains {' '.join(num_domains[1:])}"
+script_options += f" --distribution-plots distributions_case_{case}"
+script_options += f" --full-kde full_kde_case_{case}"
+workflow.extend(env.PythonScript(
+    target=[output_file],
+    source=[f"{calibrate_source_abspath / joint_script}"] + csv_files,
+    script_options=script_options
+    ))
+
+# Create joint probability distribution plot for calibrated parameters - ignore boundaries
+#TODO: figure out a way to automatically detect if an "int(domain)" case has an empty summary_no_BCs.csv file because all elements are on BC, if so skip that file
+if ('ignore_boundary' in params.keys()) and (params['ignore_boundary'] == True):
+    csv_files = [str(set_name / f"Calibration_results_{int(domain)}_domains_case_{case}_no_BCs.csv") for set_name, domain in zip(set_names[2:], num_domains[2:])]
+    output_file = f'joint_probability_distributions_case_{case}_no_BCs.png'
+    script_options = f"--output-file {output_file}"
+    script_options += f" --csv-files {' '.join(csv_files)}"
+    script_options += f" --num-domains {' '.join(num_domains[2:])}"
+    script_options += f" --distribution-plots distributions_case_{case}_no_BCs"
+    script_options += f" --full-kde full_kde_case_{case}_no_BCS"
+    workflow.extend(env.PythonScript(
+        target=[output_file],
+        source=[f"{calibrate_source_abspath / joint_script}"] + csv_files,
+        script_options=script_options
+        ))
+# Collect DNS and Tardigrade-MOOSE force vs displacements and plot
+#TODO: fix for single domain cases! Currently skipping them
+summary_script = "summarize_micro_macro_force_displacements.py"
+output_targets = [f"all_force_displacements_case_{case}.png", f"all_force_displacements_case_{case}.csv"]
+force_files = [dns_forces]
+plot_labels = ["DNS"]
+for set_name, domain in zip(set_names[1:], num_domains[1:]):
+    force_files.append(str(set_name / f"TARDIGRADE-MOOSE_{model}_{int(domain)}_elements_calib_case_{case}_force_displacement.csv"))
+    plot_labels.append(f"'{str(domain)} domain'")
+script_options = f"--csv-files {' '.join(force_files)}"
+script_options += f" --plot-labels {' '.join(plot_labels)}"
+script_options += f" --output-file {output_targets[0]}"
+script_options += f" --output-csv {output_targets[1]}"
+workflow.extend(env.PythonScript(
+    target=output_targets,
+    source=[f"{Tardigrade_MOOSE_source_abspath / summary_script}"] + force_files,
+    script_options=script_options
+    ))
+
+# ignore domain case
+if ('ignore_boundary' in params.keys()) and (params['ignore_boundary'] == True):
+    output_targets = [f"all_force_displacements_case_{case}_ignore_boundary_no24.png",
+                      f"all_force_displacements_case_{case}_ignore_boundary_no24.csv"]
+    force_files = [dns_forces]
+    plot_labels = ["DNS"]
+    for set_name, domain in zip(set_names[2:], num_domains[2:]):
+        force_files.append(str(set_name / f"TARDIGRADE-MOOSE_{model}_{domain}_elements_calib_case_{case}_ignore_BCs_force_displacement.csv"))
+        plot_labels.append(f"'{domain} domain'")
+    script_options = f"--csv-files {' '.join(force_files)}"
+    script_options += f" --plot-labels {' '.join(plot_labels)}"
+    script_options += f" --output-file {output_targets[0]}"
+    script_options += f" --output-csv {output_targets[1]}"
+    workflow.extend(env.PythonScript(
+        target=output_targets,
+        source=[f"{Tardigrade_MOOSE_source_abspath / summary_script}"],
+        script_options=script_options
+        ))
+
+    output_targets = [f"all_force_displacements_case_{case}_ignore_boundary.png",
+                      f"all_force_displacements_case_{case}_ignore_boundary.csv"]
+    force_files.insert(1, f'parameter_set1/TARDIGRADE-MOOSE_{model}_24_elements_calib_case_{case}_force_displacement.csv')
+    plot_labels.insert(1, "'24 domain'")
+    script_options = f"--csv-files {' '.join(force_files)}"
+    script_options += f" --plot-labels {' '.join(plot_labels)}"
+    script_options += f" --output-file {output_targets[0]}"
+    script_options += f" --output-csv {output_targets[1]}"
+    workflow.extend(env.PythonScript(
+        target=output_targets,
+        source=[f"{Tardigrade_MOOSE_source_abspath / summary_script}"],
+        script_options=script_options
+        ))
+
+env.Alias(workflow_name, workflow)
+Return("workflow")

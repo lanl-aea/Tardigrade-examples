@@ -1,0 +1,165 @@
+#! /usr/bin/env python
+
+"""
+    TODO
+"""
+
+import pathlib
+
+import waves
+import SCons.Defaults
+
+# Inherit the parent construction environment
+Import("env")
+Import("parameters")
+Import("workflow_name")
+Import("model")
+Import("params")
+Import("filter_inputs")
+
+# Set project-wide paths
+filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
+Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
+
+# workflow variables
+build_directory = pathlib.Path(Dir(".").abspath)
+workflow_configuration = [env["project_configuration"], workflow_name]
+domain_number = parameters['num_domains']
+seed_size = parameters['seed_size']
+bounding_csv = params['bounding_csv']
+cut = params['cut']
+viz_targs =  params['viz_targs']
+
+filter_results = params['filter_targs'][0].split('.')[0]
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+
+# Filter prep - write macroscale_domain
+macro_file = f"FILTER_macroscale_{model}_{int(domain_number)}"
+if domain_number == 1:
+    # Single filter domain option
+    macro_script = "single_macroscale.py"
+    mesh_targets = [f"{macro_file}.xdmf"]
+    script_options = f" --output-file {macro_file}"
+    script_options += f" --csv-file {bounding_csv}"
+    workflow.extend(env.PythonScript(
+        target=mesh_targets,
+        source = [f"{filter_source_abspath / macro_script}", bounding_csv],
+        script_options = script_options
+    ))
+else:
+    # Build mesh if Cubit is found, otherwise copy a template
+    if 'cubit' in env.keys():
+        macro_script = "cylinder_from_bounds.py"
+        mesh_targets = [f"{macro_file}_temp.e"]
+        script_options = f"--output-file {macro_file}_temp"
+        script_options += f" --bounds-file {bounding_csv}"
+        script_options += f" --seed-size {seed_size}"
+        if cut:
+            script_options += f" --cut cut"
+        workflow.extend(env.PythonScript(
+            target=[mesh_targets],
+            source=[str(Tardigrade_MOOSE_source_abspath / macro_script), bounding_csv],
+            script_options=script_options
+            ))
+    else:
+        seed_str = f"{str(seed_size).split('.')[0]}p{str(seed_size).split('.')[-1]}"
+        mesh_copy = f"{params['mesh_copy_root']}_{seed_str}_{domain_number}_elements.e"
+        workflow.extend(env.Command(
+            target=[f"{macro_file}_temp.e"],
+            source=[f"{mesh_templates_abspath}/{mesh_copy}"],
+            action=SCons.Defaults.Copy("${TARGET}", "${SOURCE}", False)
+            ))
+
+    # convert to foramt needed by filter
+    convert_script = "xdmf_tomfoolery.py"
+    new_mesh_targets = [f"{macro_file}.{ext}" for ext in ['xdmf', 'h5']]
+    script_options = f"--output-file {macro_file}"
+    script_options += f" --input-file {macro_file}_temp.e"
+    workflow.extend(env.PythonScript(
+        target=[new_mesh_targets],
+        source=[str(filter_source_abspath / convert_script)],
+        script_options=script_options
+        ))
+
+## Filter prep - write filter config
+filter_config_script = "build_filter_config.py"
+job_name = str(build_directory / f"{filter_results}.xdmf")
+filter_config_file = f"FILTER_config_{model}_{int(domain_number)}.yml"
+script_options = f" --output-file {filter_config_file}"
+script_options += f" --job-name {job_name}"
+script_options += f" --dns-file {filter_inputs[0]}"
+script_options += f" --macro-file {macro_file}.xdmf"
+script_options += " --volume volume --density density --cauchy-stress stress --displacement disp"
+if params['acceleration'] == True:
+    script_options += " --acceleration acc"
+if params['velocity'] == True:
+    script_options += " --velocity vel"
+script_options += f" --max-parallel {params['filter_parallel']}"
+workflow.extend(env.PythonScript(
+    target = [filter_config_file],
+    source = [f"{filter_source_abspath / filter_config_script}"] + filter_inputs,
+    script_options = script_options
+))
+
+## Filter!
+filter_script = "run_micromorphic_filter.py"
+#filter_sources = filter_inputs + [f'{macro_file}.xdmf', filter_config_file]
+filter_sources = [f'{macro_file}.xdmf', filter_config_file]
+filter_targs = params['filter_targs']
+script_options = f" --config-file {filter_config_file}"
+workflow.extend(env.PythonScript(
+    target = filter_targs,
+    source = [f"{filter_source_abspath / filter_script}"] + filter_sources + filter_inputs,
+    script_options = script_options
+))
+
+## Parse balance equation errors
+balance_script = "parse_balance_errors.py"
+balance_file = f"{filter_results}.xdmf.stdout"
+output_csv = f"{filter_results}_errors.csv"
+output_plot = f"{filter_results}_errors.png"
+script_options = f" --input-file {balance_file}"
+script_options += f" --output-csv {output_csv}"
+script_options += f" --output-plot {output_plot}"
+workflow.extend(env.PythonScript(
+    target = [output_csv, output_plot],
+    source = [f"{filter_source_abspath / balance_script}", balance_file] + filter_targs,
+    script_options = script_options
+))
+
+## Visualize, make some plots and populate documentation
+viz_script = "visualize_results.py"
+script_options = f"--input-file {filter_results}.xdmf"
+script_options += f" --num-domains {domain_number}"
+viz_targets = []
+for option, target in viz_targs:
+    script_options += f" --{option} {target}"
+    viz_targets.append(target)
+if 'csv-all-quantities-single-domain' in [targ[0] for targ in viz_targs]:
+    script_options += f" --rho-binder {params['rho_binder']}"
+    script_options += f" --rho-grain {params['rho_grain']}"
+#script_options += " --options average"
+workflow.extend(env.PythonScript(
+    target = viz_targets,
+    source = [f"{filter_source_abspath / viz_script}"] + filter_targs,
+    script_options=script_options
+))
+
+## Generate a copy of the XDMF Filter results file with local paths for opening in Paraview
+local_path_script = "xdmf_local_paths.py"
+output_file = f"{filter_results}_for_paraview.xdmf"
+script_options = f"--input-file {filter_results}.xdmf"
+script_options += f" --output-file {output_file}"
+script_options += f" --oldpath {build_directory/filter_results}.h5"
+script_options += f" --newpath {filter_results}.h5"
+workflow.extend(env.PythonScript(
+    target = output_file,
+    source = [f"{filter_source_abspath / local_path_script}"] + filter_targs,
+    script_options=script_options
+))
+
+env.Alias(workflow_name, workflow)
+Return("workflow")

@@ -1,0 +1,15 @@
+.wy-nav-content {
+    max-width: 1200px !important;
+}
+
+button.copybtn {
+   opacity: 1;
+}
+
+.math {
+    text-align: left;
+}
+
+.eqno {
+    float: right;
+}

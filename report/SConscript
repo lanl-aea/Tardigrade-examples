@@ -1,0 +1,145 @@
+#! /usr/bin/env python
+"""modsim_template report workflow
+
+Requires the following ``SConscript(..., exports=[])``
+
+* ``env`` - The SCons construction environment with the following required keys
+
+  * ``project_dir`` - String absolute path to the modsim project root directory
+  * ``sphinx_build`` - String path for the Sphinx build executable
+  * ``regression_alias`` - String for the alias collecting the regression workflow targets
+  * ``documentation_abspath`` - String absolute path to the modsim HTML documentation source files
+
+* ``project_variables`` - The project variables for use in Sphinx documentation parameters
+"""
+
+import pathlib
+
+import waves
+
+# Inherit the parent construction environment
+Import(["env", "project_variables"])
+
+# Set empty workflow list
+report = []
+
+# Perform variable substitution on Sphinx configuration file
+report.extend(env.Substfile(
+    "conf.py.in",
+    SUBST_DICT=waves.scons_extensions.substitution_syntax(project_variables)
+))
+
+# Copy project root files required by the documentation
+project_dir = pathlib.Path(env["project_dir"])
+DNS_Abaqus = pathlib.Path(env["DNS_Abaqus_abspath"])
+DNS_Ratel = pathlib.Path(env["DNS_Ratel_abspath"])
+workflow_dir = pathlib.Path(env["workflow_abspath"])
+root_files = [("README.txt", str(project_dir / "README.rst")),
+              ("environment.yml", str(project_dir / "environment.yml")),
+              ("SConstruct.py", str(project_dir / "SConstruct")),
+              ("Abaqus_elastic_cylinder", str(workflow_dir / "Abaqus_elastic_cylinder")),
+              ("DNS_Abaqus_simulation_variables_nominal.py", str(DNS_Abaqus / "simulation_variables_nominal.py")),
+              ("DNS_Ratel_simulation_variables_nominal.py", str(DNS_Ratel / "simulation_variables_nominal.py"))]
+for target, source in root_files:
+    report.extend(env.Command(
+        target=[target],
+        source=[source],
+        action=Copy("$TARGET", "$SOURCE")))
+
+# Copy documentation source files re-used in the report
+documentation_abspath = pathlib.Path(env["documentation_abspath"])
+figures_abspath = pathlib.Path.joinpath(documentation_abspath, 'figures')
+report_copy_list = [
+    documentation_abspath / "project_brief.txt",
+    documentation_abspath / "zreferences.rst",
+    documentation_abspath / "references.bib",
+    documentation_abspath / "targets.txt",
+    # Main docs
+    documentation_abspath / "api.rst",
+    documentation_abspath / "build.txt",
+    documentation_abspath / "cli.rst",
+    documentation_abspath / "changelog.rst",
+    documentation_abspath / "contribution.txt",
+    documentation_abspath / "dependencies.txt",
+    documentation_abspath / "devops.rst",
+    documentation_abspath / "documentation.txt",
+    documentation_abspath / "glossary.rst",
+    documentation_abspath / "index.rst",
+    documentation_abspath / "references.bib",
+    documentation_abspath / "release_philosophy.rst",
+    documentation_abspath / "targets.txt",
+    documentation_abspath / "user.rst",
+    documentation_abspath / "zreferences.rst",
+    documentation_abspath / "_static/custom.css",
+    # Workflow description
+    documentation_abspath / "workflow_overview.rst",
+    documentation_abspath / "workflow_micromorphic.rst",
+    documentation_abspath / "workflow_constitutive.txt",
+    documentation_abspath / "workflow_homogenization.rst",
+    documentation_abspath / "workflow_calibration.rst",
+    documentation_abspath / "workflow_macroscale.rst",
+    # Detailed micromorphic theory appendix
+    documentation_abspath / "micromorphic_theory.rst",
+    documentation_abspath / "micromorphic_theory_balance.txt",
+    documentation_abspath / "micromorphic_theory_constitutive.txt",
+    documentation_abspath / "micromorphic_theory_filter.txt",
+    documentation_abspath / "micromorphic_theory_kinematics.txt",
+    # Software linking
+    documentation_abspath / "software_overview.rst",
+    documentation_abspath / "software_installation.rst",
+    documentation_abspath / "software_usage.rst",
+    # Studies
+    documentation_abspath / "Quasi_static_verification.rst",
+    documentation_abspath / "small_strain_solution.txt",
+    documentation_abspath / "finite_strain_solution.txt",
+    documentation_abspath / "Abaqus_elastic_cylinder.rst",
+    documentation_abspath / "Ratel_elastic_cylinder.rst",
+    documentation_abspath / "Abaqus_elastic_cylinder_dynamic_imp.rst",
+    documentation_abspath / "Ratel_I41_02_elastic.rst",
+    # figures
+    # Static Abaqus cylinder
+    figures_abspath / "Abaqus_elastic_cylinder_fd.png",
+    figures_abspath / "Abaqus_elastic_cylinder_geometry.png",
+    figures_abspath / "Abaqus_elastic_cylinder_mesh.png",
+    figures_abspath / "Abaqus_elastic_cylinder_S33.png",
+    figures_abspath / "Abaqus_elastic_cylinder_1_cauchy33.png",
+    figures_abspath / "Abaqus_elastic_cylinder_24_cauchy33.png",
+    figures_abspath / "Abaqus_elastic_cylinder_48_cauchy33.png",
+    figures_abspath / "Abaqus_elastic_cylinder_192_cauchy33.png",
+    # Dynamic Abaqus cylinder
+    figures_abspath / "Abaqus_elastic_cylinder_dynamic_mesh.png",
+    figures_abspath / "Abaqus_elastic_cylinder_dynamic_comparison.png",
+    figures_abspath / "Meirovitch_figure_8_6.png",
+    figures_abspath / "Meirovitch_series_convergence.png",
+    # Ratel I41_02
+    figures_abspath / "Ratel_I41_02_cauchy.png",
+    figures_abspath / "Ratel_I41_02_cauchy_cut.png",
+    # Workflow and general
+    figures_abspath / "upscaling_flowchart.png",
+    figures_abspath / "micromorphic_microaveraging_domains.svg",
+    figures_abspath / "averaging_domains.png",
+    figures_abspath / "superimposed_macroscale.jpeg",
+    figures_abspath / "micromorphic_filter_experimental_data.png",
+    figures_abspath / "single_element_calibration.png",
+]
+report_copy_list = [pathlib.Path(source_file) for source_file in report_copy_list]
+report.extend(waves.scons_extensions.copy_substitute(
+    report_copy_list,
+    substitution_dictionary=waves.scons_extensions.substitution_syntax(project_variables)))
+
+# PDF Report build task
+report_source_list = ["index.rst"] + [source_file.name.rstrip(".in") for source_file in report_copy_list]
+report_directory = Dir("latex")
+sphinx_options = "-W"
+report.extend(env.Command(
+    target=[report_directory],
+    source=report_source_list,
+    action=f"{env['sphinx_build']} -M latexpdf ${{TARGET.dir.abspath}} ${{TARGET.dir.abspath}} ${{sphinx_options}}",
+    sphinx_options=sphinx_options
+))
+env.AlwaysBuild(report)
+env.Clean(report, report_directory)
+
+# Collector alias to build the PDF report
+parent_directory = Dir(".").srcnode().name
+env.Alias(parent_directory, report)

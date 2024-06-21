@@ -1,0 +1,186 @@
+#! /usr/bin/env python
+"""
+    TODO
+"""
+import pathlib
+import os
+
+import waves
+import numpy
+import yaml
+
+# Inherit the parent construction environment
+Import("env")
+Import("parameters")
+Import("workflow_name")
+Import("model")
+Import("params")
+
+# Set project-wide paths
+calibrate_source_abspath = pathlib.Path(env["calibrate_source_abspath"])
+
+# workflow variables
+build_directory = pathlib.Path(Dir(".").abspath)
+workflow_configuration = [env["project_configuration"], workflow_name]
+domain_number = parameters['num_domains']
+seed_size = parameters['seed_size']
+filter_file = params['filter_file']
+case = params['calibration_case']
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+ignore_boundary_parameter_sets = []
+
+calibration_script = 'calibrate_element.py'
+plot_root = 'CALIBRATION_COMPARISON'
+
+if domain_number == 1:
+    calibration_targs = [f'calibrated_parameters_case_{case}_elem_0.yml',
+                         f'{plot_root}_cauchy_fit_case_{case}.PNG',
+                         f'{plot_root}_symm_fit_case_{case}.PNG']
+    script_options = f"--input-file {filter_file}"
+    script_options += f" --output-file {calibration_targs[0]}"
+    script_options += f" --case {case}"
+    script_options += f" --Emod {params['material_E']}"
+    script_options += f" --nu {params['material_nu']}"
+    script_options += f" --L 1.0"
+    script_options += f" --element 0"
+    script_options += f" --plot-file {plot_root}"
+    if ('UQ_file' in params.keys()) and (params['UQ_file'] == True):
+        UQ_output = f"{calibration_targs[0].split('.')[0]}_evals.csv"
+        calibration_targs.append(UQ_output)
+        script_options += f" --UQ-file {UQ_output}"
+    workflow.extend(env.PythonScript(
+        target = calibration_targs,
+        source = [f"{calibrate_source_abspath / calibration_script}", filter_file],
+        script_options = script_options
+    ))
+    # # summarize calibration results
+    # summary_script = 'summarize_calibration_results.py'
+    # summary_targs = [f'Calibration_results_{int(domain_number)}_domains_case_{case}.csv']
+    # script_options = f'--parameter-sets {calibration_targs[0]}'
+    # script_options += f' --case {case}'
+    # script_options += f' --results-csv {summary_targs[0]}'
+    # workflow.extend(env.PythonScript(
+        # target = summary_targs,
+        # source = [str(calibrate_source_abspath / summary_script), calibration_targs[0]],
+        # script_options = script_options
+        # ))
+    # Plot lambda vs. mu on evaluations
+    if ('UQ_file' in params.keys()) and (params['UQ_file'] == True):
+        eval_script = 'plot_objective_evaluation.py'
+        output_file = f"{UQ_output.split('.')[0]}_plot.png"
+        script_options = f'--csv-file {UQ_output}'
+        script_options += f' --output-file {output_file}'
+        workflow.extend(env.PythonScript(
+            target = [output_file],
+            source = [str(calibrate_source_abspath / eval_script), UQ_output],
+            script_options = script_options
+            ))
+
+
+# set up parameter study to calibrate each element individually
+else:
+    element_array = numpy.array(list(range(0,int(domain_number)))).reshape((-1,1))
+    calibration_schema = dict(parameter_samples=element_array, parameter_names=numpy.array(['elements']))
+    # calibration_generator = waves.parameter_generators.CustomStudy(
+        # calibration_schema,
+        # output_file= build_directory / f"calibration_study_{domain_number}_case_{case}.h5")
+    # calibration_generator.write()
+    calibration_generator = waves.parameter_generators.CustomStudy(calibration_schema)
+
+    # calibration loop
+    calibrated_files = []
+    calibrated_elements = []
+
+    for calib_set, calib_params in calibration_generator.parameter_study_to_dict().items():
+        elem = calib_params['elements']
+        calibrated_elements.append(str(elem))
+        calibration_targs = [f'calibrated_parameters_case_{case}_elem_{elem}.yml',
+                             f'{plot_root}_cauchy_fit_case_{case}.PNG',
+                             f'{plot_root}_symm_fit_case_{case}.PNG']
+        calibrated_files.append(f'{calib_set}/{calibration_targs[0]}')
+        script_options = f"--input-file {filter_file}"
+        script_options += f" --output-file {calibration_targs[0]}"
+        script_options += f" --case {case}"
+        script_options += f" --Emod {params['material_E']}"
+        script_options += f" --nu {params['material_nu']}"
+        script_options += f" --L {seed_size}"
+        script_options += f" --element {elem}"
+        script_options += f" --plot-file {plot_root}"
+        if 'calibration_increment' in params.keys():
+            script_options += f" --increment {params['calibration_increment']}"
+        if ('UQ_file' in params.keys()) and (params['UQ_file'] == True):
+            UQ_output = f"{calibration_targs[0].split('.')[0]}_evals.csv"
+            calibration_targs.append(UQ_output)
+            script_options += f" --UQ-file {UQ_output}"
+        workflow.extend(env.PythonScript(
+            target = [f'{calib_set}/{cali_targ}' for cali_targ in calibration_targs],
+            source = [f"{calibrate_source_abspath / calibration_script}", filter_file],
+            script_options = script_options
+        ))
+    # summarize calibration results
+    summary_script = 'summarize_calibration_results.py'
+    hist_plot_root = f'kde_case_{case}'
+    summary_targs = [f'Calibration_results_{int(domain_number)}_domains_case_{case}.csv',
+                     f'Calibration_summary_{int(domain_number)}_domains_case_{case}.csv',
+                     f'{hist_plot_root}_lamb_hist.PNG']
+    script_options = f'--parameter-sets {" ".join(calibrated_files)}'
+    script_options += f' --case {case}'
+    script_options += f' --results-csv {summary_targs[0]}'
+    script_options += f' --summary-csv {summary_targs[1]}'
+    script_options += f' --kde-hist-plot {hist_plot_root}'
+    if ('ignore_boundary' in params.keys()) and (params['ignore_boundary'] == True):
+        script_options += f' --kde-best {hist_plot_root}_best'
+    workflow.extend(env.PythonScript(
+        target = summary_targs,
+        source = [str(calibrate_source_abspath / summary_script), calibrated_files],
+        script_options = script_options
+        ))
+    # Summarize calibration results but ignore elements on boundary
+    if ('ignore_boundary' in params.keys()) and (params['ignore_boundary'] == True):
+        macro_file = f"FILTER_macroscale_{model}_{int(domain_number)}"
+        summary_script = 'summarize_calibration_results_ignore_boundary.py'
+        hist_plot_root = f'kde_case_{case}_no_BCs'
+        best_parameters_root = f'best_parameters_case_{case}_{domain_number}_domains'
+        summary_targs = [f'Calibration_results_{int(domain_number)}_domains_case_{case}_no_BCs.csv',
+                         f'Calibration_summary_{int(domain_number)}_domains_case_{case}_no_BCs.csv',
+                         f'{hist_plot_root}_lamb_hist.PNG',
+                         f'{best_parameters_root}.yml']
+        script_options = f'--parameter-sets {" ".join(calibrated_files)}'
+        script_options += f' --element-sets {" ".join(calibrated_elements)}'
+        script_options += f' --macro-file {macro_file}'
+        script_options += f' --case {case}'
+        script_options += f' --results-csv {summary_targs[0]}'
+        script_options += f' --summary-csv {summary_targs[1]}'
+        script_options += f' --kde-hist-plot {hist_plot_root}'
+        script_options += f' --kde-best {hist_plot_root}_best'
+        script_options += f' --kde-best-parameters {best_parameters_root}'
+        workflow.extend(env.PythonScript(
+            target = summary_targs,
+            source = [str(calibrate_source_abspath / summary_script), calibrated_files],
+            script_options = script_options
+            ))
+        # create a yaml file to map calibration results
+        # calibration_map = {}
+        # for element, file in zip(calibrated_elements, calibrated_files):
+            # calibration_map[str(element)] = file
+        # calibration_map['ignore_boundary_yml'] = summary_targs[-1]
+        # calibration_map['ignore_boundary_summary_file'] = summary_targs[0]
+        # with open(f'calibration_map.yml', 'w') as f:
+            # yaml.dump(calibration_map, f)
+        if os.path.exists(summary_targs[-1]):
+            calibration_map_script = 'build_calibration_map.py'
+            calibration_map_file = 'calibration_map.yml'
+            script_options = f'--calibrated-elements {" ".join(calibrated_elements)}'
+            script_options += f' --calibrated-files {" ".join(calibrated_files)}'
+            script_options += f' --ignore-boundary-yml {summary_targs[-1]}'
+            script_options += f' --ignore-boundary-summary-file {summary_targs[0]}'
+            script_options += f' --output-file {calibration_map_file}'
+            workflow.extend(env.PythonScript(
+                target = calibration_map_file,
+                source = [str(calibrate_source_abspath / calibration_map_script), summary_targs[-1], summary_targs[0]],
+                script_options = script_options
+                ))
+env.Alias(workflow_name, workflow)
+Return("workflow")

@@ -1,0 +1,197 @@
+#! /usr/bin/env python
+"""documentation workflow
+
+Requires the following ``SConscript(..., exports=[])``
+
+* ``env`` - The SCons construction environment with the following required keys
+
+  * ``project_dir`` - String absolute path to the EABM project root directory
+  * ``sphinx_build`` - String path for the Sphinx build executable
+"""
+
+import os
+import pathlib
+
+import waves
+
+# Inherit the parent construction environment
+Import(["env", "project_variables"])
+
+# Set empty alias return list
+alias_list = []
+
+# Perform variable substitution on Sphinx configuration file
+env.Substfile(
+    "conf.py.in",
+    SUBST_DICT=waves.scons_extensions.substitution_syntax(project_variables)
+)
+
+# Copy project root files required by the documentation
+project_dir = pathlib.Path(env["project_dir"])
+DNS_Abaqus = pathlib.Path(env["DNS_Abaqus_abspath"])
+DNS_Ratel = pathlib.Path(env["DNS_Ratel_abspath"])
+workflow_dir = pathlib.Path(env["workflow_abspath"])
+root_files = [("README.txt", str(project_dir / "README.rst")),
+              ("environment.yml", str(project_dir / "environment.yml")),
+              ("SConstruct.py", str(project_dir / "SConstruct")),
+              ("Abaqus_elastic_cylinder", str(workflow_dir / "Abaqus_elastic_cylinder")),
+              ("DNS_Abaqus_simulation_variables_nominal.py", str(DNS_Abaqus / "simulation_variables_nominal.py")),
+              ("DNS_Ratel_simulation_variables_nominal.py", str(DNS_Ratel / "simulation_variables_nominal.py"))]
+for target, source in root_files:
+    env.Command(
+        target=[target],
+        source=[source],
+        action=Copy("$TARGET", "$SOURCE")
+    )
+
+# copy figures/Abaqus_elastic_cylinder_dynamic_mesh
+figure_pictures = [
+    # Static Abaqus cylinder
+    "Abaqus_elastic_cylinder_fd.png",
+    "Abaqus_elastic_cylinder_geometry.png",
+    "Abaqus_elastic_cylinder_mesh.png",
+    "Abaqus_elastic_cylinder_S33.png",
+    "Abaqus_elastic_cylinder_1_cauchy33.png",
+    "Abaqus_elastic_cylinder_24_cauchy33.png",
+    "Abaqus_elastic_cylinder_48_cauchy33.png",
+    "Abaqus_elastic_cylinder_192_cauchy33.png",
+    "Abaqus_elastic_cylinder_CALIBRATION_COMPARISON_cauchy.PNG",
+    "Abaqus_elastic_cylinder_kde_lambda.png",
+    "Abaqus_elastic_cylinder_kde_mu.png",
+    "macroscale_forces_abaqus_slipped.png",
+    # Static Ratel cylinder
+    "Ratel_elastic_cylinder_fd.png",
+    "Ratel_elastic_cylinder_mesh.jpeg",
+    "Ratel_elastic_cylinder_S33.jpeg",
+    "Ratel_elastic_cylinder_1_cauchy33.jpeg",
+    "Ratel_elastic_cylinder_24_cauchy33.jpeg",
+    "Ratel_elastic_cylinder_48_cauchy33.jpeg",
+    "Ratel_elastic_cylinder_192_cauchy33.jpeg",
+    "slipped_colorbar.jpeg",
+    "Ratel_cauchy33_violin_plot.png",
+    "Ratel_elastic_cylinder_CALIBRATION_COMPARISON_cauchy.PNG",
+    "Ratel_elastic_cylinder_kde_lambda.png",
+    "Ratel_elastic_cylinder_kde_mu.png",
+    "macroscale_forces_ratel_slipped.jpg",
+    # Dynamic Abaqus cylinder
+    "Abaqus_elastic_cylinder_dynamic_mesh.png",
+    "Abaqus_elastic_cylinder_dynamic_comparison.png",
+    "Abaqus_elastic_cylinder_dynamic_mises.png",
+    "Meirovitch_figure_8_6.png",
+    "Meirovitch_series_convergence.png",
+    "Dynamic_tardigrade_displacements.png",
+    # Ratel I41_02
+    "Ratel_I41_DNS.jpeg",
+    "Ratel_I41_DNS_density_cut.jpeg",
+    "Ratel_I41_DNS_density_transparent.jpeg",
+    "Ratel_I41_DNS_with_cut.jpeg",
+    "Ratel_I41_stress_colormap.jpeg",
+    "Ratel_I41_elastic_fd.png",
+    "Ratel_I41_filter_results_48.jpeg",
+    "Ratel_I41_filter_results_192.jpeg",
+    "Ratel_I41_filter_results_960.jpeg",
+    "Ratel_I41_cauchy33_violin_plot.png",
+    "Ratel_I41_cauchy33_violin_plot_DNS.png",
+    "Ratel_I41_joint_probability_distributions_case_3.png",
+    "Ratel_I41_joint_probability_distributions_case_3_no_BCs.png",
+    "Ratel_I41_full_kde_case_3_no_BCS_lambda.png",
+    "Ratel_I41_full_kde_case_3_no_BCS_mu.png",
+    "Ratel_I41_full_kde_case_3_no_BCS_eta.png",
+    "Ratel_I41_full_kde_case_3_no_BCS_tau.png",
+    "Ratel_I41_full_kde_case_3_no_BCS_kappa.png",
+    "Ratel_I41_full_kde_case_3_no_BCS_nu.png",
+    "Ratel_I41_full_kde_case_3_no_BCS_sigma.png",
+    "Ratel_I41_full_kde_case_3_no_BCS_tau_7.png",
+    "Ratel_I41_macroscale_elastic_48.jpeg",
+    "Ratel_I41_macroscale_elastic_192.jpeg",
+    "Ratel_I41_macroscale_elastic_960.jpeg",
+    "Ratel_I41_pk2_colorbar.jpg",
+    "Ratel_I41_all_force_displacements_case_3.png",
+    # Workflow and general
+    "upscaling_flowchart.png",
+    "averaging_domains.png",
+    "superimposed_macroscale.jpeg",
+    "micromorphic_filter_experimental_data.png",
+    "single_element_calibration.png",
+    "micromorphic_configuration_out_no_beta.svg",
+    "micromorphic_microaveraging_domains.svg",
+]
+for figure in figure_pictures:
+    env.Command(
+        target=[figure],
+        source=[f"figures/{figure}"],
+        action=Copy("$TARGET", "$SOURCE"))
+
+# Explicit Sphinx documentation dependency list
+documentation_file_list = [
+    # Main docs
+    "conf.py",
+    "api.rst",
+    "cli.rst",
+    "changelog.rst",
+    "devops.rst",
+    "glossary.rst",
+    "index.rst",
+    "references.bib",
+    "release_philosophy.rst",
+    "targets.txt",
+    "user.rst",
+    "zreferences.rst",
+    "_static/custom.css",
+    # Workflow description
+    "workflow_overview.rst",
+    "workflow_micromorphic.rst",
+    "workflow_homogenization.rst",
+    "workflow_calibration.rst",
+    "workflow_macroscale.rst",
+    # Detailed micromorphic theory appendix
+    "micromorphic_theory.rst",
+    "micromorphic_theory_kinematics.rst",
+    "micromorphic_theory_balance.rst",
+    "micromorphic_theory_constitutive.rst",
+    "micromorphic_theory_filter.rst",
+    # Software linking
+    "software_overview.rst",
+    "software_installation.rst",
+    "software_usage.rst",
+    # Studies
+    "Quasi_static_verification.rst",
+    "Abaqus_elastic_cylinder.rst",
+    "Ratel_elastic_cylinder.rst",
+    "Clamped_elastic_cylinder.rst",
+    "Dynamic_verification.rst",
+    "Abaqus_elastic_cylinder_dynamic_imp.rst",
+    "Ratel_I41_02_elastic.rst",
+    # Pictures
+    "project_logo.png",
+]
+
+targets = [f"html/{pathlib.Path(source).with_suffix('.html')}" for source in documentation_file_list if source.endswith(".rst")]
+sources = documentation_file_list
+sphinx_options = "-W"
+html = env.SphinxBuild(
+    target=targets,
+    source=sources
+)
+env.Clean(html, [Dir("html")] + sources)
+env.Alias("html", html)
+
+targets = [f"latex/{project_variables['documentation_pdf']}"]
+sources = documentation_file_list
+latexpdf = env.SphinxPDF(
+    target=targets,
+    source=sources
+)
+env.Clean(latexpdf, [Dir("latex")] + sources)
+env.Alias("latexpdf", latexpdf)
+
+# Collector alias to build all documentation
+env.Alias("documentation", html + latexpdf)
+env.Alias(env["regression_alias"], html + latexpdf)
+
+if not env["sphinx_build"]:
+    print(f"Program 'sphinx-build' was not found in construction environment. Ignoring Sphinx target(s)")
+    Ignore([".", "html", "html"], html)
+    Ignore([".", "latex", "latexpdf"], latexpdf)
+else:
+    env.Default(html)
