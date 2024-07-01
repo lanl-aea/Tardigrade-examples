@@ -32,7 +32,7 @@ DNS_Abaqus = pathlib.Path(env["DNS_Abaqus_abspath"])
 DNS_Ratel = pathlib.Path(env["DNS_Ratel_abspath"])
 workflow_dir = pathlib.Path(env["workflow_abspath"])
 root_files = [("README.txt", str(project_dir / "README.rst")),
-              ("environment.yml", str(project_dir / "environment.yml")),
+              ("environment.txt", str(project_dir / "environment.txt")),
               ("SConstruct.py", str(project_dir / "SConstruct")),
               ("Abaqus_elastic_cylinder", str(workflow_dir / "Abaqus_elastic_cylinder")),
               ("DNS_Abaqus_simulation_variables_nominal.py", str(DNS_Abaqus / "simulation_variables_nominal.py")),

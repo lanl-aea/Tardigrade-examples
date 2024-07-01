@@ -208,17 +208,23 @@ For users external to LANL systems, an environment to run workflows in this repo
 See the `Conda installation`_ and `Conda environment management`_ documentation
 for more details about using `Conda`_.
 
-1. Create the environment if it doesn't exist
+1. Create the base environment with Mamba and Python 3.10 if it doesn't exist
 
    .. code-block::
 
-      $ conda env create --name tardigrade-examples-env --file environment.yml
+      $ conda create --name tardigrade-examples-env mamba python=3.10
 
 2. Activate the environment
 
    .. code-block::
 
       $ conda activate tardigrade-examples-env
+
+3. Install packages
+
+   .. code-block::
+
+      $ mamba install --file environment.txt --channel https://conda.software.int.gov/public --channel conda-forge
 
 .. env-end-do-not-remove
 
@@ -231,7 +237,7 @@ SCons Build System
 The `SCons`_ automated build system is used to execute workflows.
 This section will discuss some common build operations. An abbreviated
 options description can be displayed with ``scons -H``. For a full list of `SCons`_ command line options and target
-build behavior, see the `SCons manpage`_. The `SCons manpage`_ is also installed with `Scons`_ in the environment and
+build behavior, see the `SCons manpage`_. The `SCons manpage`_ is also installed with `SCons`_ in the environment and
 can be opened from the command line as ``man scons`` in the `AEA Compute environment`_. In local environments, the
 manpage may not be in the ``man`` program's search path, ``MANPATH``. You can find the manpage file and make them
 available with something similar to any of the following, in increasing order of required background knowledge.

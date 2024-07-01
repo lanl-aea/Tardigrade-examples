@@ -215,27 +215,12 @@ Clone Tardigrade
       $ git clone https://github.com/UCBoulder/tardigrade.git
       $ cd tardigrade
 
-Make environment
-================
-
-A separate environment is required to build Tardigrade-MOOSE, however, this environment is not needed
-when using the executable. There are two options for creating this environment.
-
-Option 1: use mamba
+Activate environment
+====================
 
    .. code-block:: console
 
-      $ mamba create -n tardigrade-env --file reduced_environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge
-      $ mamba activate tardigrade-env
-
-
-Option 2: If using conda, first create an environment with mamba installed as a package and then install the rest of the packages
-
-   .. code-block:: console
-
-      $ conda create -n tardigrade-env mamba
-      $ conda activate tardigrade-env
-      $ mamba install --file reduced_environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge
+      $ conda activate -n tardigrade-examples-env
 
 CMake
 =====
@@ -311,7 +296,8 @@ Tardigrade-MOOSE build went smoothly then the directory containing the
 calibration tool will be contained in the
 :code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-src/src/python`
 directory. Alternatively, :code:`tardigrade_micromorphic_element` may be built
-separately from Tardigrade-MOOSE.
+separately from Tardigrade-MOOSE. Be sure that the "tardigrade-examples-env"
+environment is activated.
 
 .. note::
 
@@ -343,7 +329,7 @@ and use :code:`import micromorphic`. Similarly, an interactive session may be ru
 from any directory, but the location of the micromorphic shared library must be
 appended to the Python path as follows:
 
-   .. code-block:: console
+   .. code-block:: python
 
       import sys
       sys.path.append('/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-src/src/python')
@@ -359,7 +345,7 @@ Either using :code:`scons --config-software` or manually, add
 :code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-src/src/python`
 to the :code:`config.py` entry for "micromorphic".
 
-The path to the :code:`micromorph` shared library needs to be inserted
+The path to the :code:`micromorphic` shared library needs to be inserted
 into the Python path whenever it is to be used. This is handled automatically by
 the SCons workflow.
 
