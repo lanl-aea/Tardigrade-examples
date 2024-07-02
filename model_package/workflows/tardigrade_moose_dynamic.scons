@@ -51,7 +51,7 @@ if domain_number == 1:
             script_options=script_options
             ))
     else:
-        mesh_copy = f"{params['mesh_copy_root']}_1p0_{domain_number}_elements_with_blocks.e"
+        mesh_copy = f"{params['mesh_copy_root']}_0p5_960_elements_with_blocks.e"
         workflow.extend(env.Command(
             target=[tardi_mesh_2],
             source=[f"{mesh_templates_abspath}/{mesh_copy}"],
