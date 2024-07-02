@@ -7,6 +7,7 @@
 import pathlib
 
 import waves
+import SCons.Defaults
 
 # Inherit the parent construction environment
 Import("env")
@@ -18,6 +19,7 @@ Import("params")
 DNS_Ratel_abspath = pathlib.Path(env["DNS_Ratel_abspath"])
 filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
 Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
 
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)
@@ -40,18 +42,29 @@ workflow.extend(env.PythonScript(
     ))
 
 # Build DNS mesh
-mesh_script = "cylinder_from_bounds.py"
 mesh_file = f"DNS_{model}_mesh.e"
-script_options = f"--output-file {mesh_file.split('.')[0]}"
-script_options += f" --bounds-file {bounding_csv}"
-script_options += f" --seed-size {params['seed']}"
-if params['cut'] == True:
-    script_options += f" --cut cut"
-workflow.extend(env.PythonScript(
-    target=[mesh_file],
-    source=[str(Tardigrade_MOOSE_source_abspath / mesh_script), bounding_csv],
-    script_options=script_options,
-    ))
+if env['cubit']:
+    mesh_script = "cylinder_from_bounds.py"
+    script_options = f"--output-file {mesh_file.split('.')[0]}"
+    script_options += f" --bounds-file {bounding_csv}"
+    script_options += f" --seed-size {params['seed']}"
+    if params['cut'] == True:
+        script_options += f" --cut cut"
+    workflow.extend(env.PythonScript(
+        target=[mesh_file],
+        source=[str(Tardigrade_MOOSE_source_abspath / mesh_script), bounding_csv],
+        script_options=script_options,
+        ))
+else:
+    seed_size = 0.5
+    domain_number = 960
+    seed_str = f"{str(seed_size).split('.')[0]}p{str(seed_size).split('.')[-1]}"
+    mesh_copy = f"{params['mesh_copy_root']}_{seed_str}_{domain_number}_elements.e"
+    workflow.extend(env.Command(
+        target=[mesh_file],
+        source=[f"{mesh_templates_abspath}/{mesh_copy}"],
+        action=SCons.Defaults.Copy("${TARGET}", "${SOURCE}", False)
+        ))
 
 # Build options file
 options_script = "build_options_file.py"
