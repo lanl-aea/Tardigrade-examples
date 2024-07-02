@@ -5,6 +5,7 @@
 import pathlib
 
 import waves
+import SCons.Defaults
 
 # Inherit the parent construction environment
 Import("env")
@@ -16,6 +17,7 @@ Import("calibration_map")
 
 # Set project-wide paths
 Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
 
 # workflow variables
 build_directory = pathlib.Path(Dir(".").abspath)
@@ -33,7 +35,7 @@ workflow = []
 # Only run multi-domain cases
 tardi_mesh_name = f"TARDIGRADE-MOOSE_{model}_mesh_{domain_number}_elements"
 # Build macro mesh if Cubit is found, otherwise copy a template
-if 'cubit' in env.keys():
+if env['cubit']:
     mesh_script = 'cylinder_from_bounds.py'
     tardi_mesh_1 = f"{tardi_mesh_name}.e"
     script_options = f"--output-file {tardi_mesh_name}"
@@ -62,7 +64,7 @@ if 'cubit' in env.keys():
         ))
 else:
     seed_str = f"{str(seed_size).split('.')[0]}p{str(seed_size).split('.')[-1]}"
-    mesh_copy = f"{params['mesh_copy_root']}_{seed_str}_{domain_number}_elements.e"
+    mesh_copy = f"{params['mesh_copy_root']}_{seed_str}_{domain_number}_elements_with_blocks.e"
     workflow.extend(env.Command(
         target=[tardi_mesh_2],
         source=[f"{mesh_templates_abspath}/{mesh_copy}"],

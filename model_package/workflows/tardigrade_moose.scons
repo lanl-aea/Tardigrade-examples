@@ -5,6 +5,7 @@
 import pathlib
 
 import waves
+import SCons.Defaults
 
 # Inherit the parent construction environment
 Import("env")
@@ -15,6 +16,7 @@ Import("params")
 
 # Set project-wide paths
 Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
 
 # workflow variables
 build_directory = pathlib.Path(Dir(".").abspath)
@@ -34,7 +36,7 @@ if domain_number == 1:
     tardi_mesh_name = f"TARDIGRADE-MOOSE_{model}_mesh"
     tardi_mesh_2 = f"{tardi_mesh_name}.e"
     # Build macro mesh if Cubit is found, otherwise copy a template
-    if 'cubit' in env.keys():
+    if env['cubit']:
         mesh_script = 'cylinder_from_bounds.py'
         seed_size = params['height']/10
         script_options = f"--output-file {tardi_mesh_name}"
@@ -48,7 +50,7 @@ if domain_number == 1:
             script_options=script_options
             ))
     else:
-        mesh_copy = f"{params['mesh_copy_root']}_1p0_{domain_number}_elements.e"
+        mesh_copy = f"{params['mesh_copy_root']}_1p0_{domain_number}_elements_with_blocks.e"
         workflow.extend(env.Command(
             target=[tardi_mesh_2],
             source=[f"{mesh_templates_abspath}/{mesh_copy}"],
@@ -57,7 +59,7 @@ if domain_number == 1:
 else:
     tardi_mesh_name = f"TARDIGRADE-MOOSE_{model}_mesh_{domain_number}_elements"
     # Build macro mesh if Cubit is found, otherwise copy a template
-    if 'cubit' in env.keys():
+    if env['cubit']:
         mesh_script = 'cylinder_from_bounds.py'
         tardi_mesh_1 = f"{tardi_mesh_name}.e"
         script_options = f"--output-file {tardi_mesh_name}"
@@ -86,7 +88,7 @@ else:
             ))
     else:
         seed_str = f"{str(seed_size).split('.')[0]}p{str(seed_size).split('.')[-1]}"
-        mesh_copy = f"{params['mesh_copy_root']}_{seed_str}_{domain_number}_elements.e"
+        mesh_copy = f"{params['mesh_copy_root']}_{seed_str}_{domain_number}_elements_with_blocks.e"
         workflow.extend(env.Command(
             target=[tardi_mesh_2],
             source=[f"{mesh_templates_abspath}/{mesh_copy}"],
