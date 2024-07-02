@@ -22,7 +22,7 @@ elastic_cylinder = {
     'filter_parallel': 8,
     # parameters for calibration
     'calibration_case': 1,
-    'UQ_file': True,
+    'UQ_file': False,
     # paramters for Tardigrade-MOOSE
     'macro_disp': 0.05,
     'macro_duration': 1.0,
