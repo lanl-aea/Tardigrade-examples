@@ -86,10 +86,11 @@ the :code:`model_package/workflows` directory.
 Ratel FEM
 *********
 
-Meshes for simple Ratel DNS are generated using a Cubit Python script.
+Meshes for simple Ratel DNS are either generated using a Cubit Python script
+or pulled from the :code:`model_package/meshes` directory.
 
 An options file is then generated using the
-:py:mod:`model_package/DNS_Ratel/build_options_file` Python script.
+:py:mod:`model_package.DNS_Ratel.build_options_file` Python script.
 All other simulation inputs (material properties, boundary and loading condition,
 simulation duration and incrementation, etc.) are specified here.
 
@@ -105,7 +106,7 @@ results, and CSV force file, which will contain the reaction force histories.
 The "-diagnostic_order 1" argument guarantees that the simulation output will be associated
 with a first order finite element space. This is important because Ratel uses a nodal FEM, so
 all outputs are provided at the nodes. The definition of nodal volumes (required for the
-Micromorphic Filter) are only well-posed for linear elements.
+Micromorphic Filter) is only well-posed for linear elements.
 
 Finally, the VTK file(s) containing the Ratel results are converted to the XDMF file required for
 the Micromorphic Filter using the :py:mod:`model_package.DNS_Ratel.vtk_to_xdmf`
@@ -157,7 +158,7 @@ add the micromorphic element shared libraries to the LD_LIBRARY_PATH
 (see :ref:`LD_PATH_NOTE`).
 Specify the path to the compiled "tardigrade-opt" program and the input file.
 A simulation may be run with multiple threads using the "--n-threads={n}" option.
-For other parallelization options, see the relevant MOOSE documentation `MOOSE_parallel`.
+For other parallelization options, see the relevant MOOSE documentation `MOOSE_parallel`_.
 
    .. code-block:: console
 
@@ -170,8 +171,8 @@ Tardigrade-MOOSE.
 
       $ LD_LIBRARY_PATH=/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-build/src/cpp /path/to/tardigrade/build/tardigrade-opt -i {input_file}
 
-One may set up a simple alias in their ~/.bashrc similar to this:
-`alias run_tardigrade="LD_LIBRARY_PATH=/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-build/src/cpp /path/to/tardigrade/build/tardigrade-opt"`
+One may set up a simple alias in their ~/.bashrc similar to:
+:code:`alias run_tardigrade="LD_LIBRARY_PATH=/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-build/src/cpp /path/to/tardigrade/build/tardigrade-opt"`
 
 which can be used as:
 
@@ -202,7 +203,7 @@ Micromorphic Calibration Tool
 
 The Micromorphic Calibration Tool provides the capability to evaluate micromorphic material
 models pointwise. Calibration workflows evaluate stress measures for a given set of material
-parameters and strains. These stresses are then compared to homogenized stresses
+parameters and deformations. These stresses are then compared to homogenized stresses
 to inform the objective function for minimization to find the "best" micromorphic parameters.
 See the :py:mod:`model_package.Calibrate.calibrate_element` script to see how this tool
 is used for calibration tasks.
@@ -215,7 +216,7 @@ Micromorphic Linear Elastic Constraints
 ***************************************
 
 In order to ensure that the Helmholtz free energy function is positive definite,
-the micromorphic linear elastic parameters must satisfy the contrainst discussed
+the micromorphic linear elastic parameters must satisfy the contraints discussed
 in :ref:`linear_elastic_constraints`.
 
 Calibration tasks evaluate these constraints by importing the
@@ -246,7 +247,7 @@ A template shell script is provided in the root repository with the name
    :linenos:
 
 A user may modify this `SLURM`_ script as necessary for the intended system,
-especially the partition and qos SBATCH directives.
+especially the "partition" and "qos" SBATCH directives.
 The "node", "ntasks", "time", "job-name", and "output" directives should be modified
 for the specific workflow stage to be run.
 The "LD_LIBRARY_PATH" should be changed according to the discussion provided
@@ -256,20 +257,20 @@ Similarly, the :code:`/path/to/conda/bin/activate <tardigrade-examples-env>`
 line should be modified to point to the correct conda environment and
 associated directory where conda is installed.
 
-The specific SCons tasks to be executed is passed in from the command line.
+The specific SCons task to be executed is passed in from the command line.
 For example, the :code:`Ratel_elastic_cylinder` workflow can be executed
-as:
+with:
 
    .. code-block:: console
 
       $ sbatch sbatch_template.sh Ratel_elastic_cylinder
 
-A more complex, custom command may be specified by wrapping in quotes.
+A more complex, custom command may be specified by wrapping a command in quotations.
 The following example would run calibration for the :code:`Ratel_elastic_cylinder_multi_domain`
 on 28 CPUs (assuming that the "ntasks" SLURM directive was set to 28):
 
    .. code-block:: console
 
-      $ sbatch sbatch_template.sh "Ratel_elastic_cylinder_multi_domain --calibraiton --keep-going --jobs=28"
+      $ sbatch sbatch_template.sh "Ratel_elastic_cylinder_multi_domain --calibrate --keep-going --jobs=28"
 
 This script is simply a template and a user is encouraged to adapt it as needed.

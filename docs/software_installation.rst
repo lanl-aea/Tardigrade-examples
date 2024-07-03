@@ -66,7 +66,7 @@ Build PETSc
 Clone, configure, and build PETSc then export the build location as an
 environment variable. The following instructions provided by PETSc may
 be a helpful reference if problems arise: https://petsc.org/release/install/install_tutorial/#qqtw-quickest-quick-start-in-the-west.
-Several configure options are specified to allow Ratel simulations
+Several configure options are specified here to allow Ratel simulations
 to run with Exodus meshes generated using Cubit.
 
    .. code-block:: console
@@ -75,9 +75,6 @@ to run with Exodus meshes generated using Cubit.
       $ git clone https://gitlab.com/petsc/petsc
       $ cd petsc
       $ ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-mpich --download-fblaslapack --download-exodusii --download-hdf5 --download-netcdf --download-pnetcdf --download-zlib
-
-..
-   TODO: improve description of PETSC_ARCH without listing a specific architecture
 
 After configuring PETSc, a specific ``make`` command will be provided that
 lists the PETSc build architercture (``$PETSC_ARCH``) and the PETSc build
@@ -98,7 +95,7 @@ as environment variables.
 
 .. note::
 
-   Make sure to use the :code:`PETSC_ARCH` specified while configuring PETSc
+   Make sure to use the :code:`PETSC_ARCH` specified by PETSc after the configuration step
 
 Build Ratel
 ===========
@@ -177,7 +174,7 @@ repository to a desired location.
 
 The Conda Environment for this repo includes all of the same packages
 included in the Micrormophic Filter repository to guarantee that this
-software functions appropriately with 
+software functions appropriately.
 
 Test
 ====
@@ -205,7 +202,16 @@ the SCons workflow.
 Tardigrade-MOOSE
 ****************
 
-Tardigrade-MOOSE is built using CMake and requires its own conda environment.
+Tardigrade-MOOSE is built using CMake and requires a number of compilers and 
+Python libraries which are included in the :code:`environment.txt` file included
+in this repository.
+
+.. note::
+
+   Note that `MOOSE`_ and associated Python package update frequently,
+   so the conda environment for this repository should be rebuilt each time
+   Tardigrade-MOOSE is to be compiled. See the following link for more
+   information: https://mooseframework.inl.gov/getting_started/new_users.html#update.
 
 Clone Tardigrade
 ================
@@ -247,7 +253,7 @@ A user may either:
    For the WAVES workflows, there is currently no configuration for specifying the LD_LIBRARY_PATH automatically, so
    a user is required to export this path whenever workflows are being used (perform option 1 mentioned above)!
 
-The LD_LIBRARY_PATH may be specified using the following command:
+For option 2, the LD_LIBRARY_PATH may be specified using the following command:
 
    .. code-block:: console
 
@@ -277,7 +283,7 @@ Most or all of the tests should pass. If they do not all pass, the tests may be 
 with the "EXODIFF" reason, then it is likely that the most recent of Tardigade produces output
 that does not exactly match the "gold" results file. Otherwise, if tests fail because a specific
 library is not found (e.g., :code:`libmicromat.so`) then Tardigrade is configured improperly and/or
-the LD_LIBRARY_PATH should be set correctly.
+the LD_LIBRARY_PATH has not been specified correctly.
 
 Add Tardigrade-MOOSE to software configuration path
 ===================================================
@@ -353,7 +359,7 @@ the SCons workflow.
 Micromorphic Linear Elastic Constraints
 ***************************************
 
-The Micromorphic linear elasticity model of Eringen and Suhubi
+Constraints of the micromorphic linear elasticity model of Eringen and Suhubi
 :cite:`eringen_nonlinear_1964` must be enforced. See discussion of these
 constraints in :ref:`linear_elastic_constraints`.
 
@@ -362,7 +368,7 @@ when determining linear elastic parameters.
 The :code:`linear_elastic_parameter_constraint_equations.py` script is provided in
 the :code:`tardigrade_micromorphic_linear_elasticity` repository to
 evluate these 13 constraints. This repository is automatically pulled
-during the Tardigrade CMake build
+during the Tardigrade-MOOSE CMake build.
 
 Add Micromorphic Linear Elastic Constraints to software configuration path
 ==========================================================================

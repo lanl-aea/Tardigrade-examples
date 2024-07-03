@@ -123,7 +123,7 @@ Software Requirements
 .. software-requirements-description-start-do-not-remove
 
 This repository uses the `WAVES`_ computational workflow tool (which utilizes the `SCons`_
-automate build system) to configure and exectute upscaling workflows.
+automated build system) to configure and execute upscaling workflows.
 Workflows contained in this repository use a wide
 array of software. As such, basic description is provided for how to
 properly install and link required software.
@@ -311,8 +311,8 @@ PetaLibrary Data Copy
 
 .. peta-start-do-not-remove
 
-Several WAVES workflows upscale DNS run by others from the CU Boulder PSAAP project
-and stored on the `PetaLibrary`_.
+Several WAVES workflows upscale DNS run by others from the CU Boulder `PSAAP`_ project
+and stored in the `PetaLibrary`_.
 These DNS results may be copied using the following command:
 
   .. code-block::
@@ -337,9 +337,8 @@ Configure paths to required software
 
 Paths to required software are specified by modifying the contents of the
 :code:`config.yml` file in the root directory.
-By default, these paths are empty so they must be configured. Upon using
-``scons -h``, a user may see a list of local options for
-Upon executing the ``scons -h`` command, one may se a number of local options
+By default, these paths are empty so they must be configured.
+Upon executing the ``scons -h`` command, one may see a number of local options
 including ``--config-software``. Additionally, a user may modify the contents
 of :code:`config.yml` directly.
 

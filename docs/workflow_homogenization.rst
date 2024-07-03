@@ -15,10 +15,10 @@ e.g., :math:`()^{( \alpha )}`.
 Preparation of DNS Results for Micromorphic Filter 
 **************************************************
 
-This section describes the quantities required for the Micromorphic Filter and
+This subsection describes the quantities required for the Micromorphic Filter and
 how they are processed from specific DNS codes. For convenience,
 all scripts and workflows assume quantities are stoed in the MPa-mm-s-N-tonne
-unit system for all operations when using the Micromorphic Filter,
+unit system for all operations involving the Micromorphic Filter,
 calibration, and macroscale simulation in Tardigrade-MOOSE. As such, regardless
 of the original unit system used for a direct numerical simulation, conversion is
 handled when processing DNS results into the XDMF file format.
@@ -33,7 +33,7 @@ Micromorphic Filter for each desired timestep:
 * Displacement, :math:`u_i^{( \alpha )}`
 * Cauchy Stress, :math:`\sigma_{ij}^{( \alpha )}`
 * Density, :math:`\rho^{( \alpha )}`
-* Volume, :math:`v^{( \alpha )}`
+* Volume, :math:`V^{( \alpha )}`
 
 To upscale dynamic DNS appropriately, the following fields are also required:
 
@@ -143,10 +143,10 @@ the DNS points are collected into the nearest quadrant (for the 2D image, neares
 Figure :numref:`{number} <microaveraging-domains>` (d) illustrates a more novel method,
 such as spectral clustering, that would group DNS points to an otherwise unknown micro-averaging
 domain :math:`\beta` based on an affine, collective motion.
-This type of method has yet to be implemented, so only the naive "octant" approach is employed
-for these studies.
+A method of this nature has yet to be implemented, so only the naive "octant"
+approach is employed for these studies.
 
-Definition of one or more filtering domains is discussed in the following section.
+Definition of one or more filtering domains is discussed in the following subsection.
 While the user has the capability to define micro-averaging domains manually, the Micromorphic Filter
 can automatically detect them using the naive "octant" method, so this capability is not discussed.
 
@@ -162,7 +162,7 @@ A macroscale mesh is superimposed over the DNS as the "filtering domain(s)".
 One or more macroscale filtering domains must be defined
 overwhich macroscale, micromorphic quantities are calculated by the
 Micromorphic Filter.
-A single filtering domain is simply a bounding box that captures the entire DNS.
+A single filtering domain is often, simply the bounding box that encompasses the entire DNS.
 For multiple filtering domains, a macroscale geometry is fit to the DNS and meshed
 at several resolutions.
 Figure :numref:`{number} <superimposed_macroscale>` shows an example of a cylindrical DNS
