@@ -36,7 +36,8 @@ root_files = [("README.txt", str(project_dir / "README.rst")),
               ("SConstruct.py", str(project_dir / "SConstruct")),
               ("Abaqus_elastic_cylinder", str(workflow_dir / "Abaqus_elastic_cylinder")),
               ("DNS_Abaqus_simulation_variables_nominal.py", str(DNS_Abaqus / "simulation_variables_nominal.py")),
-              ("DNS_Ratel_simulation_variables_nominal.py", str(DNS_Ratel / "simulation_variables_nominal.py"))]
+              ("DNS_Ratel_simulation_variables_nominal.py", str(DNS_Ratel / "simulation_variables_nominal.py")),
+              ("sbatch_template.sh", str(project_dir / "sbatch_template.sh"))]
 for target, source in root_files:
     env.Command(
         target=[target],
