@@ -102,7 +102,7 @@ Documentation
 
 Documentation for this repository is included here:
 
-* Production version (``main`` branch): WIP, provide link
+* Production version (``main`` branch): https://lanl.github.io/Tardigrade-examples
 * Development version (``dev`` branch): https://aea.re-pages.lanl.gov/models-and-simulations/tardigrade-examples
 
 ******************
