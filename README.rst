@@ -224,7 +224,7 @@ for more details about using `Conda`_.
 
    .. code-block::
 
-      $ mamba install --file environment.txt --channel https://conda.software.int.gov/public --channel conda-forge
+      $ mamba install --file environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge
 
 .. env-end-do-not-remove
 
