@@ -229,3 +229,47 @@ returns an error of infinity and that trial set of parameters is rejected.
 Although not used by the WAVES workflows, the
 :py:mod:`model_package.Calibrate.return_minimum_smith_conditions` utility script
 may be used to evaluate these constraints for a set of parameters.
+
+**********************
+Using WAVES with SLURM
+**********************
+
+Several operations of Tardigrade-examples may be somewhat computationally
+expensive. These operations may include running large direct numerical simulations,
+running the Micromorphic Filter for large DNS on multiple cores,
+running many calibrations simultaneously, or
+running large Tardigrade-MOOSE simulations.
+A template shell script is provided in the root repository with the name
+:code:`sbatch_template.sh`, as shown below:
+
+.. literalinclude:: sbatch_template.sh
+   :linenos:
+
+A user may modify this `SLURM`_ script as necessary for the intended system,
+especially the partition and qos SBATCH directives.
+The "node", "ntasks", "time", "job-name", and "output" directives should be modified
+for the specific workflow stage to be run.
+The "LD_LIBRARY_PATH" should be changed according to the discussion provided
+in :ref:`LD_PATH_NOTE` especially for tasks involving the micromorphic
+calibration tool or Tardigrade-MOOSE.
+Similarly, the :code:`/path/to/conda/bin/activate <tardigrade-examples-env>`
+line should be modified to point to the correct conda environment and
+associated directory where conda is installed.
+
+The specific SCons tasks to be executed is passed in from the command line.
+For example, the :code:`Ratel_elastic_cylinder` workflow can be executed
+as:
+
+   .. code-block:: console
+
+      $ sbatch sbatch_template.sh Ratel_elastic_cylinder
+
+A more complex, custom command may be specified by wrapping in quotes.
+The following example would run calibration for the :code:`Ratel_elastic_cylinder_multi_domain`
+on 28 CPUs (assuming that the "ntasks" SLURM directive was set to 28):
+
+   .. code-block:: console
+
+      $ sbatch sbatch_template.sh "Ratel_elastic_cylinder_multi_domain --calibraiton --keep-going --jobs=28"
+
+This script is simply a template and a user is encouraged to adapt it as needed.
