@@ -21,7 +21,7 @@ dictionary in the :code:`model_package/DNS_Abaqus/simulation_variables_nominal.p
 This dictionary is loaded into the workflow as the :code:`params` dictionary.
 
 .. literalinclude:: DNS_Abaqus_simulation_variables_nominal.py
-   :lines: 1-25
+   :lines: 1-28
    :linenos:
 
 *****************

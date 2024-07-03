@@ -20,7 +20,7 @@ A variety of simulation variables are provided in the :code:`elastic_cylinder`
 dictionary in the :code:`model_package/DNS_Ratel/simulation_variables_nominal.py` file.
 This dictionary is loaded into the workflow as the :code:`params` dictionary.
 
-.. literalinclude:: DNS_Abaqus_simulation_variables_nominal.py
+.. literalinclude:: DNS_Ratel_simulation_variables_nominal.py
    :lines: 3-30
    :linenos:
 
