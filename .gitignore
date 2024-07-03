@@ -101,3 +101,7 @@ hisotyr[0-9][0-9].jou
 
 # Autocomplete files
 .scons_autocomplete
+
+# SLURM
+*.out
+*.sh
