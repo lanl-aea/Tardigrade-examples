@@ -311,6 +311,8 @@ workflow_configurations = [
     # Ratel I41_02 workflows
     "Ratel_I41_02_elastic_multi_domain",
     "Ratel_I41_02_elastic_single_RVEs",
+    # Tardigrade solo studies
+    "Tardigrade_convergence",
 ]
 for workflow in workflow_configurations:
     build_dir = str(variant_dir_base / workflow)
