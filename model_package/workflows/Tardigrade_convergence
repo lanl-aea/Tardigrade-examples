@@ -35,7 +35,7 @@ parameter_schema = dict(
     parameter_samples = numpy.array([
         [192, 1.0, 1],
         [960, 0.5, 2],
-        [2520, 0.375, 4],
+        [2520, 0.375, 3],
         [7680, 0.25, 8]], dtype=object),
     parameter_names = numpy.array(["elements", "seed_size", "cpus"]))
 
