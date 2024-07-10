@@ -69,7 +69,7 @@ The total applied force is then calculated based on the lateral stretch,
 
 .. math::
 
-    F_3 = \sigma_{33} A_f = \frac{\pi \sigma_{33}}{4} \left(d_0 \alpha_L\right)
+    F_3 = \sigma_{33} A_f = \frac{\pi \sigma_{33}}{4} \left(d_0 \alpha_L\right)^2
 
 To solve this system of equations, one must first determine the unknown lateral stretch,
 :math:`\alpha_L`, which may be determined by recognizing that the lateral normal stresses
