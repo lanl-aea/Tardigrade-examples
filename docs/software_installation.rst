@@ -170,7 +170,15 @@ repository to a desired location.
 
    .. code-block:: console
 
-      $ git clone https://github.com/UCBoulder/tardigrade_filter.git
+      $ git clone git@github.com:UCBoulder/tardigrade_filter.git
+
+
+In order to clone this repository, a user may need to configure their
+GitHub account to be associated with University of Colorado Boulder's
+single sign-on (SSO). For instructions, see the section titled
+"Access GitHub" from the Office of Information Technology at the
+following link:
+https://oit.colorado.edu/services/business-services/github-enterprise
 
 The Conda Environment for this repo includes all of the same packages
 included in the Micrormophic Filter repository to guarantee that this
