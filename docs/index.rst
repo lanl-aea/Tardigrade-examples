@@ -38,6 +38,7 @@
    Ratel_elastic_cylinder
    Abaqus_elastic_cylinder
    Clamped_elastic_cylinder
+   Tardigrade_MOOSE_convergence
 
 .. toctree::
    :maxdepth: 2

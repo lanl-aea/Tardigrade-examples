@@ -74,6 +74,8 @@ figure_pictures = [
     "Ratel_elastic_cylinder_kde_lambda.png",
     "Ratel_elastic_cylinder_kde_mu.png",
     "macroscale_forces_ratel_slipped.jpg",
+    # Tardigrade convergence
+    "Tardigrade_convergence_all_force_displacements.png",
     # Dynamic Abaqus cylinder
     "Abaqus_elastic_cylinder_dynamic_mesh.png",
     "Abaqus_elastic_cylinder_dynamic_comparison.png",
@@ -160,6 +162,7 @@ documentation_file_list = [
     "Abaqus_elastic_cylinder.rst",
     "Ratel_elastic_cylinder.rst",
     "Clamped_elastic_cylinder.rst",
+    "Tardigrade_MOOSE_convergence.rst",
     "Dynamic_verification.rst",
     "Abaqus_elastic_cylinder_dynamic_imp.rst",
     "Ratel_I41_02_elastic.rst",
