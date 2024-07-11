@@ -34,9 +34,9 @@ workflow = []
 parameter_schema = dict(
     parameter_samples = numpy.array([
         [192, 1.0, 1],
-        [960, 0.5, 2],
-        [2520, 0.375, 3],
-        [7680, 0.25, 8]], dtype=object),
+        [960, 0.5, 1],
+        [2520, 0.375, 2],
+        [7680, 0.25, 5]], dtype=object),
     parameter_names = numpy.array(["elements", "seed_size", "cpus"]))
 
 parameter_generator = waves.parameter_generators.CustomStudy(parameter_schema)
@@ -91,14 +91,19 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     tardigrade_build_sources.append(str(set_name / tardigrade_build_targs))
 
     # run Tardigrade-MOOSE
+    if env['mpi']:
+        mpi_location = env["mpi"]
+    else:
+        mpi_location = []
     tardigrade_moose_targs = [str(set_name / targ) for targ in [f'{tardi_sim_name}_out.e', f'{tardi_sim_name}_out.csv']]
     workflow.extend(env.TardigradeSolver(
         target = tardigrade_moose_targs,
         source = tardigrade_build_sources,
         tardigrade_program = env['Tardigrade'],
         tardigrade_input = tardigrade_build_targs,
-        tardigrade_threads =  solve_cpus,
-        stdout_file = f"{tardi_sim_name}_out.e.stdout"
+        tardigrade_cpus =  solve_cpus,
+        stdout_file = f"{tardi_sim_name}_out.e.stdout",
+        mpi_location = mpi_location,
         ))
 
     # plot force vs displacement
