@@ -51,7 +51,7 @@ The :code:`--jobs=4` argument may be included to run each simulation concurrentl
 The final force versus displacement plot is shown in
 Figure :numref:`{number} <Tardigrade_convergence_all_force_displacements>`.
 
-.. figure:: Tardigrade_convergence_all_force_displacements.png
+.. figure:: Tardigrade_convergence_all_force_displacements.jpeg
    :name: Tardigrade_convergence_all_force_displacements
    :align: center
    :width: 70%
