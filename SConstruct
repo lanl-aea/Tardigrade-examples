@@ -121,6 +121,9 @@ env = Environment(ENV=os.environ.copy(),
 env.Default()
 
 # ============================================================ LINK SOFTWARE ===
+# Sbatch
+env['sbatch'] = waves.scons_extensions.add_program(["sbatch"], env)
+
 # Sphinx
 env["sphinx_build"] = waves.scons_extensions.add_program(["sphinx-build"], env)
 
@@ -129,6 +132,10 @@ config_file = 'config.yml'
 stream = open(config_file, 'r')
 program_paths = yaml.load(stream, Loader=yaml.FullLoader)
 stream.close()
+
+# MPI
+mpi_location = program_paths['mpi']
+env['mpi'] = waves.scons_extensions.find_program(mpi_location, env)
 
 # Abaqus
 abaqus_windows = ["C:/Simulia/Commands/abaqus.bat"]
@@ -171,8 +178,28 @@ if env['Tardigrade']:
 tardigrade_solver = Builder(
     action=["cd ${TARGET.dir.abspath} && ${tardigrade_program} \
             -i ${tardigrade_input} \
-            --n-threads=${tardigrade_threads} \
+            --n-threads=${tardigrade_cpus} \
             --no-color --color off > ${stdout_file} "])
+tardigrade_solver_mpi = Builder(
+    action=["cd ${TARGET.dir.abspath} && ${mpi_location} \
+            -n ${tardigrade_cpus} ${tardigrade_program} \
+            -i ${tardigrade_input} \
+            --n-threads=2 \
+            --no-color --color off > ${stdout_file} "])
+tardigrade_solver_sbatch = Builder(
+    action=["cd ${TARGET.dir.abspath} && srun \
+            -n ${tardigrade_cpus} ${tardigrade_program} \
+            -i ${tardigrade_input} \
+            --n-threads=2 \
+            --no-color --color off > ${stdout_file} "])
+
+def tardigrade_builder_select():
+    if env['sbatch']:
+        return tardigrade_solver_sbatch
+    elif env['mpi']:
+        return tardigrade_solver_mpi
+    else:
+        return tardigrade_solver
 
 # # Custom Paraview image generator
 # env['paraview'] = waves.scons_extensions.find_program('/projects/aea_compute/tardigrade-examples-env/bin/paraview', env)
@@ -260,7 +287,7 @@ env.Append(BUILDERS={
     "PythonScript": waves.scons_extensions.python_script(),
     "CondaEnvironment": waves.scons_extensions.conda_environment(),
     "RatelSolver": ratel_solver,
-    "TardigradeSolver": tardigrade_solver,
+    "TardigradeSolver": tardigrade_builder_select(),
     #"ParaviewImage": paraview_image,
     "SphinxBuild": waves.scons_extensions.sphinx_build(program=env["sphinx_build"], options="-W"),
     "SphinxPDF": waves.scons_extensions.sphinx_latexpdf(program=env["sphinx_build"], options="-W")
