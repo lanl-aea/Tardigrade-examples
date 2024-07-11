@@ -34,6 +34,7 @@ def config_software(config_file):
                              'micromorphic': [''],
                              'constraints': [''],
                              'Tardigrade': [''],
+                             'mpi': [''],
                              }
 
     # Ask for new program paths
