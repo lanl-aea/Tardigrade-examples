@@ -33,7 +33,7 @@ The Green-Lagrange strain is:
         0 & 0 & \left(\alpha_3^2 - 1\right) \\
     \end{bmatrix}
 
-The second Piola-Kirchhoff stress for the Saint Venant Kirchhoff model
+The second Piola-Kirchhoff stress for the Saint Venant-Kirchhoff model
 :cite:`ogden_non-linear_1997` may then be calculated. First, the elastic Modulus,
 :math:`E^*`, and Poisson ratio, :math:`\nu^*`, need to be converted to the
 Lame\'e constant, :math:`\lambda^*`, and shear modulus, :math:`\mu^*`, according to:
