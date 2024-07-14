@@ -107,8 +107,6 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
         ))
 
     # plot force vs displacement
-    output_csvs = []
-    element_labels = []
     plot_script = "plot_force_displacement.py"
     plot_targets = [f"{tardi_sim_name}_force_displacement.png", f"{tardi_sim_name}_force_displacement.csv"]
     script_options = f"--csv-file {tardigrade_moose_targs[1].split('/')[-1]}"
@@ -120,13 +118,16 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
         source=[str(Tardigrade_MOOSE_source_abspath / plot_script), tardigrade_moose_targs[-1]],
         script_options=script_options,
         ))
-    output_csvs.append(str(set_name / plot_targets[1]))
-    element_labels.append(elements)
 
 # Summarize force vs displacements
+output_csvs, element_labels = [], []
+for set_name, parameters in parameter_generator.parameter_study_to_dict().items():
+    elements = parameters['elements']
+    output_csvs.append(f'{set_name}/TARDIGRADE-MOOSE_{model}_{elements}_force_displacement.csv')
+    element_labels.append(elements)
 summary_script = "summarize_micro_macro_force_displacements.py"
 output_targets = [f"all_force_displacements.png", f"all_force_displacements.csv"]
-plot_labels = [f'{element} elements' for element in element_labels]
+plot_labels = [f'"{element} elements"' for element in element_labels]
 script_options = f"--csv-files {' '.join(output_csvs)}"
 script_options += f" --plot-labels {' '.join(plot_labels)}"
 script_options += f" --output-file {output_targets[0]}"
