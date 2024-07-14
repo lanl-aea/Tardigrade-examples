@@ -157,6 +157,31 @@ ratel_solver = Builder(
              -ts_monitor_surface_force ascii:${force_file}:ascii_csv \
              -diagnostic_order 1 \
              > ${stdout_file} "])
+ratel_solver_mpi = Builder(
+    action=["cd ${TARGET.dir.abspath} && ${mpi_location} \
+             -n ${ratel_cpus} ${Ratel_program} \
+             -options_file ${options_file} \
+             -dm_plex_filename ${mesh_file} \
+             -ts_monitor_diagnostic_quantities vtk:${monitor_file} \
+             -ts_monitor_surface_force ascii:${force_file}:ascii_csv \
+             -diagnostic_order 1 \
+             > ${stdout_file} "])
+ratel_solver_sbatch = Builder(
+    action=["cd ${TARGET.dir.abspath} && srun \
+             -n ${ratel_cpus} ${Ratel_program} \
+             -options_file ${options_file} \
+             -dm_plex_filename ${mesh_file} \
+             -ts_monitor_diagnostic_quantities vtk:${monitor_file} \
+             -ts_monitor_surface_force ascii:${force_file}:ascii_csv \
+             -diagnostic_order 1 \
+             > ${stdout_file} "])
+def ratel_builder_select():
+    if env['sbatch']:
+        return ratel_solver_sbatch
+    elif env['mpi']:
+        return ratel_solver_mpi
+    else:
+        return ratel_solver
 
 # GEOS
 ## TODO: add GEOS
@@ -202,7 +227,7 @@ def tardigrade_builder_select():
         return tardigrade_solver
 
 # # Custom Paraview image generator
-# env['paraview'] = waves.scons_extensions.find_program('/projects/aea_compute/tardigrade-examples-env/bin/paraview', env)
+# env['paraview'] = waves.scons_extensions.find_program(program_paths['filter'], env)
 # if env['paraview']:
     # env.PrependENVPath("PATH", str(pathlib.Path(env['paraview']).parent))
 # paraview_image = Builder(
@@ -286,7 +311,7 @@ env.Append(BUILDERS={
     "AbaqusExtract": waves.scons_extensions.abaqus_extract(program=env["abaqus"]),
     "PythonScript": waves.scons_extensions.python_script(),
     "CondaEnvironment": waves.scons_extensions.conda_environment(),
-    "RatelSolver": ratel_solver,
+    "RatelSolver": ratel_builder_select(),
     "TardigradeSolver": tardigrade_builder_select(),
     #"ParaviewImage": paraview_image,
     "SphinxBuild": waves.scons_extensions.sphinx_build(program=env["sphinx_build"], options="-W"),
