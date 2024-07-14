@@ -18,7 +18,7 @@ The :code:`SConstruct` file is the main input that `SCons`_ reads to control wor
 The software described in :ref:`software_installation` is linked using "BUILDERS":
 
 .. literalinclude:: SConstruct.py
-   :lines: 255-267
+   :lines: 307-320
 
 Individual workflows are created in SConscript files. These SConscript files are
 stored in the :code:`model_package/workflows/` directory.
@@ -26,7 +26,7 @@ They are linked as simulation targets in the main :code:`SConstruct` file.
 The current collection of workflows are as follows:
 
 .. literalinclude:: SConstruct.py
-   :lines: 294-314
+   :lines: 346-368
 
 Unless a user is adding another piece of software or creating a custom workflow,
 these files do not need to be modified.
