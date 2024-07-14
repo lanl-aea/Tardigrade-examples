@@ -31,7 +31,7 @@ def plot_force_displacement(csv_files, plot_labels, output_file, output_csv):
     matplotlib.pyplot.ylabel('Force (N)')
     matplotlib.pyplot.tight_layout()
     matplotlib.pyplot.legend()
-    matplotlib.pyplot.savefig(output_file)
+    matplotlib.pyplot.savefig(output_file, dpi=300)
 
     # create new dataframe and output csv
     if output_csv:
