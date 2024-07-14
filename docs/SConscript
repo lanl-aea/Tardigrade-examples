@@ -75,7 +75,7 @@ figure_pictures = [
     "Ratel_elastic_cylinder_kde_mu.png",
     "macroscale_forces_ratel_slipped.jpg",
     # Tardigrade convergence
-    "Tardigrade_convergence_all_force_displacements.jpg",
+    "Tardigrade_convergence_all_force_displacements.png",
     # Dynamic Abaqus cylinder
     "Abaqus_elastic_cylinder_dynamic_mesh.png",
     "Abaqus_elastic_cylinder_dynamic_comparison.png",
