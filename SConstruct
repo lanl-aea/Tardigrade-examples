@@ -128,7 +128,7 @@ env['sbatch'] = waves.scons_extensions.add_program(["sbatch"], env)
 env["sphinx_build"] = waves.scons_extensions.add_program(["sphinx-build"], env)
 
 # Read in config.yml
-config_file = 'config.yml'
+config_file = 'config_software.yml'
 stream = open(config_file, 'r')
 program_paths = yaml.load(stream, Loader=yaml.FullLoader)
 stream.close()
