@@ -204,19 +204,22 @@ tardigrade_solver = Builder(
     action=["cd ${TARGET.dir.abspath} && ${tardigrade_program} \
             -i ${tardigrade_input} \
             --n-threads=${tardigrade_cpus} \
-            --no-color --color off > ${stdout_file} "])
+            --no-color --color off > ${stdout_file} || true",
+            "cd ${TARGET.dir.abspath} && grep -i 'Finished Executing' ${stdout_file}"])
 tardigrade_solver_mpi = Builder(
     action=["cd ${TARGET.dir.abspath} && ${mpi_location} \
             -n ${tardigrade_cpus} ${tardigrade_program} \
             -i ${tardigrade_input} \
             --n-threads=2 \
-            --no-color --color off > ${stdout_file} "])
+            --no-color --color off > ${stdout_file} || true",
+            "cd ${TARGET.dir.abspath} && grep -i 'Finished Executing' ${stdout_file}"])
 tardigrade_solver_sbatch = Builder(
     action=["cd ${TARGET.dir.abspath} && srun \
             -n ${tardigrade_cpus} ${tardigrade_program} \
             -i ${tardigrade_input} \
             --n-threads=2 \
-            --no-color --color off > ${stdout_file} "])
+            --no-color --color off > ${stdout_file} || true",
+            "cd ${TARGET.dir.abspath} && grep -i 'Finished Executing' ${stdout_file}"])
 
 def tardigrade_builder_select():
     if env['sbatch']:
