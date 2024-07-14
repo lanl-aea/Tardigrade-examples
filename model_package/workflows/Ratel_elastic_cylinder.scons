@@ -85,7 +85,10 @@ workflow.extend(env.PythonScript(
     ))
 
 # Ratel solve
-## TODO: Figure out why targets always rebuild for Ratel jobs
+if env['mpi']:
+    mpi_location = env['mpi']
+else:
+    mpi_location = []
 DNS_results_root = f"DNS_{model}_results"
 force_results = f"{DNS_results_root}_forces.csv"
 ratel_targets = [f"{DNS_results_root}_{n}.vtu" for n in list(range(0,params['num_steps']+1))]
@@ -97,7 +100,9 @@ workflow.extend(env.RatelSolver(
     mesh_file=mesh_file,
     monitor_file=f"{DNS_results_root}.vtu",
     force_file=force_results,
-    stdout_file = f"{ratel_targets[0]}.stdout"
+    stdout_file = f"{ratel_targets[0]}.stdout",
+    mpi_location = mpi_location,
+    ratel_cpus = env['solve_cpus'],
 ))
 
 # Post-processing step - force vs. displacement
