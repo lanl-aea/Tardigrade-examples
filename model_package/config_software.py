@@ -35,6 +35,7 @@ def config_software(config_file):
                              'constraints': [''],
                              'Tardigrade': [''],
                              'mpi': [''],
+                             'paraview': [''],
                              }
 
     # Ask for new program paths
