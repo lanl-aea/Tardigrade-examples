@@ -202,7 +202,7 @@ Either using :code:`scons --config-software` or manually, add
 :code:`/path/to/tardigrade_filter/src/python` to the
 :code:`config.py` entry for "filter".
 
-The path to the Micromorphic Filter's :code:`python/src` directory needs to be inserted
+The path to the Micromorphic Filter's :code:`src/python` directory needs to be inserted
 into the Python path whenever it is to be used. This is handled automatically by
 the SCons workflow.
 
