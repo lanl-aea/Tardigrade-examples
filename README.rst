@@ -336,7 +336,7 @@ Configure paths to required software
 .. config-paths-start-do-not-remove
 
 Paths to required software are specified by modifying the contents of the
-:code:`config.yml` file in the root directory.
+:code:`config_software.yml` file in the root directory.
 By default, these paths are empty so they must be configured.
 Upon executing the ``scons -h`` command, one may see a number of local options
 including ``--config-software``. Additionally, a user may modify the contents
@@ -349,11 +349,11 @@ of :code:`config.yml` directly.
      $ scons --config-software
 
 The user will be asked if new or additional paths will be appended to the
-:code:`config.yml` file. Some of these paths are paths to executable programs
+:code:`config_software.yml` file. Some of these paths are paths to executable programs
 (e.g. Abaqus, Ratel, and Tardigrade-MOOSE), while some are paths to Python
 programs and scripts.
 
-The :code:`config.yml` file is read into the SCons configuration file (:code:`SConstruct`).
+The :code:`config_software.yml` file is read into the SCons configuration file (:code:`SConstruct`).
 The YAML file is parsed into a dictionary where each key corresponds to a program and
 each entry is a list of program paths.
 For exeuctable programs, the :code:`waves.scons_extensions.find_program()` function
