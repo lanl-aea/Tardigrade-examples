@@ -100,6 +100,13 @@ AddOption(
     action="store_true",
     help="Boolean to configure software paths. (default: '%default')"
 )
+AddOption(
+    "--use-sbatch",
+    dest="use_sbatch",
+    default=False,
+    action="store_true",
+    help="Boolean to submit jobs with SBATCH. (default: '%default')"
+)
 # Inherit user's full environment and set project options
 env = Environment(ENV=os.environ.copy(),
                   variant_dir_base=GetOption("variant_dir_base"),
@@ -113,6 +120,7 @@ env = Environment(ENV=os.environ.copy(),
                   summary=GetOption("summary"),
                   peta_data_copy=GetOption("peta_data_copy"),
                   config_software=GetOption("config_software"),
+                  use_sbatch=GetOption("use_sbatch"),
                   TARFLAGS="-c -j",
                   TARSUFFIX=".tar.bz2"
 )
@@ -176,7 +184,7 @@ ratel_solver_sbatch = Builder(
              -diagnostic_order 1 \
              > ${stdout_file} "])
 def ratel_builder_select():
-    if env['sbatch']:
+    if env['sbatch'] and env['use_sbatch']:
         return ratel_solver_sbatch
     elif env['mpi']:
         return ratel_solver_mpi
@@ -195,26 +203,35 @@ micromorphic_location = program_paths['micromorphic'][-1]
 # Calibration-constraints
 constraints_location = program_paths['constraints'][-1]
 
+# LD_LIBRARY_PATH
+env['LD_PATH'] = program_paths['LD_PATH']
+
 # Tardigrade-MOOSE
 tardigrade_location = program_paths['Tardigrade']
 env['Tardigrade'] = waves.scons_extensions.find_program(tardigrade_location, env)
 if env['Tardigrade']:
     env.PrependENVPath("PATH", str(pathlib.Path(env['Tardigrade']).parent))
 tardigrade_solver = Builder(
-    action=["cd ${TARGET.dir.abspath} && ${tardigrade_program} \
+    action=["cd ${TARGET.dir.abspath} && \
+            LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
+            ${tardigrade_program} \
             -i ${tardigrade_input} \
             --n-threads=${tardigrade_cpus} \
             --no-color --color off > ${stdout_file} || true",
             "cd ${TARGET.dir.abspath} && grep -i 'Finished Executing' ${stdout_file}"])
 tardigrade_solver_mpi = Builder(
-    action=["cd ${TARGET.dir.abspath} && ${mpi_location} \
+    action=["cd ${TARGET.dir.abspath} && \
+            LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
+            ${mpi_location} \
             -n ${tardigrade_cpus} ${tardigrade_program} \
             -i ${tardigrade_input} \
             --n-threads=2 \
             --no-color --color off > ${stdout_file} || true",
             "cd ${TARGET.dir.abspath} && grep -i 'Finished Executing' ${stdout_file}"])
 tardigrade_solver_sbatch = Builder(
-    action=["cd ${TARGET.dir.abspath} && srun \
+    action=["cd ${TARGET.dir.abspath} && \
+            LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
+            srun \
             -n ${tardigrade_cpus} ${tardigrade_program} \
             -i ${tardigrade_input} \
             --n-threads=2 \
@@ -222,7 +239,7 @@ tardigrade_solver_sbatch = Builder(
             "cd ${TARGET.dir.abspath} && grep -i 'Finished Executing' ${stdout_file}"])
 
 def tardigrade_builder_select():
-    if env['sbatch']:
+    if env['sbatch'] and env['use_sbatch']:
         return tardigrade_solver_sbatch
     elif env['mpi']:
         return tardigrade_solver_mpi
