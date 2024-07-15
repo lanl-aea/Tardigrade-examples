@@ -16,7 +16,7 @@ Add Abaqus to software configuration path
 =========================================
 
 Either using :code:`scons --config-software` or manually, add
-:code:`/path/to/abaqus` to the :code:`config.py` entry for "Abaqus".
+:code:`/path/to/abaqus` to the :code:`config_software.py` entry for "Abaqus".
 
 For most Windows installations,
 the path to the :code:`abaqus.bat` script may be specified. The default
@@ -130,7 +130,7 @@ Add Ratel to software configuration path
 Currently, all Ratel DNS used in this repository only require the `ratel-quasistatic` program.
 This executable should be located in ``$RATEL_DIR/ratel/bin/ratel-quasistatic``.
 Either using :code:`scons --config-software` or manually, add
-:code:`/path/to/ratel/bin/ratel-quasistatic` to the :code:`config.py` entry for "Ratel".
+:code:`/path/to/ratel/bin/ratel-quasistatic` to the :code:`config_software.py` entry for "Ratel".
 
 ********
 GEOS MPM
@@ -156,7 +156,7 @@ Add Cubit to software configuration path
 ========================================
 
 Either using :code:`scons --config-software` or manually, add
-:code:`/path/to/cubit` to the :code:`config.py` entry for "Cubit".
+:code:`/path/to/cubit` to the :code:`config_software.py` entry for "Cubit".
 
 *******************
 Micromorphic Filter
@@ -200,7 +200,7 @@ Add Micromorphic Filter to software configuration path
 
 Either using :code:`scons --config-software` or manually, add
 :code:`/path/to/tardigrade_filter/src/python` to the
-:code:`config.py` entry for "filter".
+:code:`config_software.py` entry for "filter".
 
 The path to the Micromorphic Filter's :code:`src/python` directory needs to be inserted
 into the Python path whenever it is to be used. This is handled automatically by
@@ -256,16 +256,27 @@ A user may either:
 (1) export this path as an environment variable or
 (2) include this path on the command line each time a Tardigrade package is run.
 
-.. note::
-
-   For the WAVES workflows, there is currently no configuration for specifying the LD_LIBRARY_PATH automatically, so
-   a user is required to export this path whenever workflows are being used (perform option 1 mentioned above)!
-
-For option 2, the LD_LIBRARY_PATH may be specified using the following command:
+For option 1, an environment variable may be set with the following command.
+It is NOT recommended to include this environment variable in a ~/.bashrc as
+there may be unintended consequences.
 
    .. code-block:: console
 
       $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-build/src/cpp
+
+For details using option 2, see the following subsection for "Test" or :ref:`tardigrade_CLI`.
+**Workflows that run Tardigrade-MOOSE are configured to automatically use option 2 in which the
+LD_LIBRARY_PATH is prepended to command that launches a simulation.** However, note that
+other operations may still require manual intervention (such as those described in the sections
+just mentioned).
+
+Either using :code:`scons --config-software` or manually, add
+:code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-build/src/cpp` to the
+:code:`config_software.py` entry for "LD_PATH". This configuration will ensure that
+Tardigrade-MOOSE simulations run through SCons workflows will access the appropriate shared libraries.
+
+If one receives an error like :code:`error while loading shared libraries: libmicromat.so: cannot open shared object file`,
+then the LD_LIBRARY_PATH is not configured correctly.
 
 Test
 ====
@@ -298,7 +309,7 @@ Add Tardigrade-MOOSE to software configuration path
 
 Either using :code:`scons --config-software` or manually, add
 :code:`/path/to/tardigrade/build/tardigrade-opt` to the
-:code:`config.py` entry for "Tardigrade".
+:code:`config_software.py` entry for "Tardigrade".
 
 *****************************
 Micromorphic Calibration Tool
@@ -357,7 +368,7 @@ Add Micromorphic Calibration Tool to software configuration path
 
 Either using :code:`scons --config-software` or manually, add
 :code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-src/src/python`
-to the :code:`config.py` entry for "micromorphic".
+to the :code:`config_software.py` entry for "micromorphic".
 
 The path to the :code:`micromorphic` shared library needs to be inserted
 into the Python path whenever it is to be used. This is handled automatically by
@@ -383,8 +394,28 @@ Add Micromorphic Linear Elastic Constraints to software configuration path
 
 Either using :code:`scons --config-software` or manually, add
 :code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_linear_elasticity-src/src/python`
-to the :code:`config.py` entry for "constraints".
+to the :code:`config_software.py` entry for "constraints".
 
 The path to the :code:`linear_elastic_parameter_constraint_equations.py` script needs to be inserted
 into the Python path whenever it is to be used. This is handled automatically by
 the SCons workflow.
+
+.. _mpi:
+
+***
+MPI
+***
+
+Parallel jobs for Ratel and Tardigrade-MOOSE may be run using MPI (message passing interface).
+The location of the :code:`mpiexec` utility will depend on the system being used,
+however, it may have been installed when creating the conda environment for
+this project (i.e. :code:`/path/to/tardigrade-examples-env/bin/mpiexec`).
+One may be able to locate this utility by executing :code:`which mpiexec`
+on the command line.
+
+Add MPI to software configuration path
+======================================
+
+Either using :code:`scons --config-software` or manually, add
+:code:`/path/to/mpiexec`
+to the :code:`config_software.py` entry for "mpi".
