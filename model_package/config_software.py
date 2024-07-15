@@ -34,6 +34,7 @@ def config_software(config_file):
                              'micromorphic': [''],
                              'constraints': [''],
                              'Tardigrade': [''],
+                             'LD_PATH': [''],
                              'mpi': [''],
                              'paraview': [''],
                              }
