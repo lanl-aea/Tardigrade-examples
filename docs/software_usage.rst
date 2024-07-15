@@ -26,7 +26,7 @@ They are linked as simulation targets in the main :code:`SConstruct` file.
 The current collection of workflows are as follows:
 
 .. literalinclude:: SConstruct.py
-   :lines: 350-370
+   :lines: 350-371
 
 Unless a user is adding another piece of software or creating a custom workflow,
 these files do not need to be modified.
