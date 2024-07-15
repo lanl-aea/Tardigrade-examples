@@ -98,6 +98,7 @@ workflow.extend(env.PythonScript(
 # workflow.extend(env.TardigradeSolver(
     # target = tardigrade_moose_targs,
     # source = [tardigrade_build_targs, tardi_mesh_2],
+    # LD_LIBRARY_PATH = env['LD_PATH'],
     # tardigrade_program = env['Tardigrade'],
     # tardigrade_input = tardigrade_build_targs,
     # tardigrade_threads =  env['solve_cpus'],

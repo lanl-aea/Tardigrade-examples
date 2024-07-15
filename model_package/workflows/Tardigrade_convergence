@@ -99,6 +99,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     workflow.extend(env.TardigradeSolver(
         target = tardigrade_moose_targs,
         source = tardigrade_build_sources,
+        LD_LIBRARY_PATH = env['LD_PATH'],
         tardigrade_program = env['Tardigrade'],
         tardigrade_input = tardigrade_build_targs,
         tardigrade_cpus =  solve_cpus,
