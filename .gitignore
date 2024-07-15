@@ -8,7 +8,7 @@ peta_data_copy/
 config.log
 
 # Software config file
-#config_software.yml
+config_software.yml
 
 # Compiled source
 *.com
