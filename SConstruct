@@ -382,7 +382,7 @@ workflow_configurations = [
     "Ratel_F83_multi_domain",
     # Ratel I41_02 workflows
     "Ratel_I41_02_elastic_multi_domain",
-    "Ratel_I41_02_elastic_single_RVEs",
+    "Ratel_I41_02_elastic_single_domains",
     # Tardigrade solo studies
     "Tardigrade_convergence",
 ]
