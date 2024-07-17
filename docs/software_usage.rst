@@ -18,7 +18,7 @@ The :code:`SConstruct` file is the main input that `SCons`_ reads to control wor
 The software described in :ref:`software_installation` is linked using "BUILDERS":
 
 .. literalinclude:: SConstruct.py
-   :lines: 310-322
+   :lines: 327-340
 
 Individual workflows are created in SConscript files. These SConscript files are
 stored in the :code:`model_package/workflows/` directory.
@@ -26,7 +26,7 @@ They are linked as simulation targets in the main :code:`SConstruct` file.
 The current collection of workflows are as follows:
 
 .. literalinclude:: SConstruct.py
-   :lines: 350-371
+   :lines: 366-388
 
 Unless a user is adding another piece of software or creating a custom workflow,
 these files do not need to be modified.
@@ -86,7 +86,7 @@ the :code:`model_package/workflows` directory.
 Ratel FEM
 *********
 
-Meshes for simple Ratel DNS are either generated using a Cubit Python script
+Meshes for simple Ratel DNS are either generated using a Cubit/Python script
 or pulled from the :code:`model_package/meshes` directory.
 
 An options file is then generated using the
@@ -94,11 +94,15 @@ An options file is then generated using the
 All other simulation inputs (material properties, boundary and loading condition,
 simulation duration and incrementation, etc.) are specified here.
 
-To use the Ratel solver, a custom SCons Builder is setup as shown in the :code:`SConstruct`
-file here:
+It is assumed that Ratel simulations will be executed through WAVES workflows.
+Refer to the `RATEL`_ documentation for more details.
+
+To run Ratel simulations, a custom SCons Builder is setup as shown in the :code:`SConstruct`
+file below. This is the basic builder for serial simulations. To use Ratel for parallel
+simulations, see the discussion in :ref:`serial_vs_parallel`.
 
 .. literalinclude:: SConstruct.py
-   :lines: 140-152
+   :lines: 160-167
 
 The options and mesh files are passsed to this Builder as input arguments.
 Output arguments are also specified for the VTK monitor file, which will contain the simulation
@@ -130,11 +134,10 @@ Cubit
 *****
 
 Cubit is used to generate meshes in the Exodus format through Cubit/Python scripts.
+An example script is :py:mod:`model_package.Tardigrade_MOOSE.cylinder_from_bounds`.
 These meshes may be used as input to simple DNS, as macroscale (filtering domain)
 meshes for the Micromorphic Filter, or as macroscale meshes for simulation in Tardigrade-MOOSE.
-An example script is :py:mod:`model_package.Tardigrade_MOOSE.cylinder_from_bounds`.
-Exodus meshes may be used for Tardigrade-MOOSE, but are converted to the XDMF format
-required by the Micromorphic Filter using the `meshio`_ library.
+The Micromorphic Filter uses the XDMF file format, so Exodus meshes are convert using the `meshio`_ library.
 
 *******************
 Micromorphic Filter
@@ -185,11 +188,14 @@ which can be used as:
 Using Tardigrade-MOOSE with WAVES
 =================================
 
-It will be easiest to use Tardigrade-MOOSE through the WAVES workflow.
-A custom SCons Builder is setup as shown in the :code:`SConstruct` file here:
+It will be easiest to use Tardigrade-MOOSE through WAVES workflows.
+A custom SCons Builder is setup as shown in the :code:`SConstruct` file below.
+This is the basic builder for serial simulations with multi-threading.
+To use Tardigrade-MOOSE for parallel simulations, see the discussion in
+:ref:`serial_vs_parallel`.
 
 .. literalinclude:: SConstruct.py
-   :lines: 166-175
+   :lines: 214-221
 
 Setting up Tardigrade-MOOSE simulations
 =======================================
@@ -228,19 +234,104 @@ If any of the constraint evaluations are below 0, then the objective function
 returns an error of infinity and that trial set of parameters is rejected.
 
 Although not used by the WAVES workflows, the
-:py:mod:`model_package.Calibrate.return_minimum_smith_conditions` utility script
+:py:mod:`model_package.Calibrate.return_minimum_smith_constraint` utility script
 may be used to evaluate these constraints for a set of parameters.
+
+.. _serial_vs_parallel:
+
+*******************
+Serial vs. Parallel
+*******************
+
+Workflows in this repository chain together a considerable number of
+computational utilities. Some workflow stages, especially pre/post-processing scripts,
+run quickly on a single process. Other simulation stages may require parallelization.
+By default, workflows will be executed in serial, however, some capabilities
+to parallelize workflows have been implemented.
+
+.. warning::
+
+   Workflow parallelization techniques are under active deverlopment, but no general
+   solution has been found. Different workflow stages will have different computational
+   requirements, so a user is encouraged to carefully plan based on the relevant
+   analysis for a specific system!
+
+Homogenization activities via the Micromorphic Filter may be parallelized
+using Scipy's "workers" argument. This value of this argument is currently specified in the
+Python dictionary by the "filter_parallel" key for individual analyses.
+A value of 8 workers seems to work well for most cases.
+
+Ratel and Tardigrade-MOOSE may be parallelized using MPI (see :ref:`mpi`).
+If a path to :code:`mpiexec` has been added to the :code:`config_software.yml`
+file, then simulations will be executed for a specified number of cpus.
+For some workflows, the number of cpus is specified using the
+:code:`--solve-cpus=<n>` flag. For workflows such as `Tardigrade_convergence`,
+the number of cpus for various meshes is hard coded in the parameteric study
+parameter definition. Abaqus DNS are similarly parallelizable using the
+:code:`--solve-cpus=<n>` flag without the need to configure MPI.
+
+Additionally, Ratel and Tardigrade-MOOSE may be parallelized on HPC systems
+with SLURM.
+
+Note that the "BUILDER" definition (see top of this page) for Ratel and Tardigrade are
+:code:`"RatelSolver": ratel_builder_select()` and
+:code:`"TardigradeSolver": tardigrade_builder_select()`, respectively.
+**Focusing on Tardigrade-MOOSE**, the :code:`tardigrade_builder_select` function provides
+a method to configure the Tardigrade-MOOSE solver depending on the available
+resources, see here:
+
+.. literalinclude:: SConstruct.py
+   :lines: 241-247
+
+**Auto-batch**
+
+If SCons detects that the user is on an HPC system with SLURM, the
+:code:`env['sbatch']` environment variable is set.
+If the user also specifies the :code:`--use-sbatch` flag, then the :code:`Tardigrade_solver`
+will be set to the :code:`tardigrade_solver_sbatch` BUILDER.
+This builder will automatically submit SLURM jobs.
+This means that a user may run a workflow from a login node and Tardigrade-MOOSE simulations
+will be automatically submitted to a compute node with :code:`--solve-cpus=<n>` cores
+without requiring the user to write any SLURM scripts.
+The workflow will wait for the job to finish
+and then continue with the rest of the analysis.
+
+Unfortunately, the :code:`env['sbatch']` configuration may cause workflows
+to run slowly as individual workflow stages must wait through a SLURM queue.
+It may be more efficient to submit an entire workflow execution directly
+through a SLURM script as described in :ref:`WAVES_with_SLURM`.
+
+**MPI**
+
+If the path to :code:`mpiexec` is provided in the :code:`config_software.yml` file,
+the :code:`Tardigrade_solver` will be set to the :code:`tardigrade_solver_mpi` BUILDER.
+Tardigrade-MOOSE simulations will be parallelized using MPI on :code:`--solve-cpus=<n>` cores.
+This configuration is primarily intended for workflows being submitted on standalone machines
+without a job scheduler.
+
+**Serial**
+
+Finally, if a user does not (1) provide the :code:`--use-sbatch` flag with
+:code:`env['sbatch']` detected, or (2) specify the "mpi" entry in
+:code:`config_software.yml` file, then jobs will be run in serial using the
+basic :code:`tardigrade_solver` BUILDER.
+
+Identical "auto-batch", "MPI", and "Serial" configurations are provided for Ratel simulations.
+
+.. _WAVES_with_SLURM:
 
 **********************
 Using WAVES with SLURM
 **********************
 
-Several operations of Tardigrade-examples may be somewhat computationally
+As mentioned, several operations of Tardigrade-examples may be computationally
 expensive. These operations may include running large direct numerical simulations,
 running the Micromorphic Filter for large DNS on multiple cores,
-running many calibrations simultaneously, or
-running large Tardigrade-MOOSE simulations.
-A template shell script is provided in the root repository with the name
+running many calibrations simultaneously, or running large Tardigrade-MOOSE simulations.
+Some WAVES configuration options have been discussed in the previous section, but
+some situations using HPC systems may warrant more manual control using SLURM scripts
+for specific workflow stages.
+A template script is provided in the root repository with the name
 :code:`sbatch_template.sh`, as shown below:
 
 .. literalinclude:: sbatch_template.sh
@@ -266,8 +357,8 @@ with:
       $ sbatch sbatch_template.sh Ratel_elastic_cylinder
 
 A more complex, custom command may be specified by wrapping a command in quotations.
-The following example would run calibration for the :code:`Ratel_elastic_cylinder_multi_domain`
-on 28 CPUs (assuming that the "ntasks" SLURM directive was set to 28):
+The following example would run the calibration Stage of the :code:`Ratel_elastic_cylinder_multi_domain`
+workflow on 28 CPUs (notes that the "ntasks" SLURM directive would also need to be set to 28):
 
    .. code-block:: console
 
