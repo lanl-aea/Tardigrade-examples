@@ -17,6 +17,7 @@
 .. _MOOSE: https://mooseframework.inl.gov/index.html
 .. _MOOSE_parallel: https://mooseframework.inl.gov/getting_started/examples_and_tutorials/tutorial01_app_development/step07_parallel.html
 .. _PSAAP: https://micromorph.gitlab.io
+.. _RATEL: https://ratel.micromorph.org
 
 .. target-end-do-not-remove
 
