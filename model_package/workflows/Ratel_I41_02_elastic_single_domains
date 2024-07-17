@@ -115,36 +115,42 @@ workflow.extend(env.PythonScript(
 # setup several options for different studies
 parameter_schema = dict(
     parameter_samples = numpy.array([
-        [0.25, 1],
-        [0.5, 1],
-        [1.0, 1],
+        [0.25,  [0.,0.,0.],    'center'],
+        [0.5,   [0.,0.,0.],    'center'],
+        [1.0,   [0.,0.,0.],    'center'],
+        [0.25,  [-1.,-1.,0.5], 'offset'],
+        [0.5,   [-1.,-1.,0.5], 'offset'],
+        [1.0,   [-1.,-1.,0.5], 'offset'],
         ], dtype=object),
-    parameter_names = numpy.array(["RVE_width", "num_domains"])
+    parameter_names = numpy.array(["RVE_width", "offset", "name"])
 )
 
 parameter_generator = waves.parameter_generators.CustomStudy(parameter_schema)
 for set_name, parameters in parameter_generator.parameter_study_to_dict().items():
     set_name = pathlib.Path(set_name)
 
-    domain_number = parameters['num_domains']
+    # unpack and store some parameters/variables
     RVE_width = parameters['RVE_width']
     parameters['seed_size'] = RVE_width
+    offset = numpy.array(parameters['offset'])
+    domain_number = 1
+    parameters['num_domains'] = domain_number
 
+    # handle names for filter results and targets
     split=str(RVE_width).split('.')
     RVE_string=f'{split[0]}p{split[1]}'
-
-    filter_results = f"FILTER_RESULTS_{model}_{RVE_string}"
+    filter_results = f"FILTER_RESULTS_{model}_{RVE_string}_{parameters['name']}"
     filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
     params['filter_targs'] = filter_targs
 
-    # create lower and upper bounds from center of DNS and RVE_width
+    # create lower and upper bounds from center of DNS, offset, and RVE_width
     center = numpy.array([params['diam']/2, params['diam']/2, params['height']/2])
     half_width = numpy.array([RVE_width/2, RVE_width/2, RVE_width/2])
-    lower = center - half_width
-    upper = center + half_width
+    lower = center + offset - half_width
+    upper = center + offset + half_width
 
     # create bounds for macroscale
-    bounding_csv = f"{model}_{RVE_string}_bounds.csv"
+    bounding_csv = f"{model}_{RVE_string}_{parameters['name']}_bounds.csv"
     bounding_script = "force_bounds.py"
     bounding_script = "force_bounds.py"
     script_options = f"--xmin {lower[0]} --xmax {upper[0]}"
@@ -178,19 +184,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
             SConscript("calibrate_element.scons", variant_dir=variant_dir,
                        exports=["env", "parameters", "workflow_name", "model", "params"],
                        duplicate=False))
-    if domain_number == 1:
-        params['parameter_sets'] = [f'calibrated_parameters_case_{case}_elem_0.yml']
-    else:
-        params['parameter_sets'] = [f'parameter_set{i}/calibrated_parameters_case_{case}_elem_{i}.yml' for i in range(0, int(domain_number))]
-
-    # ---------- Tardigrade-MOOSE --------------------------------------------------
-    # Run common Tardigrade-MOOSE sconscript
-    if env['macro']:
-        variant_dir = build_directory / set_name
-        workflow.extend(
-            SConscript("tardigrade_moose.scons", variant_dir=variant_dir,
-                       exports=["env", "parameters", "workflow_name", "model", "params"],
-                       duplicate=False))
+    params['parameter_sets'] = [f'calibrated_parameters_case_{case}_elem_0.yml']
 
 # ---------- Collect Results across Studies ------------------------------------
 # Run common post-processing sconscript
