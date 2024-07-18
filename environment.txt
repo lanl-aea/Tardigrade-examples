@@ -18,7 +18,6 @@ sphinx-argparse
 sphinx_rtd_theme>=0.4.3
 sphinxcontrib-bibtex
 sphinx-subfigure
-paraview
 h5py
 pyyaml
 scipy
@@ -27,5 +26,5 @@ seaborn
 tqdm
 meshio
 compilers
-moose-dev
+moose-dev>=2024.07.15
 numpy
