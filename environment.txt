@@ -1,6 +1,6 @@
 waves
 scons>=4
-boost>=1.59
+boost>=1.59,<=1.80
 breathe>=4.30.0
 cmake>=3.18
 cython
@@ -26,5 +26,5 @@ seaborn
 tqdm
 meshio
 compilers
-moose-dev>=2024.07.15
-numpy
+#moose-dev>=2024.07.15
+numpy>=1.17

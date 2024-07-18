@@ -218,7 +218,7 @@ for more details about using `Conda`_.
 
    .. code-block::
 
-      $ conda create --name tardigrade-examples-env mamba python=3.10
+      $ conda create --name tardigrade-examples-env mamba python=3.10 moose-dev
 
 2. Activate the environment
 
@@ -231,6 +231,11 @@ for more details about using `Conda`_.
    .. code-block::
 
       $ mamba install --file environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge
+
+.. warning::
+
+   Whenever rebuilding MOOSE related software, it is recommended to completely remove and
+   rebuild the conda environment!!! More information is provided here: `MOOSE_up_to_date`_.
 
 .. env-end-do-not-remove
 
