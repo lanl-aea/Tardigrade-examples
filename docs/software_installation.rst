@@ -4,6 +4,17 @@
 Software Installation
 #####################
 
+********************
+Activate environment
+********************
+
+It is assumed that the tardigrade-examples-env environment has been installed
+per the instructions provided in :ref:`build`.
+
+   .. code-block:: console
+
+      $ conda activate -n tardigrade-examples-env
+
 **********
 Abaqus FEM
 **********
@@ -228,13 +239,6 @@ Clone Tardigrade
 
       $ git clone https://github.com/UCBoulder/tardigrade.git
       $ cd tardigrade
-
-Activate environment
-====================
-
-   .. code-block:: console
-
-      $ conda activate -n tardigrade-examples-env
 
 CMake
 =====
