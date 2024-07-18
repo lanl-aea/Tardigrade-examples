@@ -15,6 +15,8 @@
 .. _ResearchComputing: https://www.colorado.edu/rc/
 .. _meshio: https://github.com/nschloe/meshio
 .. _MOOSE: https://mooseframework.inl.gov/index.html
+.. _MOOSE_conda: https://mooseframework.inl.gov/getting_started/installation/conda.html
+.. _MOOSE_up_to_date: https://mooseframework.inl.gov/getting_started/new_users.html#update
 .. _MOOSE_parallel: https://mooseframework.inl.gov/getting_started/examples_and_tutorials/tutorial01_app_development/step07_parallel.html
 .. _PSAAP: https://micromorph.gitlab.io
 .. _RATEL: https://ratel.micromorph.org
@@ -206,6 +208,9 @@ Local environments
 
 For users external to LANL systems, an environment to run workflows in this repository can be installed in a
 `Conda`_ environment with the `Conda`_ package manager.
+Users are recommended to follow the conda installation instructions provided by `MOOSE_conda`_ and
+to keep MOOSE packages up to date whenever rebuilding software required by this project
+(`MOOSE_up_to_date`_).
 See the `Conda installation`_ and `Conda environment management`_ documentation
 for more details about using `Conda`_.
 
