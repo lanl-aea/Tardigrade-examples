@@ -231,7 +231,7 @@ tardigrade_solver_mpi = Builder(
 tardigrade_solver_sbatch = Builder(
     action=["cd ${TARGET.dir.abspath} && \
             LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
-            srun \
+            mpirun \
             -n ${tardigrade_cpus} ${tardigrade_program} \
             -i ${tardigrade_input} \
             --n-threads=2 \
