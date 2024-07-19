@@ -9,6 +9,7 @@
 #*.e filter=lfs diff=lfs merge=lfs -text
 #*.svg filter=lfs diff=lfs merge=lfs -text
 #* !text !filter !merge !diff
+*.e binary
 *.png binary
 *.png[[:space:]]*.PNG[[:space:]]*.pdf[[:space:]]*.jpg[[:space:]]*.jpeg[[:space:]]*.vut[[:space:]]*.e[[:space:]]*.svg filter=lfs diff=lfs merge=lfs -text
 *.png filter=lfs diff=lfs merge=lfs -text
