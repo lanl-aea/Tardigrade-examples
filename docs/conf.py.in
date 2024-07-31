@@ -20,7 +20,8 @@ mock_modules = ["abaqus", "abaqusConstants", "mesh", "cubit", "scipy", "scipy.st
                 "odbAccess", "seaborn",
                 "file_io", "file_io.xdmf", "meshio", "micromorphic_filter",
                 "micromorphic_filter.filter_dns", "linear_elastic_parameter_constraint_equations",
-                "micromorphic", "summarize_calibration_results"]
+                "micromorphic", "summarize_calibration_results", "finite_stVK_calculation",
+                "summarize_micro_macro_lateral_displacements"]
 for mod_name in mock_modules:
     sys.modules[mod_name] = unittest.mock.Mock()
 

@@ -36,7 +36,8 @@ parameter_schema = dict(
         [192, 1.0, 1],
         [960, 0.5, 1],
         [2520, 0.375, 2],
-        [7680, 0.25, 5]], dtype=object),
+        [7680, 0.25, 5],
+        ], dtype=object),
     parameter_names = numpy.array(["elements", "seed_size", "cpus"]))
 
 parameter_generator = waves.parameter_generators.CustomStudy(parameter_schema)
@@ -77,12 +78,14 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     tardi_sim_name = f'TARDIGRADE-MOOSE_{model}_{elements}'
     tardigrade_build_targs = f"{tardi_sim_name}.i"
     tardigrade_build_sources = [str(set_name / source) for source in [tardi_mesh, material_card]]
+    rad = params['diam'] / 2.
     script_options = f"--output-file {tardigrade_build_targs}"
     script_options += f" --parameter-sets {material_card}"
     script_options += f" --mesh {tardi_mesh}"
     script_options += f" --BCs {params['macro_BC']}"
     script_options += f" --disp {params['macro_disp']}"
     script_options += f" --duration {params['macro_duration']}"
+    script_options += f" --disp-point '{rad} 0. 0.'"
     workflow.extend(env.PythonScript(
         target = [str(set_name / tardigrade_build_targs)],
         source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", ],
@@ -120,24 +123,52 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
         script_options=script_options,
         ))
 
-# Summarize force vs displacements
-output_csvs, element_labels = [], []
+    # plot lateral displacement
+    plot_script = "plot_lateral_displacement.py"
+    plot_targets = [f"{tardi_sim_name}_lateral_displacement.png", f"{tardi_sim_name}_lateral_displacement.csv"]
+    script_options = f"--csv-file {tardigrade_moose_targs[1].split('/')[-1]}"
+    script_options += f" --output-file {plot_targets[0]}"
+    script_options += f" --output-csv {plot_targets[1]}"
+    workflow.extend(env.PythonScript(
+        target=[str(set_name / targ) for targ in plot_targets],
+        source=[str(Tardigrade_MOOSE_source_abspath / plot_script), tardigrade_moose_targs[-1]],
+        script_options=script_options,
+        ))
+
+# Summarize force vs displacements and lateral displacemens
+force_csvs, lateral_csvs, element_labels = [], [], []
 for set_name, parameters in parameter_generator.parameter_study_to_dict().items():
     elements = parameters['elements']
-    output_csvs.append(f'{set_name}/TARDIGRADE-MOOSE_{model}_{elements}_force_displacement.csv')
+    force_csvs.append(f'{set_name}/TARDIGRADE-MOOSE_{model}_{elements}_force_displacement.csv')
+    lateral_csvs.append(f'{set_name}/TARDIGRADE-MOOSE_{model}_{elements}_lateral_displacement.csv')
     element_labels.append(elements)
+## Force vs displacement
 summary_script = "summarize_micro_macro_force_displacements.py"
-output_targets = [f"all_force_displacements.png", f"all_force_displacements.csv"]
+output_targets = ["all_force_displacements.png", "all_force_displacements.csv", "force_convergence.png"]
 plot_labels = [f'"{element} elements"' for element in element_labels]
-script_options = f"--csv-files {' '.join(output_csvs)}"
+script_options = f"--csv-files {' '.join(force_csvs)}"
 script_options += f" --plot-labels {' '.join(plot_labels)}"
 script_options += f" --output-file {output_targets[0]}"
 script_options += f" --output-csv {output_targets[1]}"
+script_options += f" --convergence-plot {output_targets[2]}"
 workflow.extend(env.PythonScript(
     target=output_targets,
-    source=[f"{Tardigrade_MOOSE_source_abspath / summary_script}"] + output_csvs,
+    source=[f"{Tardigrade_MOOSE_source_abspath / summary_script}"] + force_csvs,
     script_options=script_options
     ))
-
+# Lateral displacement
+summary_script = "summarize_micro_macro_lateral_displacements.py"
+output_targets = ["all_lateral_displacements.png", "all_lateral_displacements.csv", "lateral_displacement_convergence.png"]
+plot_labels = [f'"{element} elements"' for element in element_labels]
+script_options = f"--csv-files {' '.join(lateral_csvs)}"
+script_options += f" --plot-labels {' '.join(plot_labels)}"
+script_options += f" --output-file {output_targets[0]}"
+script_options += f" --output-csv {output_targets[1]}"
+script_options += f" --convergence-plot {output_targets[2]}"
+workflow.extend(env.PythonScript(
+    target=output_targets,
+    source=[f"{Tardigrade_MOOSE_source_abspath / summary_script}"] + lateral_csvs,
+    script_options=script_options
+    ))
 # Collector alias based on parent directory name
 env.Alias(workflow_name, workflow)

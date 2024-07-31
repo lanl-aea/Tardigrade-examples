@@ -29,6 +29,11 @@ It can be shown that the relevant stresses and forces for this problem are
 
     F_3 &= -48.3535 N.
 
+.. note::
+
+    Tardigrade-MOOSE does not currently provide stress quantities evaluated in the current configuration
+    including Cauchy stress.
+
 Four meshes are considered for simulation in Tardigrade-MOOSE with
 192, 960, 2520, and 7680 elements.
 See the :code:`Tardigrade_convergence_study` Sconscript for details of how this
@@ -38,7 +43,7 @@ where input parameters are defined.
 
 The mesh convergence analysis is setup as a parametric study. After simulations
 are initialized, exectuted, and post-processed, the force versus displacement
-results for each case are collected.
+and lateral displacement results are collected for each case.
 
 The analysis may be exectuted using the following command:
 
@@ -60,12 +65,50 @@ Figure :numref:`{number} <Tardigrade_convergence_all_force_displacements>`.
 
 The final force results are -47.1203, -48.0434, -48.1549, and -48.2759 N for the
 meshes with 192, 960, 2520, and 7680 elements, respectively.
-These results indicate that Tardigrade-MOOSE appears to converge to the
+The final force value for each mesh is plotted against the analytical
+solution in Figure :numref:`{number} <Tardigrade_convergence_force_profile>`.
+These results indicate that Tardigrade-MOOSE is converging to the
 analytical force value of -48.3535 N.
 See the :code:`docs/Tardigrade_convergence_all_force_displacements.csv`
-file for the full force-displacement profiles.
+file for all force-displacement data.
 
-.. note::
+.. figure:: Tardigrade_convergence_force_profile.png
+   :name: Tardigrade_convergence_force_profile
+   :align: center
+   :width: 70%
 
-    Tardigrade-MOOSE does not currently provide stress quantities evaluated in the current configuration
-    including Cauchy stress.
+   Final force versus analytical solution for Tardigrade-MOOSE convergence study
+
+The total force depends on the final deformed area of the cylinder, so it is expected
+that the lateral displacements in the Tardigrade-MOOSE simulations agree with the analytical
+solution since the total force appears to converge.
+The lateral (or radial) stretch solved for this problem, following Eq. :math:numref:`{number} <stretch_solution>`,
+is found to be :math:`\alpha_r = 1.001988`.
+The analytical lateral displacement may then be calculated as:
+
+.. math::
+
+    \epsilon_r &= \frac{\Delta r}{r} = \frac{u_r}{r}
+
+    \alpha_r &= 1 + \epsilon_r
+
+    u_r &= r \left(\alpha_r - 1\right)
+
+    &\rightarrow u_r = 0.0049700597 mm
+
+The final lateral displacements are sampled from the Tardigrade-MOOSE simulation results for each mesh
+at the mid-height of the cylinder on the outer edge.
+The resulting values are all within :math:`10^{-10} mm` of the analytical
+solution, which is finer than the precision expected from the solver.
+The final lateral displacement values for each mesh are plotted against
+the analytical solution in Figure :numref:`{number} <Tardigrade_convergence_lateral_displacement_profile>`.
+See the :code:`docs/Tardigrade_convergence_all_lateral_displacements.csv`
+file for all lateral displacement data.
+
+.. figure:: Tardigrade_convergence_lateral_displacement_profile.png
+   :name: Tardigrade_convergence_lateral_displacement_profile
+   :align: center
+   :width: 70%
+
+   Final lateral displacement versus analytical solution for Tardigrade-MOOSE convergence study
+

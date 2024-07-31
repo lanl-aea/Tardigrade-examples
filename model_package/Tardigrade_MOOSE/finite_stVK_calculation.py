@@ -32,6 +32,9 @@ def finite_stVK_calculation(diameter=5.0, material_E=250., material_nu=0.2, eps_
     stretch_x = numpy.sqrt(term1/term2)
     print(f'stretch_x = {stretch_x}\n') 
     stretch_y = stretch_x
+    nominal_lateral_strain = stretch_x - 1.
+    lateral_displacement = diameter*nominal_lateral_strain/2
+    print(f'lateral displacement x = {lateral_displacement}\n')
 
     # Construct deformation gradient
     F = numpy.array([[stretch_x, 0.0, 0.0],
@@ -68,7 +71,7 @@ def finite_stVK_calculation(diameter=5.0, material_E=250., material_nu=0.2, eps_
     current_force = current_area*cauchy[2,2]
     print(f'Force using original area = {current_force} N\n')
 
-    return 0
+    return current_force, lateral_displacement
 
 
 def get_parser():

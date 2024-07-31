@@ -76,6 +76,7 @@ To solve this system of equations, one must first determine the unknown lateral 
 will be zero.
 
 .. math::
+   :label: stretch_solution
 
     S_{11} &= S_{22} = 0
 

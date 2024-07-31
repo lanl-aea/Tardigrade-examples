@@ -6,14 +6,18 @@ import pandas
 import numpy
 import matplotlib.pyplot
 
+from finite_stVK_calculation import finite_stVK_calculation
+from summarize_micro_macro_lateral_displacements import plot_convergence
 
-def plot_force_displacement(csv_files, plot_labels, output_file, output_csv):
+
+def plot_force_displacement(csv_files, plot_labels, output_file, output_csv, convergence_plot=None):
     '''Plot mutliple force displacement plots against each other
 
     :param list csv_files: The csv files containing force results
     :param list plot_labels: The plot labels, same size as ``csv_files``
     :param str output_file: The name of the output file of collected results
     :param str output_csv: The name of the output csv file
+    :param str convergence_plot: Optional file name for convergence plot
 
     :returns: Write ``output_file`` and ``output_csv``
     '''
@@ -21,10 +25,12 @@ def plot_force_displacement(csv_files, plot_labels, output_file, output_csv):
     matplotlib.pyplot.figure()
 
     dfs = []
+    final_forces = []
     # loop through csvs, plot, and append to output DataFrame
     for csv_file, label in zip(csv_files, plot_labels):
         df = pandas.read_csv(csv_file, sep=",")
         matplotlib.pyplot.plot(df['disp'], df['force'], label=label)
+        final_forces.append(df['force'].values[-1])
         df = df.assign(id=[label for i in range(len(df.index))])
         dfs.append(df)
     matplotlib.pyplot.xlabel('Displacement (mm)')
@@ -37,6 +43,12 @@ def plot_force_displacement(csv_files, plot_labels, output_file, output_csv):
     if output_csv:
         out_df = pandas.concat(dfs, axis=1)
         out_df.to_csv(output_csv, header=True, sep=',', index=False)
+
+    # Convergence plot
+    if convergence_plot:
+        convergence_value, _ = finite_stVK_calculation()
+        elements = [int(label.split(' ')[0]) for label in plot_labels]
+        plot_convergence(convergence_plot, final_forces, '-1*Force (N)', elements, -1*convergence_value)
 
     return 0
 
@@ -56,6 +68,8 @@ def get_parser():
         help="The name of the output plot")
     parser.add_argument('--output-csv', type=str, required=True,
         help="The name of the output csv file")
+    parser.add_argument('--convergence-plot', type=str, required=False,
+        help="Optional file name for convergence plot")
 
     return parser
 
@@ -67,4 +81,5 @@ if __name__ == '__main__':
                                      plot_labels=args.plot_labels,
                                      output_file=args.output_file,
                                      output_csv=args.output_csv,
+                                     convergence_plot=args.convergence_plot,
                                      ))
