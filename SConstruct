@@ -225,16 +225,14 @@ tardigrade_solver_mpi = Builder(
             ${mpi_location} \
             -n ${tardigrade_cpus} ${tardigrade_program} \
             -i ${tardigrade_input} \
-            --n-threads=2 \
             --no-color --color off > ${stdout_file} || true",
             "cd ${TARGET.dir.abspath} && grep -i 'Finished Executing' ${stdout_file}"])
 tardigrade_solver_sbatch = Builder(
     action=["cd ${TARGET.dir.abspath} && \
             LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
-            mpirun \
+            srun \
             -n ${tardigrade_cpus} ${tardigrade_program} \
             -i ${tardigrade_input} \
-            --n-threads=2 \
             --no-color --color off > ${stdout_file} || true",
             "cd ${TARGET.dir.abspath} && grep -i 'Finished Executing' ${stdout_file}"])
 
@@ -385,6 +383,7 @@ workflow_configurations = [
     "Ratel_I41_02_elastic_single_domains",
     # Tardigrade solo studies
     "Tardigrade_convergence",
+    "Tardigrade_dynamic_convergence",
 ]
 for workflow in workflow_configurations:
     build_dir = str(variant_dir_base / workflow)
