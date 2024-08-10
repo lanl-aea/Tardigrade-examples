@@ -466,7 +466,7 @@ def build_input(output_file, mesh_file, BCs, pressure, start, duration, dt, ref_
         f.write('[Postprocessors]\n')
         f.write('  [disp_x_p]\n')
         f.write('    type = PointValue\n')
-        f.write(f'    point = "0 0 {height}"\n')
+        f.write(f'    point = "0 0 {height/2}"\n')
         f.write('    variable = disp_z\n')
         f.write('  []\n')
         f.write('\n')
