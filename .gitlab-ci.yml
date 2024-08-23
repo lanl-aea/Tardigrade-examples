@@ -24,9 +24,9 @@ before_script:
           export ALL_PROXY="proxyout.lanl.gov:8080"
           export HTTP_PROXY="http://$ALL_PROXY"
           export HTTPS_PROXY=$HTTP_PROXY
-          conda create --name tardigrade-examples-env mamba python=3.10 moose-dev --channel https://conda.software.inl.gov/public --channel conda-forge --force
+          conda create --name tardigrade-examples-env mamba python=3.10 moose-dev --channel https://conda.software.inl.gov/public --channel conda-forge --force --yes
           conda activate tardigrade-examples-env
-          mamba install --file environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge --force
+          mamba install --file environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge --force --yes
           chmod -R 755 ${environment_path}
           unset ALL_PROXY
           unset HTTP_PROXY
@@ -51,7 +51,7 @@ environment:
     - export HTTP_PROXY="http://$ALL_PROXY"
     - export HTTPS_PROXY=$HTTP_PROXY
     # Re-build the Conda environment on changes to environment files
-    - conda create --name tardigrade-examples-env mamba python=3.10 moose-dev --channel https://conda.software.inl.gov/public --channel conda-forge --force
+    - conda create --name tardigrade-examples-env mamba python=3.10 moose-dev --channel https://conda.software.inl.gov/public --channel conda-forge --force --yes
     - conda activate tardigrade-examples-env
     - mamba install --file environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge --force
     # Remove write permissions from group to avoid accidental environment changes

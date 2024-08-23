@@ -26,6 +26,5 @@ seaborn
 tqdm
 meshio
 compilers
-#moose-dev>=2024.07.15
 numpy>=1.17
 neper
