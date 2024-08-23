@@ -46,6 +46,7 @@
 
    Dynamic_verification
    Abaqus_elastic_cylinder_dynamic_imp
+   Tardigrade_MOOSE_dynamic_convergence
 
 .. toctree::
    :maxdepth: 2
