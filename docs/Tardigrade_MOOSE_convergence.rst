@@ -15,6 +15,8 @@ similar loading and boundary conditions as described in the previous sections.
 A cylinder with 5 mm diameter and 5 mm height is displaced in the z-direction
 to produce a nominal strain of -1% with boundary conditions that result in a
 uniaxial stress state.
+The modulus of elasticity is 250 MPa, the Poisson ratio is 0.2, and the density
+is 2000 kg/m^3.
 
 Refer to :ref:`finite_strain_solution` for details of the analytical solution.
 A user may find the :py:mod:`model_package.Tardigrade_MOOSE.finite_stVK_calculation`

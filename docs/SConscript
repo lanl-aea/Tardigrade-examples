@@ -78,6 +78,7 @@ figure_pictures = [
     "Tardigrade_convergence_all_force_displacements.png",
     "Tardigrade_convergence_force_profile.png",
     "Tardigrade_convergence_lateral_displacement_profile.png",
+    "Tardigrade_dynamic_convergence_all_force_displacements.png",
     # Dynamic Abaqus cylinder
     "Abaqus_elastic_cylinder_dynamic_mesh.png",
     "Abaqus_elastic_cylinder_dynamic_comparison.png",
@@ -167,6 +168,7 @@ documentation_file_list = [
     "Tardigrade_MOOSE_convergence.rst",
     "Dynamic_verification.rst",
     "Abaqus_elastic_cylinder_dynamic_imp.rst",
+    "Tardigrade_MOOSE_dynamic_convergence.rst",
     "Ratel_I41_02_elastic.rst",
     # Pictures
     "project_logo.png",
