@@ -23,7 +23,7 @@ def meirovitch(x, t, c, nmax, L):
     :returns: A list of solutions at point `x` for times `t`
     '''
 
-    n_sum = 0
+    n_sum = numpy.zeros_like(t)
     for n in range(1, nmax):
         term1 = ((-1)**(n-1))/((2.*n-1)**2)
         trig_fact = ((2.*n-1)*math.pi)/(2.*L)

@@ -20,7 +20,7 @@ dynamic_elastic_cylinder = {
     'material_rho': 1.935e-9,
     'pressure': 1.273239545,
     'duration' : 1.669251329e-4,
-    'num_steps' : 60,
+    'num_steps' : 240,
     'finite_rise': 0,
     'macro_BC': 'slip',
     'mesh_copy_root': 'cylinder_5_5',

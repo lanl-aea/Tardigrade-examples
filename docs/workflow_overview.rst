@@ -33,5 +33,6 @@ line arguments:
       $ scons study_name --calibrate
       $ scons study_name --macro
 
+Other workflows may only run one or two stages.
 Further details and options for controlling stages of upscaling analyses are provided in
 the following sections and documentation of relevant upscaling studies.

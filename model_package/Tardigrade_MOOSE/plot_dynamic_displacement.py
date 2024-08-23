@@ -7,7 +7,7 @@ import numpy
 import matplotlib.pyplot
 
 
-def plot_force_displacement(csv_file, output_file, output_csv, final_disp, disp_factor=1):
+def plot_dyanmic_displacement(csv_file, output_file, output_csv, disp_factor=1):
     '''Process displacement vs time from Tardigrade-MOOSE results
 
     :param str csv_file: The csv file containing force results
@@ -61,8 +61,8 @@ def get_parser():
 if __name__ == '__main__':
     parser = get_parser()
     args, unknown = parser.parse_known_args()
-    sys.exit(plot_force_displacement(csv_file=args.csv_file,
-                                     output_file=args.output_file,
-                                     output_csv=args.output_csv,
-                                     disp_factor=args.disp_factor,
-                                     ))
+    sys.exit(plot_dyanmic_displacement(csv_file=args.csv_file,
+                                       output_file=args.output_file,
+                                       output_csv=args.output_csv,
+                                       disp_factor=args.disp_factor,
+                                       ))
