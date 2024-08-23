@@ -793,13 +793,13 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         df = pandas.DataFrame(UQ_dict)
         df.to_csv(UQ_file, header=True, sep=',', index=False)
 
-    # look at population energy stuff
-    population = res.population
-    energies = res.population_energies
-    print(f'size of population = {numpy.shape(population)}')
-    print(f'size of population_energies = {numpy.shape(energies)}')
-    print(f'population = \n {population}\n')
-    print(f'energies = \n {energies}\n')
+    # look at population energy info
+    #population = res.population
+    #energies = res.population_energies
+    #print(f'size of population = {numpy.shape(population)}')
+    #print(f'size of population_energies = {numpy.shape(energies)}')
+    #print(f'population = \n {population}\n')
+    #print(f'energies = \n {energies}\n')
 
     # Manage Objective evaluation for UQ
 

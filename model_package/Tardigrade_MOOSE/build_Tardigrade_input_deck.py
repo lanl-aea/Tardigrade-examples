@@ -7,7 +7,7 @@ import inspect
 import pandas
 
 
-def build_input(output_file, mesh_file, BCs, disp, duration, parameter_sets=None, calibration_map=None):
+def build_input(output_file, mesh_file, BCs, disp, duration, parameter_sets=None, calibration_map=None, disp_point=None):
     '''Write a Tardigrade-MOOSE input file
     
     :param str output_file: The name of Tardigrade-MOOSE file to write
@@ -17,6 +17,7 @@ def build_input(output_file, mesh_file, BCs, disp, duration, parameter_sets=None
     :param float duration: The duration of the simulation
     :param list parameter_sets: The list of yaml files containing calibration results, required if calibration-map is not provided
     :param str calibration_map: Optional yaml file containing names of calibration files
+    :param str disp_point: Optional string of coordinates to query x-displacement
 
     :returns: ``output_file``
     '''
@@ -419,13 +420,21 @@ def build_input(output_file, mesh_file, BCs, disp, duration, parameter_sets=None
         f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
-        f.write('# Do some cool math to get the reaction force\n')
+        # Postprocessor(s)
+        f.write('# Get the reaction force\n')
         f.write('[Postprocessors]\n')
         f.write('  [bot_react_z]\n')
         f.write('    type = NodalSum\n')
         f.write('    variable = force_z\n')
         f.write('    boundary = "top"\n')
         f.write('  []\n')
+        # Custom displacement query for disp_x
+        if disp_point:
+            f.write('  [lateral_disp]\n')
+            f.write('    type = PointValue\n')
+            f.write(f'    point = "{disp_point}"\n')
+            f.write('    variable = disp_x\n')
+            f.write('  []\n')
         f.write('[]\n')
         f.write('\n')
         if BCs == 'slip':
@@ -643,6 +652,8 @@ def get_parser():
         help='The compressive displacement to be applied')
     parser.add_argument('--duration', type=float, required=True,
         help='The duration of the simulation')
+    parser.add_argument('--disp-point', type=str, required=False, default=None,
+        help='Optional string of coordinates to query x-displacement')
 
     return parser
 
@@ -658,4 +669,5 @@ if __name__ == '__main__':
                          duration=args.duration,
                          parameter_sets=args.parameter_sets,
                          calibration_map=args.calibration_map,
+                         disp_point=args.disp_point,
                          ))

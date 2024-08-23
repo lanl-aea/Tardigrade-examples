@@ -276,6 +276,14 @@ Tardigrade_MOOSE.cylinder_from_bounds.py
     :show-inheritance:
     :synopsis: Create a cylinder mesh from the bounds of a DNS file
 
+Tardigrade_MOOSE.finite_stVK_calculation.py
+============================================
+
+.. automodule:: model_package.Tardigrade_MOOSE.finite_stVK_calculation
+    :members:
+    :show-inheritance:
+    :synopsis: Solution for uniaxial stress of a cylinder for finite deformation using the St. Venant-Kirchhoff elasticity model
+
 Tardigrade_MOOSE.plot_dynamic_displacement.py
 =============================================
 

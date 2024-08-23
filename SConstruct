@@ -100,6 +100,13 @@ AddOption(
     action="store_true",
     help="Boolean to configure software paths. (default: '%default')"
 )
+AddOption(
+    "--use-sbatch",
+    dest="use_sbatch",
+    default=False,
+    action="store_true",
+    help="Boolean to submit jobs with SBATCH. (default: '%default')"
+)
 # Inherit user's full environment and set project options
 env = Environment(ENV=os.environ.copy(),
                   variant_dir_base=GetOption("variant_dir_base"),
@@ -113,6 +120,7 @@ env = Environment(ENV=os.environ.copy(),
                   summary=GetOption("summary"),
                   peta_data_copy=GetOption("peta_data_copy"),
                   config_software=GetOption("config_software"),
+                  use_sbatch=GetOption("use_sbatch"),
                   TARFLAGS="-c -j",
                   TARSUFFIX=".tar.bz2"
 )
@@ -121,14 +129,21 @@ env = Environment(ENV=os.environ.copy(),
 env.Default()
 
 # ============================================================ LINK SOFTWARE ===
+# Sbatch
+env['sbatch'] = waves.scons_extensions.add_program(["sbatch"], env)
+
 # Sphinx
 env["sphinx_build"] = waves.scons_extensions.add_program(["sphinx-build"], env)
 
 # Read in config.yml
-config_file = 'config.yml'
+config_file = 'config_software.yml'
 stream = open(config_file, 'r')
 program_paths = yaml.load(stream, Loader=yaml.FullLoader)
 stream.close()
+
+# MPI
+mpi_location = program_paths['mpi']
+env['mpi'] = waves.scons_extensions.find_program(mpi_location, env)
 
 # Abaqus
 abaqus_windows = ["C:/Simulia/Commands/abaqus.bat"]
@@ -150,6 +165,31 @@ ratel_solver = Builder(
              -ts_monitor_surface_force ascii:${force_file}:ascii_csv \
              -diagnostic_order 1 \
              > ${stdout_file} "])
+ratel_solver_mpi = Builder(
+    action=["cd ${TARGET.dir.abspath} && ${mpi_location} \
+             -n ${ratel_cpus} ${Ratel_program} \
+             -options_file ${options_file} \
+             -dm_plex_filename ${mesh_file} \
+             -ts_monitor_diagnostic_quantities vtk:${monitor_file} \
+             -ts_monitor_surface_force ascii:${force_file}:ascii_csv \
+             -diagnostic_order 1 \
+             > ${stdout_file} "])
+ratel_solver_sbatch = Builder(
+    action=["cd ${TARGET.dir.abspath} && srun \
+             -n ${ratel_cpus} ${Ratel_program} \
+             -options_file ${options_file} \
+             -dm_plex_filename ${mesh_file} \
+             -ts_monitor_diagnostic_quantities vtk:${monitor_file} \
+             -ts_monitor_surface_force ascii:${force_file}:ascii_csv \
+             -diagnostic_order 1 \
+             > ${stdout_file} "])
+def ratel_builder_select():
+    if env['sbatch'] and env['use_sbatch']:
+        return ratel_solver_sbatch
+    elif env['mpi']:
+        return ratel_solver_mpi
+    else:
+        return ratel_solver
 
 # GEOS
 ## TODO: add GEOS
@@ -163,19 +203,49 @@ micromorphic_location = program_paths['micromorphic'][-1]
 # Calibration-constraints
 constraints_location = program_paths['constraints'][-1]
 
+# LD_LIBRARY_PATH
+env['LD_PATH'] = program_paths['LD_PATH']
+
 # Tardigrade-MOOSE
 tardigrade_location = program_paths['Tardigrade']
 env['Tardigrade'] = waves.scons_extensions.find_program(tardigrade_location, env)
 if env['Tardigrade']:
     env.PrependENVPath("PATH", str(pathlib.Path(env['Tardigrade']).parent))
 tardigrade_solver = Builder(
-    action=["cd ${TARGET.dir.abspath} && ${tardigrade_program} \
+    action=["cd ${TARGET.dir.abspath} && \
+            LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
+            ${tardigrade_program} \
             -i ${tardigrade_input} \
-            --n-threads=${tardigrade_threads} \
-            --no-color --color off > ${stdout_file} "])
+            --n-threads=${tardigrade_cpus} \
+            --no-color --color off > ${stdout_file} || true",
+            "cd ${TARGET.dir.abspath} && grep -i 'Finished Executing' ${stdout_file}"])
+tardigrade_solver_mpi = Builder(
+    action=["cd ${TARGET.dir.abspath} && \
+            LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
+            ${mpi_location} \
+            -n ${tardigrade_cpus} ${tardigrade_program} \
+            -i ${tardigrade_input} \
+            --no-color --color off > ${stdout_file} || true",
+            "cd ${TARGET.dir.abspath} && grep -i 'Finished Executing' ${stdout_file}"])
+tardigrade_solver_sbatch = Builder(
+    action=["cd ${TARGET.dir.abspath} && \
+            LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
+            srun \
+            -n ${tardigrade_cpus} ${tardigrade_program} \
+            -i ${tardigrade_input} \
+            --no-color --color off > ${stdout_file} || true",
+            "cd ${TARGET.dir.abspath} && grep -i 'Finished Executing' ${stdout_file}"])
+
+def tardigrade_builder_select():
+    if env['sbatch'] and env['use_sbatch']:
+        return tardigrade_solver_sbatch
+    elif env['mpi']:
+        return tardigrade_solver_mpi
+    else:
+        return tardigrade_solver
 
 # # Custom Paraview image generator
-# env['paraview'] = waves.scons_extensions.find_program('/projects/aea_compute/tardigrade-examples-env/bin/paraview', env)
+# env['paraview'] = waves.scons_extensions.find_program(program_paths['filter'], env)
 # if env['paraview']:
     # env.PrependENVPath("PATH", str(pathlib.Path(env['paraview']).parent))
 # paraview_image = Builder(
@@ -259,8 +329,8 @@ env.Append(BUILDERS={
     "AbaqusExtract": waves.scons_extensions.abaqus_extract(program=env["abaqus"]),
     "PythonScript": waves.scons_extensions.python_script(),
     "CondaEnvironment": waves.scons_extensions.conda_environment(),
-    "RatelSolver": ratel_solver,
-    "TardigradeSolver": tardigrade_solver,
+    "RatelSolver": ratel_builder_select(),
+    "TardigradeSolver": tardigrade_builder_select(),
     #"ParaviewImage": paraview_image,
     "SphinxBuild": waves.scons_extensions.sphinx_build(program=env["sphinx_build"], options="-W"),
     "SphinxPDF": waves.scons_extensions.sphinx_latexpdf(program=env["sphinx_build"], options="-W")
@@ -310,7 +380,10 @@ workflow_configurations = [
     "Ratel_F83_multi_domain",
     # Ratel I41_02 workflows
     "Ratel_I41_02_elastic_multi_domain",
-    "Ratel_I41_02_elastic_single_RVEs",
+    "Ratel_I41_02_elastic_single_domains",
+    # Tardigrade solo studies
+    "Tardigrade_convergence",
+    "Tardigrade_dynamic_convergence",
 ]
 for workflow in workflow_configurations:
     build_dir = str(variant_dir_base / workflow)
@@ -332,6 +405,63 @@ if env["config_software"]:
         model_package.config_software.config_software(config_file)
     except Exception as err:
         print("Software configuration failed!")
+
+# Project title
+print(r"""\
+█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗
+╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝
+
+
+    ████████╗ █████╗ ██████╗ ██████╗ ██╗ ██████╗ ██████╗  █████╗ ██████╗ ███████╗
+    ╚══██╔══╝██╔══██╗██╔══██╗██╔══██╗██║██╔════╝ ██╔══██╗██╔══██╗██╔══██╗██╔════╝
+       ██║   ███████║██████╔╝██║  ██║██║██║  ███╗██████╔╝███████║██║  ██║█████╗
+       ██║   ██╔══██║██╔══██╗██║  ██║██║██║   ██║██╔══██╗██╔══██║██║  ██║██╔══╝
+       ██║   ██║  ██║██║  ██║██████╔╝██║╚██████╔╝██║  ██║██║  ██║██████╔╝███████╗
+       ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝
+
+
+                         ██████████████████████████████
+                    ███████      █████               ██████████
+                 ████                 █                █      █████
+               ███                     █                █          ████
+              ██                        █                █            ███
+             ██                          █                █     █       ██
+    ██████████ █                          █                █     █ █     ███
+  ███      █    █                          █               ██     █ █      █
+  ██        █    █                         █                █       ██     ██
+ ██         ██   ██                        ██               ██       █      ██
+  █         █    █                         █               ██       █    █   ██
+  ██       █    █                          █               █       █    █  █  ██
+   ██     █    █                          █              ██       █    █  █    ██
+    ██████████                        ██ ██              █    █  █    █  █     ██
+             ██                     ██  ██              ██      ██    █ █      ██
+              ███                ███   ██              ██    █ █      █ █      ██
+                ████   ██████████    ███            █ ██     █        █        ██
+                  ██████                            █ █        █              ██
+                     █████████     ███              █ █      █ █     █ █      ██
+                      █      ██       ██              █      █ █     █ █      █
+                      █       ██       ██           █ █      █       █ █      █
+                     ██        ███      █             █ █         █    █     ██
+                      ██        █████████            █ █      █ █     █     ██
+                       ██   ████        █            █ █            █ ███████
+                       ██████           ██            █      ███   ██  █ █ █
+                        █ █ █            ██           █      █ ██████
+                                          ██         ███    ██  █ █ █
+                                           █       ██   █████
+                                            ███████     █ █ █
+                                             █ █ █
+
+
+        ███████╗██╗  ██╗ █████╗ ███╗   ███╗██████╗ ██╗     ███████╗███████╗
+        ██╔════╝╚██╗██╔╝██╔══██╗████╗ ████║██╔══██╗██║     ██╔════╝██╔════╝
+        █████╗   ╚███╔╝ ███████║██╔████╔██║██████╔╝██║     █████╗  ███████╗
+        ██╔══╝   ██╔██╗ ██╔══██║██║╚██╔╝██║██╔═══╝ ██║     ██╔══╝  ╚════██║
+        ███████╗██╔╝ ██╗██║  ██║██║ ╚═╝ ██║██║     ███████╗███████╗███████║
+        ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝     ╚══════╝╚══════╝╚══════╝
+
+
+█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗
+""")
 
 # Add default target list to help message
 # Add aliases to help message so users know what build target options are available

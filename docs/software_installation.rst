@@ -4,6 +4,17 @@
 Software Installation
 #####################
 
+********************
+Activate environment
+********************
+
+It is assumed that the tardigrade-examples-env environment has been installed
+per the instructions provided in :ref:`build`.
+
+   .. code-block:: console
+
+      $ conda activate -n tardigrade-examples-env
+
 **********
 Abaqus FEM
 **********
@@ -16,7 +27,7 @@ Add Abaqus to software configuration path
 =========================================
 
 Either using :code:`scons --config-software` or manually, add
-:code:`/path/to/abaqus` to the :code:`config.py` entry for "Abaqus".
+:code:`/path/to/abaqus` to the :code:`config_software.yml` entry for "Abaqus".
 
 For most Windows installations,
 the path to the :code:`abaqus.bat` script may be specified. The default
@@ -66,7 +77,7 @@ Build PETSc
 Clone, configure, and build PETSc then export the build location as an
 environment variable. The following instructions provided by PETSc may
 be a helpful reference if problems arise: https://petsc.org/release/install/install_tutorial/#qqtw-quickest-quick-start-in-the-west.
-Several configure options are specified to allow Ratel simulations
+Several configure options are specified here to allow Ratel simulations
 to run with Exodus meshes generated using Cubit.
 
    .. code-block:: console
@@ -75,9 +86,6 @@ to run with Exodus meshes generated using Cubit.
       $ git clone https://gitlab.com/petsc/petsc
       $ cd petsc
       $ ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-mpich --download-fblaslapack --download-exodusii --download-hdf5 --download-netcdf --download-pnetcdf --download-zlib
-
-..
-   TODO: improve description of PETSC_ARCH without listing a specific architecture
 
 After configuring PETSc, a specific ``make`` command will be provided that
 lists the PETSc build architercture (``$PETSC_ARCH``) and the PETSc build
@@ -98,7 +106,7 @@ as environment variables.
 
 .. note::
 
-   Make sure to use the :code:`PETSC_ARCH` specified while configuring PETSc
+   Make sure to use the :code:`PETSC_ARCH` specified by PETSc after the configuration step
 
 Build Ratel
 ===========
@@ -133,7 +141,7 @@ Add Ratel to software configuration path
 Currently, all Ratel DNS used in this repository only require the `ratel-quasistatic` program.
 This executable should be located in ``$RATEL_DIR/ratel/bin/ratel-quasistatic``.
 Either using :code:`scons --config-software` or manually, add
-:code:`/path/to/ratel/bin/ratel-quasistatic` to the :code:`config.py` entry for "Ratel".
+:code:`/path/to/ratel/bin/ratel-quasistatic` to the :code:`config_software.yml` entry for "Ratel".
 
 ********
 GEOS MPM
@@ -159,7 +167,7 @@ Add Cubit to software configuration path
 ========================================
 
 Either using :code:`scons --config-software` or manually, add
-:code:`/path/to/cubit` to the :code:`config.py` entry for "Cubit".
+:code:`/path/to/cubit` to the :code:`config_software.yml` entry for "Cubit".
 
 *******************
 Micromorphic Filter
@@ -173,11 +181,19 @@ repository to a desired location.
 
    .. code-block:: console
 
-      $ git clone https://github.com/UCBoulder/tardigrade_filter.git
+      $ git clone git@github.com:UCBoulder/tardigrade_filter.git
+
+
+In order to clone this repository, a user may need to configure their
+GitHub account to be associated with University of Colorado Boulder's
+single sign-on (SSO). For instructions, see the section titled
+"Access GitHub" from the Office of Information Technology at the
+following link:
+https://oit.colorado.edu/services/business-services/github-enterprise
 
 The Conda Environment for this repo includes all of the same packages
 included in the Micrormophic Filter repository to guarantee that this
-software functions appropriately with 
+software functions appropriately.
 
 Test
 ====
@@ -195,9 +211,9 @@ Add Micromorphic Filter to software configuration path
 
 Either using :code:`scons --config-software` or manually, add
 :code:`/path/to/tardigrade_filter/src/python` to the
-:code:`config.py` entry for "filter".
+:code:`config_software.yml` entry for "filter".
 
-The path to the Micromorphic Filter's :code:`python/src` directory needs to be inserted
+The path to the Micromorphic Filter's :code:`src/python` directory needs to be inserted
 into the Python path whenever it is to be used. This is handled automatically by
 the SCons workflow.
 
@@ -205,7 +221,16 @@ the SCons workflow.
 Tardigrade-MOOSE
 ****************
 
-Tardigrade-MOOSE is built using CMake and requires its own conda environment.
+Tardigrade-MOOSE is built using CMake and requires a number of compilers and 
+Python libraries which are included in the :code:`environment.txt` file included
+in this repository.
+
+.. note::
+
+   Note that `MOOSE`_ and associated Python package update frequently,
+   so the conda environment for this repository should be rebuilt each time
+   Tardigrade-MOOSE is to be compiled. See the following link for more
+   information: https://mooseframework.inl.gov/getting_started/new_users.html#update.
 
 Clone Tardigrade
 ================
@@ -214,28 +239,6 @@ Clone Tardigrade
 
       $ git clone https://github.com/UCBoulder/tardigrade.git
       $ cd tardigrade
-
-Make environment
-================
-
-A separate environment is required to build Tardigrade-MOOSE, however, this environment is not needed
-when using the executable. There are two options for creating this environment.
-
-Option 1: use mamba
-
-   .. code-block:: console
-
-      $ mamba create -n tardigrade-env --file reduced_environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge
-      $ mamba activate tardigrade-env
-
-
-Option 2: If using conda, first create an environment with mamba installed as a package and then install the rest of the packages
-
-   .. code-block:: console
-
-      $ conda create -n tardigrade-env mamba
-      $ conda activate tardigrade-env
-      $ mamba install --file reduced_environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge
 
 CMake
 =====
@@ -257,16 +260,27 @@ A user may either:
 (1) export this path as an environment variable or
 (2) include this path on the command line each time a Tardigrade package is run.
 
-.. note::
-
-   For the WAVES workflows, there is currently no configuration for specifying the LD_LIBRARY_PATH automatically, so
-   a user is required to export this path whenever workflows are being used (perform option 1 mentioned above)!
-
-The LD_LIBRARY_PATH may be specified using the following command:
+For option 1, an environment variable may be set with the following command.
+It is NOT recommended to include this environment variable in a ~/.bashrc as
+there may be unintended consequences.
 
    .. code-block:: console
 
       $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-build/src/cpp
+
+For details using option 2, see the following subsection for "Test" or :ref:`macroscale_command_line`.
+**Workflows that run Tardigrade-MOOSE are configured to automatically use option 2 in which the
+LD_LIBRARY_PATH is prepended to the command that launches a simulation.** However, note that
+other operations may still require manual intervention (such as those described in the sections
+just mentioned).
+
+Either using :code:`scons --config-software` or manually, add
+:code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-build/src/cpp` to the
+:code:`config_software.yml` entry for "LD_PATH". This configuration will ensure that
+Tardigrade-MOOSE simulations run through SCons workflows will access the appropriate shared libraries.
+
+If one encounters :code:`error while loading shared libraries: libmicromat.so: cannot open shared object file`,
+then the LD_LIBRARY_PATH is not configured correctly.
 
 Test
 ====
@@ -292,14 +306,14 @@ Most or all of the tests should pass. If they do not all pass, the tests may be 
 with the "EXODIFF" reason, then it is likely that the most recent of Tardigade produces output
 that does not exactly match the "gold" results file. Otherwise, if tests fail because a specific
 library is not found (e.g., :code:`libmicromat.so`) then Tardigrade is configured improperly and/or
-the LD_LIBRARY_PATH should be set correctly.
+the LD_LIBRARY_PATH has not been specified correctly.
 
 Add Tardigrade-MOOSE to software configuration path
 ===================================================
 
 Either using :code:`scons --config-software` or manually, add
 :code:`/path/to/tardigrade/build/tardigrade-opt` to the
-:code:`config.py` entry for "Tardigrade".
+:code:`config_software.yml` entry for "Tardigrade".
 
 *****************************
 Micromorphic Calibration Tool
@@ -311,7 +325,8 @@ Tardigrade-MOOSE build went smoothly then the directory containing the
 calibration tool will be contained in the
 :code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-src/src/python`
 directory. Alternatively, :code:`tardigrade_micromorphic_element` may be built
-separately from Tardigrade-MOOSE.
+separately from Tardigrade-MOOSE. Be sure that the "tardigrade-examples-env"
+environment is activated.
 
 .. note::
 
@@ -343,7 +358,7 @@ and use :code:`import micromorphic`. Similarly, an interactive session may be ru
 from any directory, but the location of the micromorphic shared library must be
 appended to the Python path as follows:
 
-   .. code-block:: console
+   .. code-block:: python
 
       import sys
       sys.path.append('/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-src/src/python')
@@ -357,9 +372,9 @@ Add Micromorphic Calibration Tool to software configuration path
 
 Either using :code:`scons --config-software` or manually, add
 :code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-src/src/python`
-to the :code:`config.py` entry for "micromorphic".
+to the :code:`config_software.yml` entry for "micromorphic".
 
-The path to the :code:`micromorph` shared library needs to be inserted
+The path to the :code:`micromorphic` shared library needs to be inserted
 into the Python path whenever it is to be used. This is handled automatically by
 the SCons workflow.
 
@@ -367,7 +382,7 @@ the SCons workflow.
 Micromorphic Linear Elastic Constraints
 ***************************************
 
-The Micromorphic linear elasticity model of Eringen and Suhubi
+Constraints of the micromorphic linear elasticity model of Eringen and Suhubi
 :cite:`eringen_nonlinear_1964` must be enforced. See discussion of these
 constraints in :ref:`linear_elastic_constraints`.
 
@@ -376,15 +391,39 @@ when determining linear elastic parameters.
 The :code:`linear_elastic_parameter_constraint_equations.py` script is provided in
 the :code:`tardigrade_micromorphic_linear_elasticity` repository to
 evluate these 13 constraints. This repository is automatically pulled
-during the Tardigrade CMake build
+during the Tardigrade-MOOSE CMake build.
 
 Add Micromorphic Linear Elastic Constraints to software configuration path
 ==========================================================================
 
 Either using :code:`scons --config-software` or manually, add
 :code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_linear_elasticity-src/src/python`
-to the :code:`config.py` entry for "constraints".
+to the :code:`config_software.yml` entry for "constraints".
 
 The path to the :code:`linear_elastic_parameter_constraint_equations.py` script needs to be inserted
 into the Python path whenever it is to be used. This is handled automatically by
 the SCons workflow.
+
+.. _mpi:
+
+***
+MPI
+***
+
+Parallel jobs for Ratel and Tardigrade-MOOSE may be run using MPI (message passing interface).
+The location of the :code:`mpiexec` utility will depend on the system being used,
+however, it may have been installed when creating the conda environment for
+this project (i.e. :code:`/path/to/tardigrade-examples-env/bin/mpiexec`).
+One may be able to locate this utility by executing :code:`which mpiexec`
+on the command line.
+
+The mpiexec command should only be necessary for parallelizing simulations run
+on systems without a job scheduler such as SLURM. For HPCs with SLURM, see the
+discussion in :ref:`serial_vs_parallel`.
+
+Add MPI to software configuration path
+======================================
+
+Either using :code:`scons --config-software` or manually, add
+:code:`/path/to/mpiexec`
+to the :code:`config_software.yml` entry for "mpi".

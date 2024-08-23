@@ -8,8 +8,7 @@ peta_data_copy/
 config.log
 
 # Software config file
-config.yml
-config.*
+config_software.yml
 
 # Compiled source
 *.com
@@ -101,3 +100,7 @@ hisotyr[0-9][0-9].jou
 
 # Autocomplete files
 .scons_autocomplete
+
+# SLURM
+*.out
+*.sh

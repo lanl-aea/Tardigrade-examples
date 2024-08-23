@@ -4,8 +4,7 @@
 Micromorphic Theory
 ###################
 
-This section describes a small portion of micromorphic theory
-This section describes a minimal portion of micromorphic theory as relevant
+This section describes a small portion of micromorphic theory as relevant
 to understanding the inputs and outputs of the Micromorphic Filter
 and Tardigarde-MOOSE. Further discussion is provided in :ref:`micromorphic_theory`.
 

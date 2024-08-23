@@ -15,8 +15,11 @@
 .. _ResearchComputing: https://www.colorado.edu/rc/
 .. _meshio: https://github.com/nschloe/meshio
 .. _MOOSE: https://mooseframework.inl.gov/index.html
+.. _MOOSE_conda: https://mooseframework.inl.gov/getting_started/installation/conda.html
+.. _MOOSE_up_to_date: https://mooseframework.inl.gov/getting_started/new_users.html#update
 .. _MOOSE_parallel: https://mooseframework.inl.gov/getting_started/examples_and_tutorials/tutorial01_app_development/step07_parallel.html
 .. _PSAAP: https://micromorph.gitlab.io
+.. _RATEL: https://ratel.micromorph.org
 
 .. target-end-do-not-remove
 
@@ -102,7 +105,7 @@ Documentation
 
 Documentation for this repository is included here:
 
-* Production version (``main`` branch): WIP, provide link
+* Production version (``main`` branch): https://lanl.github.io/Tardigrade-examples
 * Development version (``dev`` branch): https://aea.re-pages.lanl.gov/models-and-simulations/tardigrade-examples
 
 ******************
@@ -123,7 +126,7 @@ Software Requirements
 .. software-requirements-description-start-do-not-remove
 
 This repository uses the `WAVES`_ computational workflow tool (which utilizes the `SCons`_
-automate build system) to configure and exectute upscaling workflows.
+automated build system) to configure and execute upscaling workflows.
 Workflows contained in this repository use a wide
 array of software. As such, basic description is provided for how to
 properly install and link required software.
@@ -205,20 +208,34 @@ Local environments
 
 For users external to LANL systems, an environment to run workflows in this repository can be installed in a
 `Conda`_ environment with the `Conda`_ package manager.
+Users are recommended to follow the conda installation instructions provided by `MOOSE_conda`_ and
+to keep MOOSE packages up to date whenever rebuilding software required by this project
+(`MOOSE_up_to_date`_).
 See the `Conda installation`_ and `Conda environment management`_ documentation
 for more details about using `Conda`_.
 
-1. Create the environment if it doesn't exist
+1. Create the base environment with Mamba and Python 3.10 if it doesn't exist
 
    .. code-block::
 
-      $ conda env create --name tardigrade-examples-env --file environment.yml
+      $ conda create --name tardigrade-examples-env mamba python=3.10 moose-dev --channel https://conda.software.inl.gov/public --channel conda-forge
 
 2. Activate the environment
 
    .. code-block::
 
       $ conda activate tardigrade-examples-env
+
+3. Install packages
+
+   .. code-block::
+
+      $ mamba install --file environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge
+
+.. warning::
+
+   Whenever rebuilding MOOSE related software, it is recommended to completely remove and
+   rebuild the conda environment!!! More information is provided here: `MOOSE_up_to_date`_.
 
 .. env-end-do-not-remove
 
@@ -231,7 +248,7 @@ SCons Build System
 The `SCons`_ automated build system is used to execute workflows.
 This section will discuss some common build operations. An abbreviated
 options description can be displayed with ``scons -H``. For a full list of `SCons`_ command line options and target
-build behavior, see the `SCons manpage`_. The `SCons manpage`_ is also installed with `Scons`_ in the environment and
+build behavior, see the `SCons manpage`_. The `SCons manpage`_ is also installed with `SCons`_ in the environment and
 can be opened from the command line as ``man scons`` in the `AEA Compute environment`_. In local environments, the
 manpage may not be in the ``man`` program's search path, ``MANPATH``. You can find the manpage file and make them
 available with something similar to any of the following, in increasing order of required background knowledge.
@@ -305,8 +322,8 @@ PetaLibrary Data Copy
 
 .. peta-start-do-not-remove
 
-Several WAVES workflows upscale DNS run by others from the CU Boulder PSAAP project
-and stored on the `PetaLibrary`_.
+Several WAVES workflows upscale DNS run by others from the CU Boulder `PSAAP`_ project
+and stored in the `PetaLibrary`_.
 These DNS results may be copied using the following command:
 
   .. code-block::
@@ -330,10 +347,9 @@ Configure paths to required software
 .. config-paths-start-do-not-remove
 
 Paths to required software are specified by modifying the contents of the
-:code:`config.yml` file in the root directory.
-By default, these paths are empty so they must be configured. Upon using
-``scons -h``, a user may see a list of local options for
-Upon executing the ``scons -h`` command, one may se a number of local options
+:code:`config_software.yml` file in the root directory.
+By default, these paths are empty so they must be configured.
+Upon executing the ``scons -h`` command, one may see a number of local options
 including ``--config-software``. Additionally, a user may modify the contents
 of :code:`config.yml` directly.
 
@@ -344,11 +360,11 @@ of :code:`config.yml` directly.
      $ scons --config-software
 
 The user will be asked if new or additional paths will be appended to the
-:code:`config.yml` file. Some of these paths are paths to executable programs
+:code:`config_software.yml` file. Some of these paths are paths to executable programs
 (e.g. Abaqus, Ratel, and Tardigrade-MOOSE), while some are paths to Python
 programs and scripts.
 
-The :code:`config.yml` file is read into the SCons configuration file (:code:`SConstruct`).
+The :code:`config_software.yml` file is read into the SCons configuration file (:code:`SConstruct`).
 The YAML file is parsed into a dictionary where each key corresponds to a program and
 each entry is a list of program paths.
 For exeuctable programs, the :code:`waves.scons_extensions.find_program()` function

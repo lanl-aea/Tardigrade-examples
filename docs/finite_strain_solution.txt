@@ -33,7 +33,7 @@ The Green-Lagrange strain is:
         0 & 0 & \left(\alpha_3^2 - 1\right) \\
     \end{bmatrix}
 
-The second Piola-Kirchhoff stress for the Saint Venant Kirchhoff model
+The second Piola-Kirchhoff stress for the Saint Venant-Kirchhoff model
 :cite:`ogden_non-linear_1997` may then be calculated. First, the elastic Modulus,
 :math:`E^*`, and Poisson ratio, :math:`\nu^*`, need to be converted to the
 Lame\'e constant, :math:`\lambda^*`, and shear modulus, :math:`\mu^*`, according to:
@@ -69,13 +69,14 @@ The total applied force is then calculated based on the lateral stretch,
 
 .. math::
 
-    F_3 = \sigma_{33} A_f = \frac{\pi \sigma_{33}}{4} \left(d_0 \alpha_L\right)
+    F_3 = \sigma_{33} A_f = \frac{\pi \sigma_{33}}{4} \left(d_0 \alpha_L\right)^2
 
 To solve this system of equations, one must first determine the unknown lateral stretch,
 :math:`\alpha_L`, which may be determined by recognizing that the lateral normal stresses
 will be zero.
 
 .. math::
+   :label: stretch_solution
 
     S_{11} &= S_{22} = 0
 
