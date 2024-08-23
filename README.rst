@@ -218,7 +218,7 @@ for more details about using `Conda`_.
 
    .. code-block::
 
-      $ conda create --name tardigrade-examples-env mamba python=3.10 moose-dev
+      $ conda create --name tardigrade-examples-env mamba python=3.10 moose-dev --channel https://conda.software.inl.gov/public --channel conda-forge
 
 2. Activate the environment
 
