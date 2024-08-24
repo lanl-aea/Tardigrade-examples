@@ -24,6 +24,7 @@ before_script:
           export ALL_PROXY="proxyout.lanl.gov:8080"
           export HTTP_PROXY="http://$ALL_PROXY"
           export HTTPS_PROXY=$HTTP_PROXY
+          source /apps/anaconda/2023.03-python-3.10/bin/activate
           conda create --name tardigrade-examples-env mamba python=3.10 moose-dev --channel https://conda.software.inl.gov/public --channel conda-forge --force --yes
           conda activate tardigrade-examples-env
           mamba install --file environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge --force --yes
@@ -51,6 +52,7 @@ environment:
     - export HTTP_PROXY="http://$ALL_PROXY"
     - export HTTPS_PROXY=$HTTP_PROXY
     # Re-build the Conda environment on changes to environment files
+    - source /apps/anaconda/2023.03-python-3.10/bin/activate
     - conda create --name tardigrade-examples-env mamba python=3.10 moose-dev --channel https://conda.software.inl.gov/public --channel conda-forge --force --yes
     - conda activate tardigrade-examples-env
     - mamba install --file environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge --force

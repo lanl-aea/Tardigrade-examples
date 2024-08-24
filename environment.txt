@@ -26,5 +26,5 @@ seaborn
 tqdm
 meshio
 compilers
-numpy>=1.17
+numpy
 neper
