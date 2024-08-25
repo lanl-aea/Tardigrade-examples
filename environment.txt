@@ -19,6 +19,7 @@ sphinx-argparse
 sphinx_rtd_theme>=0.4.3
 sphinxcontrib-bibtex
 sphinx-subfigure
+numpy
 h5py
 pyyaml
 scipy
@@ -27,5 +28,4 @@ seaborn
 tqdm
 meshio
 compilers
-numpy
 neper
