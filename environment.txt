@@ -1,4 +1,5 @@
 waves
+moose-dev
 scons>=4
 boost>=1.59,<=1.80
 breathe>=4.30.0
@@ -28,4 +29,3 @@ meshio
 compilers
 numpy
 neper
-moose-dev

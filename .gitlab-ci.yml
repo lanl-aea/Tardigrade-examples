@@ -11,7 +11,8 @@ before_script:
   - module use ${PWD}/modulefiles
   # Prefer the CI environment and fall back to AEA environment(s)
   - project_environment="tardigrade-examples-env"
-  - environment_choices="${project_environment} aea-beta"
+  #- environment_choices="${project_environment} aea-beta"
+  - environment_choices="aea-beta"
   - for env in ${environment_choices}; do if [[ -d "${aea_compute_path}/${env}" ]]; then environment=${env}; break; fi; done
   - echo ${project_environment}
   - module load ${environment}
@@ -24,7 +25,7 @@ before_script:
           export ALL_PROXY="proxyout.lanl.gov:8080"
           export HTTP_PROXY="http://$ALL_PROXY"
           export HTTPS_PROXY=$HTTP_PROXY
-          conda create --name tardigrade-examples-env mamba python=3.10 --force --yes
+          conda create --name tardigrade-examples-env mamba python=3.10 --channel conda-forge --force --yes
           conda activate tardigrade-examples-env
           mamba install --file environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge --force --yes
           chmod -R 755 ${environment_path}
