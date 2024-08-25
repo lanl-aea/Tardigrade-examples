@@ -28,3 +28,4 @@ meshio
 compilers
 numpy
 neper
+moose-dev
