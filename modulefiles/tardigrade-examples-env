@@ -8,7 +8,7 @@ conflict /usr/projects/ea/aea_compute/modulefiles
 
 # Set AEA standard software version and environment names
 set anaconda_version "2023.07-2"
-set python_version "3.11.4"
+set python_version "3.10.8"
 set environment "tardigrade-examples-env"
 
 # Get current hostname
