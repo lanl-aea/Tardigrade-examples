@@ -22,9 +22,9 @@ dependencies:
   - pytest-mock
   - sphinx>=5.1
   - sphinx-argparse
+  - sphinx-subfigure
   - sphinx_rtd_theme>=0.4.3
   - sphinxcontrib-bibtex
-  - sphinx-subfigure
   - numpy
   - h5py
   - pyyaml
