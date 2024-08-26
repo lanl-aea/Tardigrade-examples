@@ -1,0 +1,37 @@
+channels:
+  - conda-forge
+  - https://conda.software.inl.gov/public
+
+dependencies:
+  - python==3.10
+  - waves
+  - moose-dev
+  - scons>=4
+  - boost>=1.59,<=1.80
+  - breathe>=4.30.0
+  - cmake>=3.18
+  - cython
+  - doxygen
+  - eigen>=3.3.7
+  - gcc_linux-64
+  - gxx_linux-64
+  - setuptools_scm
+  - pip
+  - pytest
+  - pytest-cov
+  - pytest-mock
+  - sphinx>=5.1
+  - sphinx-argparse
+  - sphinx_rtd_theme>=0.4.3
+  - sphinxcontrib-bibtex
+  - sphinx-subfigure
+  - numpy
+  - h5py
+  - pyyaml
+  - scipy
+  - scikit-learn
+  - seaborn
+  - meshio
+  - tqdm
+  - compilers
+  - neper
