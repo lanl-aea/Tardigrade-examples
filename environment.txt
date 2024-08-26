@@ -25,7 +25,7 @@ pyyaml
 scipy
 scikit-learn
 seaborn
-tqdm
 meshio
+tqdm
 compilers
 neper
