@@ -28,7 +28,7 @@ if { [ string match "*.localdomain" $hostname ] ||
     error "Unknown or unsupported host"
 }
 set environment_path "$projects/aea_compute/$environment"
-set anaconda_source /apps/anaconda/2023.07-2-python-3.11.4/bin/activate
+set anaconda_source "/apps/anaconda/2023.07-2-python-3.11.4/bin/activate"
 set environment_bin "$environment_path/bin"
 set environment_man "$environment_path/share/man"
 
