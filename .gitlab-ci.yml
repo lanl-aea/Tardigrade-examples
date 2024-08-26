@@ -26,9 +26,6 @@ before_script:
           export HTTP_PROXY="http://$ALL_PROXY"
           export HTTPS_PROXY=$HTTP_PROXY
           conda env create --prefix ${environment_path} --file environment.yml --solver=libmamba --force
-          #conda create --name tardigrade-examples-env mamba python=3.10 --channel conda-forge --force --yes --prefix ${environment_path} 
-          #conda activate tardigrade-examples-env
-          #mamba install --file environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge --force --yes
           chmod -R 755 ${environment_path}
           unset ALL_PROXY
           unset HTTP_PROXY
@@ -55,9 +52,6 @@ environment:
     - export HTTPS_PROXY=$HTTP_PROXY
     # Re-build the Conda environment on changes to environment files
     - conda env create --prefix ${environment_path} --file environment.yml --solver=libmamba --force
-    #- conda create --name tardigrade-examples-env mamba python=3.10 --force --yes --prefix ${environment_path} 
-    #- conda activate tardigrade-examples-env
-    #- mamba install --file environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge --force --yes
     # Remove write permissions from group to avoid accidental environment changes
     - chmod -R 755 ${environment_path}
     # place the common modulefiles in an accessible location
