@@ -106,7 +106,7 @@ I41_02 = {
     'velocity': False,
     'filter_parallel': 8,
     # parameters for calibration
-    'calibration_case': 3,
+    'calibration_case': 1,
     'calibration_increment': 5,
     'ignore_boundary': True,
     # paramters for Tardigrade-MOOSE
@@ -147,3 +147,68 @@ all_files.append(I41_02['DNS_files'][-1])
 I41_RVEs['DNS_files'] = all_files
 I41_RVEs['rho_binder'] = 1.910e-9
 I41_RVEs['rho_grain'] = 2.001e-9
+
+# I41_damage
+I41_damage = {
+    # DNS parameters
+    'diam': 6.0,
+    'height': 5.485,
+    'material_E': 450.0,
+    'material_nu': 0.25,
+    'cut': True,
+    # Mesh file root to copy if Cubit is not found
+    'mesh_copy_root': 'Ratel_I41_02',
+    # parameters for micromorphic filter
+    'acceleration': False,
+    'velocity': False,
+    'filter_parallel': 8,
+    # parameters for calibration
+    'calibration_case': 3,
+    'calibration_increment': 5,
+    'ignore_boundary': True,
+    # paramters for Tardigrade-MOOSE
+    'macro_disp': 0.2729,
+    'macro_duration': 1.0,
+    'macro_BC': 'clamp',
+}
+# Location of DNS files in petalibrary
+I41_damage['DNS_files'] = [
+    'RatelDNS/IDOX-ESTANE/I41_02/I41_02_sm3_fd20_damage_AT2_viscosity01/I41_02_sm3_fd20_l200_Ge01_Ee230_AT2_xi01_clampedfull_0.vtu',
+    'RatelDNS/IDOX-ESTANE/I41_02/I41_02_sm3_fd20_damage_AT2_viscosity01/I41_02_sm3_fd20_l200_Ge01_Ee230_AT2_xi01_clampedfull_300.vtu',
+    'RatelDNS/IDOX-ESTANE/I41_02/I41_02_sm3_fd20_damage_AT2_viscosity01/I41_02_sm3_fd20_l200_Ge01_Ee230_AT2_xi01_clampedfull_600.vtu',
+    'RatelDNS/IDOX-ESTANE/I41_02/I41_02_sm3_fd20_damage_AT2_viscosity01/I41_02_sm3_fd20_l200_Ge01_Ee230_AT2_xi01_clampedfull_900.vtu',
+    ]
+
+# I41_damage
+I43_damage = {
+    # DNS parameters
+    'diam': 5.0,
+    'height': 4.420350769,
+    'center': [3.073710559918, 3.074171727178, 0.5721931762695],
+    'material_E': 450.0,
+    'material_nu': 0.25,
+    'cut': True,
+    # Mesh file root to copy if Cubit is not found
+    'mesh_copy_root': 'Ratel_I43_09',
+    # parameters for micromorphic filter
+    'acceleration': False,
+    'velocity': False,
+    'filter_parallel': 8,
+    # parameters for calibration
+    'calibration_case': 3,
+    'calibration_increment': 5,
+    'ignore_boundary': True,
+    # paramters for Tardigrade-MOOSE
+    'macro_disp': 0.126875,
+    'macro_duration': 1.0,
+    'macro_BC': 'clamp',
+}
+I43_damage['DNS_files'] = [
+    'RatelDNS/IDOX-ESTANE/I43_09/df25_clamped/I43_09_df25_clamped_0.vtu',
+    #'RatelDNS/IDOX-ESTANE/I43_09/df25_clamped/I43_09_df25_clamped_50.vtu',
+    #'RatelDNS/IDOX-ESTANE/I43_09/df25_clamped/I43_09_df25_clamped_100.vtu',
+    #'RatelDNS/IDOX-ESTANE/I43_09/df25_clamped/I43_09_df25_clamped_150.vtu',
+    #'RatelDNS/IDOX-ESTANE/I43_09/df25_clamped/I43_09_df25_clamped_200.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/df25_clamped/I43_09_df25_clamped_245.vtu',
+    ]
+I43_damage['DNS_forces'] = 'RatelDNS/IDOX-ESTANE/I43_09/df25_clamped/I43_09_df25_clamped.csv'
