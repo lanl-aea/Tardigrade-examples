@@ -19,7 +19,9 @@ def peta_copy(source_directory, output_directory):
     source_files = simulation_variables_nominal.I41_02['DNS_files'] + \
                    [simulation_variables_nominal.I41_02['DNS_forces']] + \
                    simulation_variables_nominal.F83['DNS_files'] + \
-                   simulation_variables_nominal.additional_files
+                   simulation_variables_nominal.additional_files + \
+                   [simulation_variables_nominal.I43_damage['DNS_forces'][0]] + \
+                   simulation_variables_nominal.I43_damage['DNS_files']
 
     # Create source directory if it doesn't exist
     if os.path.exists(output_directory) == False:
