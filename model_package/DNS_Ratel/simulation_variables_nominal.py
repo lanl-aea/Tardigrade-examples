@@ -106,7 +106,7 @@ I41_02 = {
     'velocity': False,
     'filter_parallel': 8,
     # parameters for calibration
-    'calibration_case': 1,
+    'calibration_case': 3,
     'calibration_increment': 5,
     'ignore_boundary': True,
     # paramters for Tardigrade-MOOSE
