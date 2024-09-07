@@ -199,16 +199,21 @@ I43_damage = {
     'calibration_increment': 5,
     'ignore_boundary': True,
     # paramters for Tardigrade-MOOSE
-    'macro_disp': 0.126875,
+    'macro_disp': 0.156857,
     'macro_duration': 1.0,
     'macro_BC': 'clamp',
 }
 I43_damage['DNS_files'] = [
-    'RatelDNS/IDOX-ESTANE/I43_09/df25_clamped/I43_09_df25_clamped_0.vtu',
-    #'RatelDNS/IDOX-ESTANE/I43_09/df25_clamped/I43_09_df25_clamped_50.vtu',
-    #'RatelDNS/IDOX-ESTANE/I43_09/df25_clamped/I43_09_df25_clamped_100.vtu',
-    #'RatelDNS/IDOX-ESTANE/I43_09/df25_clamped/I43_09_df25_clamped_150.vtu',
-    #'RatelDNS/IDOX-ESTANE/I43_09/df25_clamped/I43_09_df25_clamped_200.vtu',
-    'RatelDNS/IDOX-ESTANE/I43_09/df25_clamped/I43_09_df25_clamped_245.vtu',
+    'from_Erik_9-6-2024/Monitor_0.vtu',
+    'from_Erik_9-6-2024/Monitor_15.vtu',
+    'from_Erik_9-6-2024/Monitor_30.vtu',
+    'from_Erik_9-6-2024/Monitor_45.vtu',
+    'from_Erik_9-6-2024/Monitor_60.vtu',
+    'from_Erik_9-6-2024/Monitor_70.vtu',
+    'from_Erik_9-6-2024/Monitor_90.vtu',
+    'from_Erik_9-6-2024/Monitor_100.vtu',
+    'from_Erik_9-6-2024/Monitor_125.vtu',
+    'from_Erik_9-6-2024/Monitor_150.vtu',
+    'from_Erik_9-6-2024/Monitor_165.vtu',
     ]
-I43_damage['DNS_forces'] = 'RatelDNS/IDOX-ESTANE/I43_09/df25_clamped/I43_09_df25_clamped.csv'
+I43_damage['DNS_forces'] = 'from_Erik_9-6-2024/Export_I43-09_QOI-DF05.csv'
