@@ -35,3 +35,4 @@ dependencies:
   - tqdm
   - compilers
   - neper
+  - meshio
