@@ -14,7 +14,7 @@ import file_io.xdmf
 def collect_VTK_output(input_files):
     '''Parse the Ratel DNS VTK output into a results dictionary
 
-    :param list input_file: The input VTK files containing Ratel DNS results
+    :param list input_files: The input VTK files containing Ratel DNS results
 
     :returns: dictionary of results, dictionary of nodal coordinates
     '''
