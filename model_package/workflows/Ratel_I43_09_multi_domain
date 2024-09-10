@@ -87,13 +87,14 @@ filter_inputs = [f"{str(build_directory / main_XDMF_name)}.{ext}" for ext in ['x
 
 # Post-processing step - force vs. displacement
 plot_script = "plot_force_displacement.py"
-force_results = f"{peta_data_copy_abspath}/{params['DNS_forces'].split('/')[-1]}"
+force_results = f"{peta_data_copy_abspath}/{params['DNS_forces']}"
 force_plot_targets = [f"{model}_force_displacement.png", f"{model}_force_displacement.csv"]
 script_options = f"--csv-file {force_results}"
 script_options += f" --output-file {force_plot_targets[0]}"
 script_options += f" --output-csv {force_plot_targets[1]}"
 script_options += " --force-col 'Force (N)'"
 script_options += " --header-row 0"
+script_options += " --filter-markers 0 15 30 45 60 70 90 100 125 150 165"
 workflow.extend(env.PythonScript(
     target=[force_plot_targets],
     source=[str(DNS_Ratel_abspath / plot_script)],
@@ -121,26 +122,28 @@ if params['cut'] == False:
         raise NotImplementedError("Without access to Cubit, this workflow can not be completed!")
     parameter_schema = dict(
         parameter_samples = numpy.array([
-            [6.0, 1],
-            [3.0, 4],
-            [2.15, 36],
-            [1.2, 160],
-            [0.6, 837],
-            [0.45, 1908],
-            #[0.3, 6372],
+            [5.0, 1],
+            [2.5, 4],
+            [1.5, 42],
+            #[1.0, 128],
+            [0.75, 282],
+            [0.5, 837],
+            [0.375, 1908],
+            [0.25, 6480],
             ], dtype=object),
         parameter_names = numpy.array(["seed_size", "num_domains"])
     )
 elif params['cut'] == True:
     parameter_schema = dict(
         parameter_samples = numpy.array([
-            [6.0, 1],
-            [3.0, 24],
-            [1.75, 48],
-            [1.0, 192],
-            [0.6, 960],
-            #[0.45, 2160],
-            #[0.3, 6912],
+            [5.0, 1],
+            [2.5, 24],
+            [1.5, 48],
+            #[1.0, 128],
+            [0.75, 264],
+            [0.5, 768],
+            [0.375, 2160],
+            [0.25, 6912],
             ], dtype=object),
         parameter_names = numpy.array(["seed_size", "num_domains"])
     )
