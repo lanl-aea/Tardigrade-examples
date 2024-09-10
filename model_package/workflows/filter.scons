@@ -80,7 +80,7 @@ else:
     script_options += f" --input-file {macro_file}_temp.e"
     workflow.extend(env.PythonScript(
         target=[new_mesh_targets],
-        source=[str(filter_source_abspath / convert_script)],
+        source=[str(filter_source_abspath / convert_script)] + mesh_targets,
         script_options=script_options
         ))
 
@@ -100,7 +100,7 @@ if params['velocity'] == True:
 script_options += f" --max-parallel {params['filter_parallel']}"
 workflow.extend(env.PythonScript(
     target = [filter_config_file],
-    source = [f"{filter_source_abspath / filter_config_script}"] + filter_inputs,
+    source = [f"{filter_source_abspath / filter_config_script}"] + filter_inputs + mesh_targets,
     script_options = script_options
 ))
 
