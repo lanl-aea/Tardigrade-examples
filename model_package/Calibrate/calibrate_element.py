@@ -452,9 +452,12 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, increment=None, s
     obj = 0
 
    # define time steps to calibrate against
-    if increment:
+    if increment and (len(increment) == 1):
         print(f'increment = {increment}')
-        time_steps = [increment]
+        time_steps = [int(increment)]
+    elif increment and (len(increment) > 1):
+        print(f'incremens = {increment}')
+        timesteps = [int(i) for i in increments]
     else:
         time_steps = range(steps)
 
@@ -850,8 +853,8 @@ def get_parser():
         help="DNS max dimension (width, height, depth, etc.), used for initial parameter estimation.")
     parser.add_argument('--element', type=int, default=0,
         help="The macro (filter) element to calibrate")
-    parser.add_argument('--increment', type=int, required=False, default=None,
-        help="An optional argument to callibrate only for specific increment")
+    parser.add_argument('--increment', args="+", required=False, default=None,
+        help="An optional argument to only calibrate for a specific increment(s)")
     parser.add_argument('--case', type=int, required=True,
         help="Specify the calibration 'case'. 1: two parameter, 2: 7 parameter,\
               3: 7 parameter plus tau7, 4: all 18 parameters")
