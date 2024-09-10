@@ -182,9 +182,9 @@ I41_damage['DNS_files'] = [
 # I41_damage
 I43_damage = {
     # DNS parameters
-    'diam': 5.0,
-    'height': 4.420350769,
-    'center': [3.073710559918, 3.074171727178, 0.5721931762695],
+    'diam': 5.05934739145766,
+    'height': 4.400976867675782,
+    'center': [3.0664815594943176, 3.065754248753459, 2.7645057067871095],
     'material_E': 450.0,
     'material_nu': 0.25,
     'cut': True,
@@ -196,13 +196,14 @@ I43_damage = {
     'filter_parallel': 8,
     # parameters for calibration
     'calibration_case': 3,
-    'calibration_increment': 5,
+    'calibration_increment': [1, 2, 3],
     'ignore_boundary': True,
     # paramters for Tardigrade-MOOSE
     'macro_disp': 0.156857,
     'macro_duration': 1.0,
     'macro_BC': 'clamp',
 }
+I43_damage_coarse = copy.deepcopy(I43_damage)
 I43_damage['DNS_files'] = [
     'from_Erik_9-6-2024/Monitor_0.vtu',
     'from_Erik_9-6-2024/Monitor_15.vtu',
@@ -217,3 +218,19 @@ I43_damage['DNS_files'] = [
     'from_Erik_9-6-2024/Monitor_165.vtu',
     ]
 I43_damage['DNS_forces'] = 'from_Erik_9-6-2024/Export_I43-09_QOI-DF05.csv'
+
+I43_damage_coarse['DNS_files'] = [
+    'from_Erik_9-10-2024/Monitor_0.vtu',
+    'from_Erik_9-10-2024/Monitor_15.vtu',
+    'from_Erik_9-10-2024/Monitor_30.vtu',
+    'from_Erik_9-10-2024/Monitor_45.vtu',
+    'from_Erik_9-10-2024/Monitor_65.vtu',
+    'from_Erik_9-10-2024/Monitor_75.vtu',
+    'from_Erik_9-10-2024/Monitor_85.vtu',
+    'from_Erik_9-10-2024/Monitor_100.vtu',
+    'from_Erik_9-10-2024/Monitor_125.vtu',
+    'from_Erik_9-10-2024/Monitor_150.vtu',
+    'from_Erik_9-10-2024/Monitor_180.vtu',
+    'from_Erik_9-10-2024/Monitor_215.vtu',
+    ]
+I43_damage_coarse['DNS_forces'] = 'from_Erik_9-10-2024/Export_I43-09_QOI-DF20.csv'
