@@ -7,7 +7,7 @@ import numpy
 import matplotlib.pyplot
 
 
-def plot_force_displacement(csv_file, output_file, output_csv, face_id=None, final_disp=None, force_col='force_z', header_row=0, force_factor=1):
+def plot_force_displacement(csv_file, output_file, output_csv, face_id=None, final_disp=None, force_col='force_z', header_row=0, force_factor=1, filter_markers=None):
     '''Process force-displacement from Ratel DNS results
 
     :param str csv_file: The csv file containing force results
@@ -32,7 +32,7 @@ def plot_force_displacement(csv_file, output_file, output_csv, face_id=None, fin
         times = numpy.array(df['time'])
         disps = final_disp*times
     else:
-        disps = numpy.array(df['Disp (mm'])
+        disps = numpy.array(df['Disp (mm)'])
 
     # process forces
     if type(df[force_col].iloc[0]) is float:
@@ -43,6 +43,9 @@ def plot_force_displacement(csv_file, output_file, output_csv, face_id=None, fin
     # plot
     matplotlib.pyplot.figure()
     matplotlib.pyplot.plot(disps, forces)
+    if filter_markers:
+        filter_markers = [int(i) for i in filter_markers]
+        matplotlib.pyplot.plot(disps[filter_markers], forces[filter_markers], 'o')
     matplotlib.pyplot.xlabel('Displacement (mm)')
     matplotlib.pyplot.ylabel('Force (N)')
     matplotlib.pyplot.tight_layout()
@@ -79,6 +82,9 @@ def get_parser():
         help="The row containing the headers")
     parser.add_argument('--force-factor', type=float, required=False, default=1,
         help="The factor to scale force")
+    parser.add_argument('--filter-markers', nargs="+", required=False, default=None,
+        help="Optional list of indices to plot markers on force displacement plot \
+              corresponding to frames for upscaling")
 
     return parser
 
@@ -94,4 +100,5 @@ if __name__ == '__main__':
                                      force_col=args.force_col,
                                      header_row=args.header_row,
                                      force_factor=args.force_factor,
+                                     filter_markers=args.filter_markers,
                                      ))
