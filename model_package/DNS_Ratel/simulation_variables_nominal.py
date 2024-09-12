@@ -74,7 +74,7 @@ F83 = {
     'filter_parallel': 8,
     # parameters for calibration
     'calibration_case': 1,
-    'calibration_increment': 4,
+    'calibration_increment': [4],
     # paramters for Tardigrade-MOOSE
     'macro_disp': 0.05,
     'macro_duration': 1.0,
@@ -107,7 +107,7 @@ I41_02 = {
     'filter_parallel': 8,
     # parameters for calibration
     'calibration_case': 3,
-    'calibration_increment': 5,
+    'calibration_increment': [5],
     'ignore_boundary': True,
     # paramters for Tardigrade-MOOSE
     'macro_disp': 0.2729,
@@ -164,7 +164,7 @@ I41_damage = {
     'filter_parallel': 8,
     # parameters for calibration
     'calibration_case': 3,
-    'calibration_increment': 5,
+    'calibration_increment': [5],
     'ignore_boundary': True,
     # paramters for Tardigrade-MOOSE
     'macro_disp': 0.2729,
@@ -194,10 +194,13 @@ I43_damage = {
     'acceleration': False,
     'velocity': False,
     'filter_parallel': 8,
-    # parameters for calibration
+    # parameters for elastic calibration
     'calibration_case': 3,
-    'calibration_increment': [1, 2, 3],
-    'ignore_boundary': True,
+    'calibration_increment': [0, 1, 2],
+    'ignore_boundary': False,
+    # parameters for plastic calibration
+    'cohesion_case': 1,
+    'cohesion_increment': [3, 4, 5]
     # paramters for Tardigrade-MOOSE
     'macro_disp': 0.156857,
     'macro_duration': 1.0,
