@@ -123,7 +123,7 @@ report_copy_list = [
     figures_abspath / "single_element_calibration.png",
 ]
 report_copy_list = [pathlib.Path(source_file) for source_file in report_copy_list]
-report.extend(waves.scons_extensions.copy_substitute(
+report.extend(waves.scons_extensions.copy_substfile(env,
     report_copy_list,
     substitution_dictionary=waves.scons_extensions.substitution_syntax(project_variables)))
 
