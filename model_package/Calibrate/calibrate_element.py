@@ -399,7 +399,7 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, increment=None, s
     :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
     :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
     :param int element: The macro (filter) element to calibration
-    :param int increment: An optional argumet to calibrate only a specific increment, default=None
+    :param int increment: An optional list of one or more increments to perform calibration
     :param list stresses_to_include: Which reference configuration stresses to calculate an error for the objective function, default=['S', 'SIGMA', 'M']
 
     :returns: the objective function evaluation
@@ -453,11 +453,9 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, increment=None, s
 
    # define time steps to calibrate against
     if increment and (len(increment) == 1):
-        print(f'increment = {increment}')
         time_steps = [int(increment)]
     elif increment and (len(increment) > 1):
-        print(f'incremens = {increment}')
-        timesteps = [int(i) for i in increments]
+        time_steps = [int(i) for i in increment]
     else:
         time_steps = range(steps)
 
@@ -519,7 +517,7 @@ def opti_options_1(X, Y, inputs, cal_norm, nu_targ, case, element, calibrate=Tru
     :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
     :param int element: The macro (filter) element to calibration
     :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
-    :param int increment: An optional argumet to calibrate only a specific increment, default=None
+    :param int increment: An optional list of one or more increments to perform calibration
 
     :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
     '''
@@ -547,7 +545,7 @@ def opti_options_2(X, Y, inputs, cal_norm, nu_targ, case, element, calibrate=Tru
     :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
     :param int element: The macro (filter) element to calibration
     :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
-    :param int increment: An optional argumet to calibrate only a specific increment, default=None
+    :param int increment: An optional list of one or more increments to perform calibration
 
     :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
     '''
@@ -571,7 +569,7 @@ def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, calibrate=Tru
     :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
     :param int element: The macro (filter) element to calibration
     :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
-    :param int increment: An optional argumet to calibrate only a specific increment, default=None
+    :param int increment: An optional list of one or more increments to perform calibration
 
     :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
     '''
@@ -597,7 +595,7 @@ def opti_options_4(X, Y, inputs, cal_norm, nu_targ, case, element, calibrate=Tru
     :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
     :param int element: The macro (filter) element to calibration
     :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
-    :param int increment: An optional argumet to calibrate only a specific increment, default=None
+    :param int increment: An optional list of one or more increments to perform calibration
 
     :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
     '''
@@ -607,6 +605,7 @@ def opti_options_4(X, Y, inputs, cal_norm, nu_targ, case, element, calibrate=Tru
         return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, increment=increment, stresses_to_include=['S', 'SIGMA', 'M']))
     else:
         return(XX)
+
 
 def handle_output_for_UQ(Xstore, Lstore, case):
 
@@ -665,7 +664,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
     :param float nu: Estimate of a homogenized Poisson ratio, used for initial parameter estimation
     :param float L: DNS max dimension (width, height, depth, etc.), used for initial parameter estimation
     :param int element: The macro (filter) element to calibration, default is zero
-    :param int increment: An optional argument to calibrate only a specific increment
+    :param int increment: An optional list of one or more increments to perform calibration
 
     :returns: calibrated parameters by minimizing a specified objective function
     '''
@@ -714,7 +713,14 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
     inputs = [E, displacement, gradu, phi, gradphi, times]
     
     # get target nu from E
-    nu_targ = numpy.average(-1*numpy.average([E[0][-1,0,0,0],E[0][-1,0,1,1]])/E[0][-1,0,2,2])
+   # define time steps to calibrate against
+    if increment and (len(increment) == 1):
+        nu_inc = int(increment)
+    elif increment and (len(increment) > 1):
+        nu_inc = int(increment[-1])
+    else:
+        nu_inc = -1
+    nu_targ = numpy.average(-1*numpy.average([E[0][nu_inc,0,0,0],E[0][nu_inc,0,1,1]])/E[0][nu_inc,0,2,2])
  
     # Estimate initial parameters
     param_est = initial_estimate(Emod, nu, L)
@@ -834,7 +840,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
 
 
 def get_parser():
- 
+
     filename = inspect.getfile(lambda: None)
     basename = os.path.basename(filename)
     basename_without_extension, extension = os.path.splitext(basename)
@@ -853,8 +859,8 @@ def get_parser():
         help="DNS max dimension (width, height, depth, etc.), used for initial parameter estimation.")
     parser.add_argument('--element', type=int, default=0,
         help="The macro (filter) element to calibrate")
-    parser.add_argument('--increment', args="+", required=False, default=None,
-        help="An optional argument to only calibrate for a specific increment(s)")
+    parser.add_argument('--increment', nargs="+", required=False, default=None,
+        help="An optional list of one or more increments to perform calibration")
     parser.add_argument('--case', type=int, required=True,
         help="Specify the calibration 'case'. 1: two parameter, 2: 7 parameter,\
               3: 7 parameter plus tau7, 4: all 18 parameters")
@@ -865,6 +871,7 @@ def get_parser():
         help='Boolean whether or not homogenized DNS results will be averaged')
     parser.add_argument('--UQ-file', type=str, required=False,
         help='Optional csv filename to store function evaluations and parameter sets for UQ')
+
     return parser
 
 
