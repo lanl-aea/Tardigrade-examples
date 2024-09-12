@@ -200,7 +200,7 @@ I43_damage = {
     'ignore_boundary': False,
     # parameters for plastic calibration
     'cohesion_case': 1,
-    'cohesion_increment': [3, 4, 5]
+    'cohesion_increment': [3, 4, 5],
     # paramters for Tardigrade-MOOSE
     'macro_disp': 0.156857,
     'macro_duration': 1.0,
