@@ -272,7 +272,6 @@ def evaluate_model(inputs, parameters, model_name, parameters_to_fparams, nsdvs,
             #print("increment: ", i)
             # Map the parameters vector to the function parameters
             fparams = parameters_to_fparams(parameters)
-            print(f'fparams = {fparams}')
 
             sp = 0
             ds = 1.
@@ -327,7 +326,6 @@ def evaluate_model(inputs, parameters, model_name, parameters_to_fparams, nsdvs,
                 previous_ADD_grad_DOF = numpy.zeros((1,3))
 
                 # Evaluate the model
-                print(f'step = {i}')
                 values = micromorphic.evaluate_model(model_name, numpy.array([t, t - tp]), fparams,\
                                                      current_grad_u, current_phi, current_grad_phi,
                                                      previous_grad_u, previous_phi, previous_grad_phi,
