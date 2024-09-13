@@ -57,8 +57,8 @@ def stack_parameters(params):
                                     [2, 0., 0.],\
                                     [2, 0., 0.],\
                                     params[offset:],\
-                                    #[0.5, 0.5, 0.5, 1e-9, 1e-9],\
-                                    [0.0, 0.0, 0.0, 1e-8, 1e-8],\
+                                    [0.5, 0.5, 0.5, 1e-9, 1e-9],\
+                                    #[0.0, 0.0, 0.0, 1e-8, 1e-8],\
                                     ])
     return plastic_fparams
 
@@ -76,7 +76,12 @@ def objective(x0, Y, inputs, cal_norm, case, element, increment=None, stresses_t
         max_inc = int(increment[-1])
     else:
         max_inc = len(inputs[5])
-    PK2_sim, SIGMA_sim, M_sim, SDVS_sim = calibrate_element.evaluate_model(inputs, XX, model_name, stack_parameters, 55, element, max_inc)
+    # try to evaluate model
+    try:
+        PK2_sim, SIGMA_sim, M_sim, SDVS_sim = calibrate_element.evaluate_model(inputs, XX, model_name, stack_parameters, 55, element, max_inc)
+    except:
+        return numpy.inf
+
     displacement, grad_u, phi, grad_phi = inputs[1], inputs[2], inputs[3], inputs[4]
     # Parse out stresses from DNS stress data Y
     PK2, SIGMA, M = Y[0], Y[1], Y[2]
@@ -136,7 +141,9 @@ def objective(x0, Y, inputs, cal_norm, case, element, increment=None, stresses_t
 
 
 def opti_options_1(X, Y, inputs, e_params, cal_norm, case, element, calibrate=True, increment=None):
-
+    '''Calibrate macro-plasticity initial cohesion parameter
+    
+    '''
     others = [1.e-8,       # macro hardening
               1.e8, 1.e-8, # micro terms
               1.e8, 1.e-8, # micro gradient terms
@@ -146,21 +153,75 @@ def opti_options_1(X, Y, inputs, e_params, cal_norm, case, element, calibrate=Tr
     if calibrate:
         return(objective(XX, Y, inputs, cal_norm, case, element, increment=increment, stresses_to_include=['S','SIGMA']))
     else:
-        return(numpy.hstack([X, others]))
+        return XX
 
 
 def opti_options_2(X, cohesion, Y, inputs, e_params, cal_norm, case, element, calibrate=True, increment=None):
-
+    '''Calibrate macro-plasticity hardening parameter
+    
+    '''
     others = [
               1.e8, 1.e-8, # micro terms
               1.e8, 1.e-8, # micro gradient terms
               ]
-    
+
     XX = numpy.hstack([cohesion, X, others, e_params])
     if calibrate:
         return(objective(XX, Y, inputs, cal_norm, case, element, increment=increment, stresses_to_include=['S','SIGMA']))
     else:
-        return(numpy.hstack([cohesion, X, others]))
+        return XX
+
+
+def opti_options_3(X, Y, inputs, e_params, cal_norm, case, element, calibrate=True, increment=None):
+    '''Calibrate micro-plasticity initial cohesion parameter
+    
+    '''
+    others = [1.e8, 1.e-8]
+
+    XX = numpy.hstack([others, X, 1.e-8, others, e_params])
+    if calibrate:
+        return(objective(XX, Y, inputs, cal_norm, case, element, increment=increment, stresses_to_include=['S','SIGMA']))
+    else:
+        return XX
+
+
+def opti_options_4(X, Y, inputs, e_params, cal_norm, case, element, calibrate=True, increment=None):
+    '''Calibrate macro-plasticity initial cohesion and hardening parameters
+    
+    '''
+    others = [1.e8, 1.e-8]
+
+    XX = numpy.hstack([X, others, others, e_params])
+    if calibrate:
+        return(objective(XX, Y, inputs, cal_norm, case, element, increment=increment, stresses_to_include=['S','SIGMA']))
+    else:
+        return XX
+
+
+def opti_options_5(X, Y, inputs, e_params, cal_norm, case, element, calibrate=True, increment=None):
+    '''Calibrate micro-plasticity initial cohesion and hardening parameters
+    
+    '''
+    others = [1.e8, 1.e-8]
+
+    XX = numpy.hstack([others, X, others, e_params])
+    if calibrate:
+        return(objective(XX, Y, inputs, cal_norm, case, element, increment=increment, stresses_to_include=['S','SIGMA']))
+    else:
+        return XX
+
+
+def opti_options_6(X, Y, inputs, e_params, cal_norm, case, element, calibrate=True, increment=None):
+    '''Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters
+    
+    '''
+    others = [1.e8, 1.e-8]
+
+    XX = numpy.hstack([X, others, e_params])
+    if calibrate:
+        return(objective(XX, Y, inputs, cal_norm, case, element, increment=increment, stresses_to_include=['S','SIGMA']))
+    else:
+        return XX
 
 
 def calibrate_plasticity(input_file, output_file, case, input_parameters, element=0, increment=None, plot_file=None, average=True, UQ_file=None):
@@ -230,7 +291,7 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
                                                     args=(Y, inputs, e_params, cal_norm, case, element, True, increment))
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
-        params = opti_options_1(list(res.x), Y, inputs, cal_norm, nu_targ, case, element, calibrate=False)
+        params = opti_options_1(list(res.x), Y, inputs, e_params, cal_norm, case, element, calibrate=False)
     elif case == 2:
         cohesion = f_params[0]
         parameter_bounds = [[-1000., 1000.]]
@@ -242,15 +303,61 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
                                                     args=(Y, cohesion, inputs, cal_norm, case, element, True, increment))
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
-        params = opti_options_2(list(res.x), Y, inputs, cal_norm, nu_targ, case, element, calibrate=False)
+        params = opti_options_2(list(res.x), Y, inputs, e_params, cal_norm, case, element, calibrate=False)
+    elif case == 3:
+        parameter_bounds = [[0.0, 10.]]
+        param_est = [3.0]
+        res = scipy.optimize.differential_evolution(func=opti_options_3,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    args=(Y, inputs, e_params, cal_norm, case, element, True, increment))
+        print(f"res = {res}")
+        print(f"fit params = {list(res.x)}")
+        params = opti_options_3(list(res.x), Y, inputs, e_params, cal_norm, case, element, calibrate=False)
+    elif case == 4:
+        parameter_bounds = [[1.0, 100.], [-100., 100]]
+        param_est = [3.0, 1.e-8]
+        res = scipy.optimize.differential_evolution(func=opti_options_4,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    args=(Y, inputs, e_params, cal_norm, case, element, True, increment))
+        print(f"res = {res}")
+        print(f"fit params = {list(res.x)}")
+        params = opti_options_4(list(res.x), Y, inputs, e_params, cal_norm, case, element, calibrate=False)
+    elif case == 5:
+        parameter_bounds = [[0.0, 10.], [-100., 10]]
+        param_est = [3.0, 1.e-8]
+        res = scipy.optimize.differential_evolution(func=opti_options_5,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    args=(Y, inputs, e_params, cal_norm, case, element, True, increment))
+        print(f"res = {res}")
+        print(f"fit params = {list(res.x)}")
+        params = opti_options_5(list(res.x), Y, inputs, e_params, cal_norm, case, element, calibrate=False)
+    elif case == 6:
+        parameter_bounds = [[0.0, 10.], [-100., 10], [0.0, 10.], [-100., 10]]
+        param_est = [3.0, 1.e-8, 3.0, 1.e-8]
+        res = scipy.optimize.differential_evolution(func=opti_options_6,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    args=(Y, inputs, e_params, cal_norm, case, element, True, increment))
+        print(f"res = {res}")
+        print(f"fit params = {list(res.x)}")
+        params = opti_options_6(list(res.x), Y, inputs, e_params, cal_norm, case, element, calibrate=False)
     else:
         print('Select valid calibration case!')
 
     # plot resulting calibration
     if plot_file:
         print('plotting...')
+        print(f'parameters = {params}')
         model_name=r'LinearElasticityDruckerPragerPlasticity'
-        PK2_sim, SIGMA_sim, M_sim, SDVS_sim = calibrate_element.evaluate_model(inputs, params, model_name, parameters_to_fparams, 0, element)
+        PK2_sim, SIGMA_sim, M_sim, SDVS_sim = calibrate_element.evaluate_model(inputs, params, model_name, stack_parameters, 55, element)
+        #PK2_sim, SIGMA_sim, M_sim, SDVS_sim = calibrate_element.evaluate_model(inputs, XX, model_name, stack_parameters, 55, element, max_inc)
         PK2_sim = XRT.map_sim(PK2_sim, ninc)
         SIGMA_sim = XRT.map_sim(SIGMA_sim, ninc)
         cauchy_sim, symm_sim = XRT.get_current_configuration_stresses(PK2_sim, SIGMA_sim, inputs[2], inputs[3])
@@ -264,7 +371,7 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
     p = params
     e = e_params
     output_dict['line 01'] = f'2 {p[0]} {p[1]}'
-    output_dict['line 02'] = f'2 {p[2]} {p[2]}'
+    output_dict['line 02'] = f'2 {p[2]} {p[3]}'
     output_dict['line 03'] = f'2 {p[4]} {p[5]}'
     output_dict['line 04'] = f'2 0. 0.'
     output_dict['line 05'] = f'2 0. 0.'
