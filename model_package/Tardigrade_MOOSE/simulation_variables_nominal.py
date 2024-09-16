@@ -25,3 +25,15 @@ dynamic_elastic_cylinder = {
     'macro_BC': 'slip',
     'mesh_copy_root': 'cylinder_5_5',
 }
+
+Brazilian_disk = {
+    'height': 10.,
+    'width': 36.,
+    'chord': 22.,
+    'app_rad': 12.5,
+    'app_dep': 5.5,
+    'spec_rad': 9.55,
+    'spec_dep': 5.1,
+    'tol': 0.001,
+    'seed_size': 0.5,
+}
