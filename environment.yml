@@ -36,3 +36,4 @@ dependencies:
   - compilers
   - neper
   - meshio
+  - flake8
