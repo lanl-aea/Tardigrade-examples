@@ -38,18 +38,17 @@ def peta_copy(source_directory, output_directory):
             sources.append(f'{source_directory}/{file}')
         else:
             print(f'{output_directory}/{dest_file} already exists!')
-    file_string=f"{username}@login.rc.colorado.edu:" + '{' + f"{','.join(sources)}" + '}'
+    file_string = f"{username}@login.rc.colorado.edu:" + '{' + f"{','.join(sources)}" + '}'
 
     # Transfer files
     full_command = ["scp", "-P", "22", file_string, f'{output_directory}/.']
     p = subprocess.Popen(full_command)
-    sts = os.waitpid(p.pid, 0)
+    os.waitpid(p.pid, 0)
 
     return 0
 
 
 def get_parser():
-    script_name = pathlib.Path(__file__)
 
     cli_description = "Copy DNS results from the CU Peta library to the output directory"
     parser = argparse.ArgumentParser(description=cli_description)
