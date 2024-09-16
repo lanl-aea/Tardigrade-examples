@@ -387,6 +387,8 @@ workflow_configurations = [
     # Tardigrade solo studies
     "Tardigrade_convergence",
     "Tardigrade_dynamic_convergence",
+    # Brazilian Disk Compression
+    "Tardigrade_Brazilian_disk",
 ]
 for workflow in workflow_configurations:
     build_dir = str(variant_dir_base / workflow)
