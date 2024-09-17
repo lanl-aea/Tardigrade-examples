@@ -223,17 +223,17 @@ I43_damage['DNS_files'] = [
 I43_damage['DNS_forces'] = 'from_Erik_9-6-2024/Export_I43-09_QOI-DF05.csv'
 
 I43_damage_coarse['DNS_files'] = [
-    'from_Erik_9-10-2024/Monitor_0.vtu',
-    'from_Erik_9-10-2024/Monitor_15.vtu',
-    'from_Erik_9-10-2024/Monitor_30.vtu',
-    'from_Erik_9-10-2024/Monitor_45.vtu',
-    'from_Erik_9-10-2024/Monitor_65.vtu',
-    'from_Erik_9-10-2024/Monitor_75.vtu',
-    'from_Erik_9-10-2024/Monitor_85.vtu',
-    'from_Erik_9-10-2024/Monitor_100.vtu',
-    'from_Erik_9-10-2024/Monitor_125.vtu',
-    'from_Erik_9-10-2024/Monitor_150.vtu',
-    'from_Erik_9-10-2024/Monitor_180.vtu',
-    'from_Erik_9-10-2024/Monitor_215.vtu',
+    'from_Erik_9-17-2024/Monitor_0.vtu',
+    'from_Erik_9-17-2024/Monitor_15.vtu',
+    'from_Erik_9-17-2024/Monitor_30.vtu',
+    'from_Erik_9-17-2024/Monitor_45.vtu',
+    'from_Erik_9-17-2024/Monitor_65.vtu',
+    'from_Erik_9-17-2024/Monitor_75.vtu',
+    'from_Erik_9-17-2024/Monitor_85.vtu',
+    'from_Erik_9-17-2024/Monitor_100.vtu',
+    'from_Erik_9-17-2024/Monitor_125.vtu',
+    'from_Erik_9-17-2024/Monitor_150.vtu',
+    'from_Erik_9-17-2024/Monitor_180.vtu',
+    'from_Erik_9-17-2024/Monitor_215.vtu',
     ]
-I43_damage_coarse['DNS_forces'] = 'from_Erik_9-10-2024/Export_I43-09_QOI-DF20.csv'
+I43_damage_coarse['DNS_forces'] = 'from_Erik_9-17-2024/Export_I43-09_QOI-DF20-DenImp.csv'
