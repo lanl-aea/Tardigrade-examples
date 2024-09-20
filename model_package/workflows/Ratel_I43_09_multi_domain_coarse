@@ -40,6 +40,7 @@ workflow = []
 # specify targets for visualizing Micromorphic Filter output
 viz_targs =  (
     ('plot-stress-norms', 'stress_norms.png'),
+    ('plot-better-stress-norms', 'better_stress_norms.png'),
     ('csv-cauchy', 'cauchy.csv'),
     ('csv-PK2', 'PK2.csv'),
     ('csv-GLstrain', 'GLstrain.csv'),
