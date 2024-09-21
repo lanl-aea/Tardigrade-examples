@@ -151,7 +151,7 @@ def collect_parameters(parameter_sets, case):
     elif case == 2:
         remove = ['tau1','tau2','tau3','tau4','tau5','tau6','tau7','tau8',
                   'tau9','tau10','tau11']
-    elif case == 3:
+    elif (case == 3) or (case == 5):
         remove = ['tau1','tau2','tau3','tau4','tau5','tau6','tau8','tau9',
                   'tau10','tau11']
     for item in remove:
@@ -222,7 +222,7 @@ def kde(rootname, results_dict, type, kde_best_parameters=None):
             matplotlib.pyplot.title(f'Best {key} = {best_value}')
             matplotlib.pyplot.tight_layout()
             matplotlib.pyplot.savefig(f'{rootname}_{key}.png')
-
+        matplotlib.pyplot.close()
     # output
     if kde_best_parameters:
         write_elastic_material_card(kde_best_parameters, output_parameters)

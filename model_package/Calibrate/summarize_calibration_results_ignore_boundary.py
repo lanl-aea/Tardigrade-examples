@@ -112,7 +112,7 @@ def collect_parameters_ignore_boundary(parameter_sets, element_sets, good_elemen
     elif case == 2:
         remove = ['tau1','tau2','tau3','tau4','tau5','tau6','tau7','tau8',
                   'tau9','tau10','tau11']
-    elif case == 3:
+    elif (case == 3) or (case == 5):
         remove = ['tau1','tau2','tau3','tau4','tau5','tau6','tau8','tau9',
                   'tau10','tau11']
     for item in remove:
