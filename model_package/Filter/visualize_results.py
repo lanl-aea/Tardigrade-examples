@@ -587,6 +587,57 @@ def plot_better_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, outpu
     return 0
 
 
+def p_q_plot(PK2, SIGMA, M, E, nqp, nel, ninc, output_name):
+
+    fig = plt.figure('p_q', figsize=(9,9), dpi=300)
+    ax1 = fig.add_subplot(2,2,1)
+    ax2 = fig.add_subplot(2,2,2)
+    ax3 = fig.add_subplot(2,2,3)
+    ax4 = fig.add_subplot(2,2,4)
+
+    for el in range(nel):
+        for qp in range(nqp):
+            # take norms
+            PK2_p, PK2_q, SIGMA_p, SIGMA_q =[], [], [], []
+            diff_p, diff_q = [], []
+            M1_p, M1_q, M2_p, M2_q, M3_p, M3_q = [], [], [], [], [], []
+            for t in range(ninc):
+                PK2_p.append((1/3)*numpy.trace(PK2[qp][t,el,:,:]))
+                PK2_q.append(numpy.sqrt(numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]), deviatoric(PK2[qp][t,el,:,:]))))
+                SIGMA_p.append((1/3)*numpy.trace(SIGMA[qp][t,el,:,:]))
+                SIGMA_q.append(numpy.sqrt(numpy.tensordot(deviatoric(SIGMA[qp][t,el,:,:]), deviatoric(SIGMA[qp][t,el,:,:]))))
+                diff_p.append((1/3)*numpy.trace(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))
+                diff_q.append(numpy.sqrt(numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]),
+                                                               deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))))
+                M1_p.append((1/3)*numpy.trace(M[qp][t,el,:,:,0]))
+                M1_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,0]), deviatoric(M[qp][t,el,:,:,0]))))
+                M2_p.append((1/3)*numpy.trace(M[qp][t,el,:,:,1]))
+                M2_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
+                M3_p.append((1/3)*numpy.trace(M[qp][t,el,:,:,1]))
+                M3_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
+            label = f"qp  #{(qp+1)+(nel*8)}"
+            ax1.plot(PK2_p, PK2_q, label=label)
+            ax1.set_xlabel(r'$p\left(\mathbf{S}\right) (MPa)$', fontsize=14)
+            ax1.set_ylabel(r'$q\left(\mathbf{S}\right) (MPa)$', fontsize=14)
+            ax2.plot(SIGMA_p, SIGMA_q, label=label)
+            ax2.set_xlabel(r'$p\left(\mathbf{\Sigma}\right) (MPa)$', fontsize=14)
+            ax2.set_ylabel(r'$q\left(\mathbf{\Sigma}\right) (MPa)$', fontsize=14)
+            ax3.plot(diff_p, diff_q, label=label)
+            ax3.set_xlabel(r'$p\left(\mathbf{S} - \mathbf{\Sigma}\right) (MPa)$', fontsize=14)
+            ax3.set_ylabel(r'$q\left(\mathbf{S} - \mathbf{\Sigma}\right) (MPa$)', fontsize=14)
+            ax4.plot(M1_p, M1_q, '-o', label=f"index K = 1, {label}")
+            ax4.plot(M2_p, M2_q, '-^', label=f"index K = 2, {label}")
+            ax4.plot(M3_p, M3_q, '-v', label=f"index K = 3, {label}")
+            ax4.set_xlabel(r'$p\left(\mathbf{M}\right) (MPa \cdot mm^2)$', fontsize=14)
+            ax4.set_ylabel(r'$q\left(\mathbf{M}\right) (MPa \cdot mm^2)$', fontsize=14)
+
+    ax4.legend(['index K = 1', 'index K = 2', 'index K = 3'])
+    fig.tight_layout()
+    fig.savefig(output_name)
+
+    return 0
+
+
 def csv_machine(quantity, output_file, nqp, nel, time, three_point=False):
     '''Write a text dump summarizing a variety of statistics
 
@@ -771,6 +822,7 @@ def visualize_results(input_file, average, num_domains,
                       plot_stretch_diff=None,
                       plot_stress_norms=None,
                       plot_better_stress_norms=None,
+                      p_q_plots=None,
                       csv_cauchy=None,
                       csv_PK2=None,
                       csv_GLstrain=None,
@@ -897,6 +949,10 @@ def visualize_results(input_file, average, num_domains,
     if plot_better_stress_norms:
         plot_better_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, plot_better_stress_norms)
 
+    # p_q_plots
+    if p_q_plots:
+        p_q_plot(PK2, SIGMA, M, E, nqp, nel, ninc, p_q_plots)
+
     # Output csvs
     #TODO: add an argument for specifying what time to gather statistics on
     if csv_cauchy:
@@ -1010,6 +1066,10 @@ def get_parser():
               difference between PK2 and Symmetric micro stresses, and higher order\
               stress, all against norms of Green-Lagrange strain, Micro strain,\
               and Micro-deformation.")
+    parser.add_argument('--p-q-plots', type=str, required=False, default=None,
+        help="Optional filename to plot p-q invariants of PK2 stress, Symmetric\
+              micro stress, difference btween PK2 and Symmtric micro stresses,\
+              and higher order stress.")
     parser.add_argument('--csv-cauchy', type=str, required=False, default=None,
         help="Optional filename for csv output of Cauchy stress summary statistics")
     parser.add_argument('--csv-PK2', type=str, required=False, default=None,
@@ -1068,6 +1128,7 @@ if __name__ == '__main__':
                 plot_stretch_diff=args.plot_stretch_diff,
                 plot_stress_norms=args.plot_stress_norms,
                 plot_better_stress_norms=args.plot_better_stress_norms,
+                p_q_plots=args.p_q_plots,
                 csv_cauchy=args.csv_cauchy,
                 csv_PK2=args.csv_PK2,
                 csv_GLstrain=args.csv_GLstrain,
@@ -1082,4 +1143,4 @@ if __name__ == '__main__':
                 csv_all_quantities_single_domain=args.csv_all_quantities_single_domain,
                 rho_binder=args.rho_binder,
                 rho_grain=args.rho_grain,
-                ))                         
+                ))
