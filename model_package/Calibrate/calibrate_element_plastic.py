@@ -62,12 +62,40 @@ def stack_parameters(params):
                                     ])
     return plastic_fparams
 
+
+def deviatoric(stress):
+    '''Calculate the deviatoric component of a stress quantity
+
+    :param array-like stress: A second order tensor or 9-component slice of a third order tensor
+
+    :returns: deviatoric of ``stress``
+    '''
+
+    return(stress - (1/3)*numpy.trace(stress))
+
+
+def triple_deviatoric(stress):
+    '''Calculate the deviatoric component of a stress quantity
+
+    :param array-like stress: A second order tensor or 9-component slice of a third order tensor
+
+    :returns: deviatoric of ``stress``
+    '''
+
+    stress_1 = stress[:,:,0] - (1/3)*numpy.trace(stress[:,:,0])
+    stress_2 = stress[:,:,1] - (1/3)*numpy.trace(stress[:,:,1])
+    stress_3 = stress[:,:,2] - (1/3)*numpy.trace(stress[:,:,2])
+
+    return(stress_1 + stress_2 + stress_3)
+
+
 # Objective function evaluation lists
 Xstore = []
 Lstore = []
 
 def objective(x0, Y, inputs, cal_norm, case, element, increment=None, stresses_to_include=['S','SIGMA','M']):
 
+    print('begin!')
     model_name=r'LinearElasticityDruckerPragerPlasticity'
     # stack parameters
     XX = x0
@@ -79,9 +107,12 @@ def objective(x0, Y, inputs, cal_norm, case, element, increment=None, stresses_t
     # try to evaluate model
     try:
         PK2_sim, SIGMA_sim, M_sim, SDVS_sim = calibrate_element.evaluate_model(inputs, XX, model_name, stack_parameters, 55, element, max_inc)
+        print('model evaluated')
     except:
+        print('oh no!')
         return numpy.inf
 
+    print('something has been evaluated!')
     displacement, grad_u, phi, grad_phi = inputs[1], inputs[2], inputs[3], inputs[4]
     # Parse out stresses from DNS stress data Y
     PK2, SIGMA, M = Y[0], Y[1], Y[2]
@@ -107,10 +138,22 @@ def objective(x0, Y, inputs, cal_norm, case, element, increment=None, stresses_t
     # Accumulate errors
     elem = element
     e = 0
+    norm = True
     for t in time_steps:
-        PK2_error = numpy.hstack([PK2_error, PK2[0][t,0,:,:].flatten() - PK2_sim[0][t,0,:]])
-        SIGMA_error = numpy.hstack([SIGMA_error, SIGMA[0][t,0,:,:].flatten() - SIGMA_sim[0][t,0,:]])
-        M_error = numpy.hstack([M_error, M[0][t,0,:,:,:].flatten() - M_sim[0][t,0,:]])
+        if norm == True:
+            PK2_norm = numpy.linalg.norm(deviatoric(PK2[0][t,0,:,:]), ord='fro')
+            PK2_sim_norm = numpy.linalg.norm(deviatoric(PK2_sim[0][t,0,:,:]), ord='fro')
+            SIGMA_norm = numpy.linalg.norm(deviatoric(SIGMA[0][t,0,:,:]), ord='fro')
+            SIGMA_sim_norm = numpy.linalg.norm(deviatoric(SIGMA_sim[0][t,0,:,:]), ord='fro')
+            M_norm = numpy.linalg.norm(triple_deviatoric(M[0][t,0,:,:,:]), ord='fro')
+            M_sim_norm = numpy.linalg.norm(triple_deviatoric(M_sim[0][t,0,:,:,:]), ord='fro')
+            PK2_error = numpy.hstack([PK2_error, PK2_norm - PK2_sim_norm])
+            SIGMA_error = numpy.hstack([SIGMA_norm, SIGMA_sim_norm])
+            M_error = numpy.hstack([M_error, M_norm - M_sim_norm])
+        else:
+            PK2_error = numpy.hstack([PK2_error, PK2[0][t,0,:,:].flatten() - PK2_sim[0][t,0,:]])
+            SIGMA_error = numpy.hstack([SIGMA_error, SIGMA[0][t,0,:,:].flatten() - SIGMA_sim[0][t,0,:]])
+            M_error = numpy.hstack([M_error, M[0][t,0,:,:,:].flatten() - M_sim[0][t,0,:]])
 
     # collect errors
     errors    = {'S':PK2_error, 'SIGMA':SIGMA_error, 'M':M_error}
@@ -362,8 +405,20 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         SIGMA_sim = XRT.map_sim(SIGMA_sim, ninc)
         cauchy_sim, symm_sim = XRT.get_current_configuration_stresses(PK2_sim, SIGMA_sim, inputs[2], inputs[3])
 
-        calibrate_element.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element)
-        calibrate_element.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element)
+        if increment:
+            calibrate_element.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_PLASTIC_cauchy_fit_case_{case}.PNG', element, increment=increment)
+            calibrate_element.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_PLASTIC_symm_fit_case_{case}.PNG', element, increment=increment)
+            calibrate_element.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_PLASTIC_cauchy_fit_case_{case}_ALL.PNG', element)
+            calibrate_element.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_PLASTIC_symm_fit_case_{case}_ALL.PNG', element)
+            calibrate_element.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PLASTIC_PK2_fit_case_{case}.PNG', element, increment=increment)
+            calibrate_element.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_PLASTIC_SIGMA_fit_case_{case}.PNG', element, increment=increment)
+            calibrate_element.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PLASTIC_PK2_fit_case_{case}_ALL.PNG', element)
+            calibrate_element.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_PLASTIC_SIGMA_fit_case_{case}_ALL.PNG', element)
+        else:
+            calibrate_element.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element)
+            calibrate_element.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element)
+            calibrate_element.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}.PNG', element)
+            calibrate_element.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}.PNG', element)
 
     # output parameters!
     output_filename = output_file
