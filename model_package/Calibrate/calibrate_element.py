@@ -467,7 +467,7 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, increment=None, s
             PK2_error = numpy.hstack([PK2_error, PK2[0][t,0,2,2] - PK2_sim[0][t,0,-1]])
             SIGMA_error = numpy.hstack([PK2_error, PK2[0][t,0,2,2] - PK2_sim[0][t,0,-1]])
             M_error = []
-    elif case == 4:
+    elif case >= 4:
         for t in time_steps:
             PK2_error = numpy.hstack([PK2_error, PK2[0][t,0,:,:].flatten() - PK2_sim[0][t,0,:]])
             SIGMA_error = numpy.hstack([SIGMA_error, SIGMA[0][t,0,:,:].flatten() - SIGMA_sim[0][t,0,:]])
@@ -759,7 +759,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
     elif case == 2:
         param_mask = [True, True, True, True, True, True, True,
                       False, False, False, False, False, False,
-                      False, False, False, False, False] 
+                      False, False, False, False, False]
         param_est = list(compress(param_est, param_mask))
         parameter_bounds = list(compress(parameter_bounds,param_mask))
         res = scipy.optimize.differential_evolution(func=opti_options_2, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, increment))
@@ -770,7 +770,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
     elif case == 3:
         param_mask = [True, True, True, True, True, True, True,
                       False, False, False, False, False, False,
-                      True, False, False, False, False] 
+                      True, False, False, False, False]
         param_est = list(compress(param_est, param_mask))
         print('initial parameter estimation:')
         print(param_est)
@@ -791,6 +791,20 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print(f"res = {res}")
         print(f"fit params = {res.x}")
         params = opti_options_4(res.x, Y, inputs, cal_norm, nu_targ, case, element, calibrate=False)
+    elif case == 5:
+        # Same as case 3, but this time we'll force the calibrate function to use errors
+        #  from the higher order stress
+        param_mask = [True, True, True, True, True, True, True,
+                      False, False, False, False, False, False,
+                      True, False, False, False, False]
+        param_est = list(compress(param_est, param_mask))
+        print('initial parameter estimation:')
+        print(param_est)
+        parameter_bounds = list(compress(parameter_bounds,param_mask))
+        res = scipy.optimize.differential_evolution(func=opti_options_3, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, increment))
+        print(f"res = {res}")
+        print(f"fit params = {res.x}")
+        params = opti_options_3(res.x, Y, inputs, cal_norm, nu_targ, case, element, calibrate=False)
     else:
         print('Select valid calibration case!')
 
