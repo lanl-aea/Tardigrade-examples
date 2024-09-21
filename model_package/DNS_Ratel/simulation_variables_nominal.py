@@ -195,8 +195,8 @@ I43_damage = {
     'velocity': False,
     'filter_parallel': 8,
     # parameters for elastic calibration
-    'calibration_case': 3,
-    'calibration_increment': [0, 1, 2],
+    'calibration_case': 4,
+    'calibration_increment': [0, 1, 2, 3],
     'ignore_boundary': False,
     # parameters for plastic calibration
     'cohesion_case': 1,
@@ -227,13 +227,13 @@ I43_damage_coarse['DNS_files'] = [
     'from_Erik_9-17-2024/Monitor_15.vtu',
     'from_Erik_9-17-2024/Monitor_30.vtu',
     'from_Erik_9-17-2024/Monitor_45.vtu',
-    'from_Erik_9-17-2024/Monitor_65.vtu',
+    'from_Erik_9-17-2024/Monitor_60.vtu',
+    'from_Erik_9-17-2024/Monitor_70.vtu',
     'from_Erik_9-17-2024/Monitor_75.vtu',
-    'from_Erik_9-17-2024/Monitor_85.vtu',
-    'from_Erik_9-17-2024/Monitor_100.vtu',
-    'from_Erik_9-17-2024/Monitor_125.vtu',
-    'from_Erik_9-17-2024/Monitor_150.vtu',
-    'from_Erik_9-17-2024/Monitor_180.vtu',
+    'from_Erik_9-17-2024/Monitor_80.vtu',
+    'from_Erik_9-17-2024/Monitor_95.vtu',
+    'from_Erik_9-17-2024/Monitor_120.vtu',
+    'from_Erik_9-17-2024/Monitor_160.vtu',
     'from_Erik_9-17-2024/Monitor_215.vtu',
     ]
 I43_damage_coarse['DNS_forces'] = 'from_Erik_9-17-2024/Export_I43-09_QOI-DF20-DenImp.csv'
