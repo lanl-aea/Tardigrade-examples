@@ -142,7 +142,7 @@ def objective(x0, Y, inputs, cal_norm, case, element, increment=None, stresses_t
 
 def opti_options_1(X, Y, inputs, e_params, cal_norm, case, element, calibrate=True, increment=None):
     '''Calibrate macro-plasticity initial cohesion parameter
-    
+
     '''
     others = [1.e-8,       # macro hardening
               1.e8, 1.e-8, # micro terms
@@ -158,7 +158,7 @@ def opti_options_1(X, Y, inputs, e_params, cal_norm, case, element, calibrate=Tr
 
 def opti_options_2(X, cohesion, Y, inputs, e_params, cal_norm, case, element, calibrate=True, increment=None):
     '''Calibrate macro-plasticity hardening parameter
-    
+
     '''
     others = [
               1.e8, 1.e-8, # micro terms
@@ -174,7 +174,7 @@ def opti_options_2(X, cohesion, Y, inputs, e_params, cal_norm, case, element, ca
 
 def opti_options_3(X, Y, inputs, e_params, cal_norm, case, element, calibrate=True, increment=None):
     '''Calibrate micro-plasticity initial cohesion parameter
-    
+
     '''
     others = [1.e8, 1.e-8]
 
@@ -187,7 +187,7 @@ def opti_options_3(X, Y, inputs, e_params, cal_norm, case, element, calibrate=Tr
 
 def opti_options_4(X, Y, inputs, e_params, cal_norm, case, element, calibrate=True, increment=None):
     '''Calibrate macro-plasticity initial cohesion and hardening parameters
-    
+
     '''
     others = [1.e8, 1.e-8]
 
@@ -200,7 +200,7 @@ def opti_options_4(X, Y, inputs, e_params, cal_norm, case, element, calibrate=Tr
 
 def opti_options_5(X, Y, inputs, e_params, cal_norm, case, element, calibrate=True, increment=None):
     '''Calibrate micro-plasticity initial cohesion and hardening parameters
-    
+
     '''
     others = [1.e8, 1.e-8]
 
@@ -213,7 +213,7 @@ def opti_options_5(X, Y, inputs, e_params, cal_norm, case, element, calibrate=Tr
 
 def opti_options_6(X, Y, inputs, e_params, cal_norm, case, element, calibrate=True, increment=None):
     '''Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters
-    
+
     '''
     others = [1.e8, 1.e-8]
 
