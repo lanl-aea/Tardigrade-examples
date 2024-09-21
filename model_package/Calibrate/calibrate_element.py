@@ -10,6 +10,10 @@ import scipy
 import pandas
 from itertools import compress
 
+# sys.path.append(r'/projects/tea/tardigrade_plastic/tardigrade_micromorphic_element/src/python')
+# sys.path.append(r'/projects/tea/tardigrade-examples/model_package')
+# sys.path.append(f'/projects/tea/tardigrade_plastic/tardigrade_micromorphic_linear_elasticity/src/python')
+
 import micromorphic
 import xdmf_reader_tools as XRT
 import linear_elastic_parameter_constraint_equations as constraints
@@ -89,14 +93,15 @@ def average_quantities(quantities, type, elem):
     return(output)
 
 
-def plot_stresses(estrain, stress, stress_sim, output_name, element):
+def plot_stresses(estrain, stress, stress_sim, output_name, element, increment=None,):
     '''Plot comparison of stress vs strain (in the current configuration) between homogenized DNS results against calibrated model predictions
 
     :param dict estrain: The quantities dict storing Euler-Almansi strain
-    :param dict stress: The quantities dict storing either Cauchy or Symmetric micro stress of the homogenized DNS results
-    :param dict stress: The quantities dict storing either Cauchy or Symmetric micro stress of the calibrated model predictions
+    :param dict stress: The quantities dict storing either Cauchy or symmetric micro stress of the homogenized DNS results
+    :param dict stress_sim: The quantities dict storing either Cauchy or symmetric micro stress of the calibrated model predictions
     :param str output_name: The output plot name
     :param int element: The macro (filter) element considered for calibration
+    :param list increment: An optional list of one or more increments to plot restults
 
     :returns: ``output_name``
     '''
@@ -105,7 +110,12 @@ def plot_stresses(estrain, stress, stress_sim, output_name, element):
     fig1 = matplotlib.pyplot.figure(name, figsize=(11,9))
     axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
     ybounds = [-1, 1]
- 
+
+    if increment:
+        inc = [int(i) for i in increment]
+    else:
+        inc = [i for i in range(0, numpy.shape(estrain[0][:,0,0,0])[0])]
+
     colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
     k = 0
     e = 0
@@ -117,8 +127,8 @@ def plot_stresses(estrain, stress, stress_sim, output_name, element):
             if 'symm' in output_name:
                 plot_label = r"$s_{" + str(i+1) + str(j+1) + "}$ (MPa)"
 
-            ax1.plot(estrain[0][:,e,i,j], stress[0][:,e,i,j], '-')
-            ax1.plot(estrain[0][:,e,i,j], stress_sim[0][:,e,i,j], 'o')
+            ax1.plot(estrain[0][inc,e,i,j], stress[0][inc,e,i,j], 'o', label='Filter')
+            ax1.plot(estrain[0][inc,e,i,j], stress_sim[0][inc,e,i,j], '-', label='Fit')
  
             ax1.set_xlabel(r"$e_{" + str(i+1) + str(j+1) + "}$", fontsize=14)
             ax1.set_ylabel(plot_label, fontsize=14)
@@ -127,11 +137,64 @@ def plot_stresses(estrain, stress, stress_sim, output_name, element):
             if (i == 2) and (j ==2):
                 matplotlib.pyplot.xticks(rotation=45)
             k = k + 1
+
+    handles, labels = ax1.get_legend_handles_labels()
+    fig1.legend(handles, labels, loc='lower center', bbox_to_anchor=(0.52, -0.01), ncols=2, fontsize=14)
+    fig1.tight_layout()
+    fig1.savefig(f'{output_name}')
+
+    return 0
+
+
+def plot_stresses_ref(E, stress, stress_sim, output_name, element, increment=None,):
+    '''Plot comparison of stress vs strain (in the current configuration) between homogenized DNS results against calibrated model predictions
+
+    :param dict E: The quantities dict storing Green-Lagrange strain
+    :param dict stress: The quantities dict storing either PK2 or Symmetric micro stress of the homogenized DNS results
+    :param dict stress_sim: The quantities dict storing either PK2 or Symmetric micro stress of the calibrated model predictions
+    :param str output_name: The output plot name
+    :param int element: The macro (filter) element considered for calibration
+    :param list increment: An optional list of one or more increments to plot restults
+
+    :returns: ``output_name``
+    '''
+
+    name = output_name.replace('.PNG','')
+    fig1 = matplotlib.pyplot.figure(name, figsize=(11,9))
+    axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
+    ybounds = [-1, 1]
+
+    if increment:
+        inc = [int(i) for i in increment]
+    else:
+        inc = [i for i in range(0, numpy.shape(E[0][:,0,0,0])[0])]
+
+    colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
+    k = 0
+    e = 0
+    for i in range(3):
+        for j in range(3):
+            ax1 = axes1[i][j]
+            if 'PK2' in output_name:
+                plot_label = r"$S_{" + str(i+1) + str(j+1) + "}$ (MPa)"
+            if 'SIGMA' in output_name:
+                plot_label = r"$\Sigma_{" + str(i+1) + str(j+1) + "}$ (MPa)"
+
+            ax1.plot(E[0][inc,e,i,j], stress[0][inc,e,i,j], 'o', label='Filter')
+            ax1.plot(E[0][inc,e,i,j], stress_sim[0][inc,e,i,j], '-', label='Fit')
  
-    ax1 = axes1[1][2]
-    matplotlib.pyplot.figure(name)
-    matplotlib.pyplot.tight_layout()
-    matplotlib.pyplot.savefig(f'{output_name}')
+            ax1.set_xlabel(r"$E_{" + str(i+1) + str(j+1) + "}$", fontsize=14)
+            ax1.set_ylabel(plot_label, fontsize=14)
+            matplotlib.pyplot.ticklabel_format(style='sci', axis='x')
+            matplotlib.pyplot.ticklabel_format(style='sci', axis='y')
+            if (i == 2) and (j ==2):
+                matplotlib.pyplot.xticks(rotation=45)
+            k = k + 1
+
+    handles, labels = ax1.get_legend_handles_labels()
+    fig1.legend(handles, labels, loc='lower center', bbox_to_anchor=(0.52, -0.01), ncols=2, fontsize=14)
+    fig1.tight_layout()
+    fig1.savefig(f'{output_name}')
  
     return 0
 
@@ -836,8 +899,20 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         SIGMA_sim = XRT.map_sim(SIGMA_sim, ninc)
         cauchy_sim, symm_sim = XRT.get_current_configuration_stresses(PK2_sim, SIGMA_sim, inputs[2], inputs[3])
 
-        plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element)
-        plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element)
+        if increment:
+            plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element, increment=increment)
+            plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element, increment=increment)
+            plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}_ALL.PNG', element)
+            plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}_ALL.PNG', element)
+            plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}.PNG', element, increment=increment)
+            plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}.PNG', element, increment=increment)
+            plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}_ALL.PNG', element)
+            plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}_ALL.PNG', element)
+        else:
+            plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element)
+            plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element)
+            plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}.PNG', element)
+            plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}.PNG', element)
 
     # output parameters!
     output_filename = output_file
