@@ -41,7 +41,7 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
     sig_yz = 'diagnostic_quantitiesprojected.Cauchy_stress_yz'
     sig_zz = 'diagnostic_quantitiesprojected.Cauchy_stress_zz'
     n_vol = 'diagnostic_quantitiesdual.nodal_volume'
-    n_dens = 'diagnostic_quantitiesprojected.mass_density'
+    n_dens = 'diagnostic_quantitiesdual.nodal_density'
     Jdef = 'diagnostic_quantitiesprojected.J'
 
     data_filename=output_file
