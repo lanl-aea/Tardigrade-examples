@@ -1,5 +1,5 @@
 waves
-moose-dev
+#moose-dev
 scons>=4
 boost>=1.59,<=1.80
 breathe>=4.30.0
@@ -9,7 +9,8 @@ doxygen
 eigen>=3.3.7
 gcc_linux-64
 gxx_linux-64
-setuptools_scm
+setuptools_scm>=8
+setuptools>=61
 pip
 pytest
 pytest-cov
