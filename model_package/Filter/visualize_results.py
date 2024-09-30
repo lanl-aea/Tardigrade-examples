@@ -587,6 +587,70 @@ def plot_better_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, outpu
     return 0
 
 
+def plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_name):
+    '''Plot the infinity norms of deviatoric Cauchy, symmetric micro, and higher stresses
+
+    :param dict cauchy: The quantities dict storing Cauchy stress
+    :param dict symm: The quantities dict storing symmetric micro stress
+    :param dict m: THe quantities dict storing higher order stress
+    :param int nqp: The number of quadrature points
+    :param int nel: The number of elements
+    :param array-like times: The time increments
+    :param str output_name: Output filename
+
+    :returns: ``output_name`` plot
+    '''
+
+    #fig = plt.figure('stress_norms', figsize=(16,12), dpi=300)
+    #axes = fig.add_subplot(4, 3, 12)
+    #axes = [[fig.add_subplot(4,3,3 * i + j + 1) for j in range(3)] for i in range(4)]
+    #axes = [[fig.add_subplot(4,3,12) for j in range(3)] for i in range(4)]
+    fig, axes = plt.subplots(1, 3)
+
+    for el in range(nel):
+        for qp in range(nqp):
+            # take norms
+            PK2_norm, SIGMA_norm, diff_norm = [], [], []
+            M1_norm, M2_norm, M3_norm = [], [], []
+            E_norm, Ecal_norm, Gamma_norm = [], [], []
+            for t in range(ninc):
+                PK2_norm.append(numpy.linalg.norm(deviatoric(PK2[qp][t,el,:,:]), ord='fro'))
+                SIGMA_norm.append(numpy.linalg.norm(deviatoric(SIGMA[qp][t,el,:,:]), ord='fro'))
+                diff_norm.append(numpy.linalg.norm(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]), ord='fro'))
+                M1_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,0]), ord='fro'))
+                M2_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,1]), ord='fro'))
+                M3_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,2]), ord='fro'))
+                E_norm.append(numpy.linalg.norm(deviatoric(E[qp][t,el,:,:]), ord='fro'))
+                Ecal_norm.append(numpy.linalg.norm(deviatoric(Ecal[qp][t,el,:,:]), ord='fro'))
+                Gamma_norm.append(numpy.linalg.norm(triple_deviatoric(Gamma[qp][t,el,:,:,:]), ord='fro'))
+
+            label = f"qp  #{(qp+1)+(nel*8)}"
+
+            axes[0][0].plot(E_norm, PK2_norm)
+
+            axes[0][1].plot(Ecal_norm, SIGMA_norm)
+
+            axes[0][2].plot(Gamma_norm, M1_norm, '-o', label=f"index K = 1, {label}")
+            axes[0][2].plot(Gamma_norm, M2_norm, '-^', label=f"index K = 2, {label}")
+            axes[0][2].plot(Gamma_norm, M3_norm, '-v', label=f"index K = 3, {label}")
+
+    axes[0][0].set_ylabel(r'$||dev\left(S_{IJ}\right)|| \left( MPa \right)$', fontsize=14)
+    axes[0][0].set_xlabel(r'$||dev\left(E_{IJ}\right)|| \left( MPa \right)$', fontsize=14)
+
+    axes[0][1].set_ylabel(r'$||dev\left(\Sigma_{IJ}\right)|| \left( MPa \right)$', fontsize=14)
+    axes[0][1].set_xlabel(r'$||dev\left(\mathcal{E}_{IJ}\right)|| \left( MPa \right)$', fontsize=14)
+
+    axes[0][2].set_ylabel(r'$||dev\left(M_{IJK}\right)|| \left( MPa \cdot mm^2 \right)$', fontsize=14)
+    axes[0][2].set_xlabel(r'$||dev\left(\Gamma_{IJK}\right)|| \left( MPa \right)$', fontsize=14)
+
+    fig.set_figheight(5)
+    fig.set_figwidth(12)
+    fig.tight_layout()
+    fig.savefig(output_name)
+
+    return 0
+
+
 def p_q_plot(PK2, SIGMA, M, E, nqp, nel, ninc, output_name):
 
     fig = plt.figure('p_q', figsize=(9,9), dpi=300)
@@ -602,19 +666,19 @@ def p_q_plot(PK2, SIGMA, M, E, nqp, nel, ninc, output_name):
             diff_p, diff_q = [], []
             M1_p, M1_q, M2_p, M2_q, M3_p, M3_q = [], [], [], [], [], []
             for t in range(ninc):
-                PK2_p.append((1/3)*numpy.trace(PK2[qp][t,el,:,:]))
-                PK2_q.append(numpy.sqrt(numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]), deviatoric(PK2[qp][t,el,:,:]))))
-                SIGMA_p.append((1/3)*numpy.trace(SIGMA[qp][t,el,:,:]))
-                SIGMA_q.append(numpy.sqrt(numpy.tensordot(deviatoric(SIGMA[qp][t,el,:,:]), deviatoric(SIGMA[qp][t,el,:,:]))))
-                diff_p.append((1/3)*numpy.trace(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))
-                diff_q.append(numpy.sqrt(numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]),
+                PK2_p.append((-1/3)*numpy.trace(PK2[qp][t,el,:,:]))
+                PK2_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]), deviatoric(PK2[qp][t,el,:,:]))))
+                SIGMA_p.append((-1/3)*numpy.trace(SIGMA[qp][t,el,:,:]))
+                SIGMA_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(SIGMA[qp][t,el,:,:]), deviatoric(SIGMA[qp][t,el,:,:]))))
+                diff_p.append((-1/3)*numpy.trace(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))
+                diff_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]),
                                                                deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))))
-                M1_p.append((1/3)*numpy.trace(M[qp][t,el,:,:,0]))
-                M1_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,0]), deviatoric(M[qp][t,el,:,:,0]))))
-                M2_p.append((1/3)*numpy.trace(M[qp][t,el,:,:,1]))
-                M2_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
-                M3_p.append((1/3)*numpy.trace(M[qp][t,el,:,:,1]))
-                M3_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
+                M1_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,0]))
+                M1_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,0]), deviatoric(M[qp][t,el,:,:,0]))))
+                M2_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,1]))
+                M2_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
+                M3_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,1]))
+                M3_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
             label = f"qp  #{(qp+1)+(nel*8)}"
             ax1.plot(PK2_p, PK2_q, label=label)
             ax1.set_xlabel(r'$p\left(\mathbf{S}\right) (MPa)$', fontsize=14)
@@ -684,6 +748,7 @@ def csv_machine(quantity, output_file, nqp, nel, time, three_point=False):
     df.to_csv(output_file, header=True, sep=',', index=False)
 
     return 0
+
 
 def dump_all(quantity, output_file, icomp, jcomp, nqp, nel, time):
     '''Dump all values for particular components of a 2nd order tensor for a given time value and element number
@@ -822,6 +887,7 @@ def visualize_results(input_file, average, num_domains,
                       plot_stretch_diff=None,
                       plot_stress_norms=None,
                       plot_better_stress_norms=None,
+                      plot_best_stress_norms=None,
                       p_q_plots=None,
                       csv_cauchy=None,
                       csv_PK2=None,
@@ -854,6 +920,8 @@ def visualize_results(input_file, average, num_domains,
     :param str plot_rotation_diff: Optional filename to plot difference between macro and micro rotations vs. simulation time
     :param str plot_stress_diff: Optional filename to plot differences between macro and micro stretches vs. simulation time
     :param str plot_stress_norms: Optional filename to plot norms of cauchy stress, symmetric micro stress, difference between Cauchy and symmetric micro stresses, and higher order stress
+    :param str plot_better_stress_norms: Optional filename to plot norms of PK2 stress, Symmetric micro stress, difference between PK2 and Symmetric micro stresses, and higher order stress, all against norms of Green-Lagrange strain, Micro strain, and Micro-deformation
+    :param str plot_best_stress_norms: Optional filename to plot norm of PK2 stress vs Green-Lagrange strain, Symmetric micro stress vs Micro strain, and higher order stress vs micro-deformation
     :param str csv_cauchy: Optional filename for csv output of Cauchy stress summary statistics
     :param str csv_PK2: Optional filename for csv output of PK2 stress summary statistics
     :param str csv_GLstrain: Optional filename for csv output of Green-Lagrange strain summary statistics
@@ -945,9 +1013,11 @@ def visualize_results(input_file, average, num_domains,
     if plot_stress_norms:
         plot_stress_norm(cauchy, symm, m, nqp, nel, ninc, times, plot_stress_norms)
 
-    # Plot better stress norms
+    # Plot better and best stress norms
     if plot_better_stress_norms:
         plot_better_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, plot_better_stress_norms)
+    if plot_best_stress_norms:
+        plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, plot_best_stress_norms)
 
     # p_q_plots
     if p_q_plots:
@@ -1066,6 +1136,10 @@ def get_parser():
               difference between PK2 and Symmetric micro stresses, and higher order\
               stress, all against norms of Green-Lagrange strain, Micro strain,\
               and Micro-deformation.")
+    parser.add_argument('--plot-best-stress-norms', type=str, required=False, default=None,
+        help="Optional filename to plot norm of PK2 stress vs Green-Lagrange strain,\
+              Symmetric micro stress vs Micro strain,\
+              and higher order stress vs micro-deformation")
     parser.add_argument('--p-q-plots', type=str, required=False, default=None,
         help="Optional filename to plot p-q invariants of PK2 stress, Symmetric\
               micro stress, difference btween PK2 and Symmtric micro stresses,\
@@ -1128,6 +1202,7 @@ if __name__ == '__main__':
                 plot_stretch_diff=args.plot_stretch_diff,
                 plot_stress_norms=args.plot_stress_norms,
                 plot_better_stress_norms=args.plot_better_stress_norms,
+                plot_best_stress_norms=args.plot_best_stress_norms,
                 p_q_plots=args.p_q_plots,
                 csv_cauchy=args.csv_cauchy,
                 csv_PK2=args.csv_PK2,
