@@ -435,7 +435,7 @@ def deviatoric(stress):
     :returns: deviatoric of ``stress``
     '''
 
-    return(stress - (1/3)*numpy.trace(stress))
+    return(stress - (1/3)*numpy.eye(3)*numpy.trace(stress))
 
 
 def plot_stress_norm(cauchy, symm, m, nqp, nel, ninc, times, output_name):
@@ -504,9 +504,9 @@ def triple_deviatoric(stress):
     :returns: deviatoric of ``stress``
     '''
 
-    stress_1 = stress[:,:,0] - (1/3)*numpy.trace(stress[:,:,0])
-    stress_2 = stress[:,:,1] - (1/3)*numpy.trace(stress[:,:,1])
-    stress_3 = stress[:,:,2] - (1/3)*numpy.trace(stress[:,:,2])
+    stress_1 = stress[:,:,0] - (1/3)*numpy.eye(3)*numpy.trace(stress[:,:,0])
+    stress_2 = stress[:,:,1] - (1/3)*numpy.eye(3)*numpy.trace(stress[:,:,1])
+    stress_3 = stress[:,:,2] - (1/3)*numpy.eye(3)*numpy.trace(stress[:,:,2])
 
     return(stress_1 + stress_2 + stress_3)
 
@@ -689,18 +689,18 @@ def plot_norm_history(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, times, outp
                 Gamma_norm.append(numpy.linalg.norm(triple_deviatoric(Gamma[qp][t,el,:,:,:]), ord='fro'))
 
                 PK2_p.append((-1/3)*numpy.trace(PK2[qp][t,el,:,:]))
-                PK2_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]), deviatoric(PK2[qp][t,el,:,:]))))
+                PK2_q.append(numpy.sqrt(numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]), deviatoric(PK2[qp][t,el,:,:]))))
                 SIGMA_p.append((-1/3)*numpy.trace(SIGMA[qp][t,el,:,:]))
-                SIGMA_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(SIGMA[qp][t,el,:,:]), deviatoric(SIGMA[qp][t,el,:,:]))))
+                SIGMA_q.append(numpy.sqrt(numpy.tensordot(deviatoric(SIGMA[qp][t,el,:,:]), deviatoric(SIGMA[qp][t,el,:,:]))))
                 diff_p.append((-1/3)*numpy.trace(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))
-                diff_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]),
+                diff_q.append(numpy.sqrt(numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]),
                                                                deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))))
                 M1_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,0]))
-                M1_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,0]), deviatoric(M[qp][t,el,:,:,0]))))
+                M1_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,0]), deviatoric(M[qp][t,el,:,:,0]))))
                 M2_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,1]))
-                M2_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
+                M2_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
                 M3_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,1]))
-                M3_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
+                M3_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
 
             label = f"qp  #{(qp+1)+(nel*8)}"
 
