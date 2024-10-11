@@ -11,10 +11,13 @@ sys.path.append(r'/projects/tea/PSAAP/tardigrade_filter/src/python')
 import file_io.xdmf
 
 
-def p_q_calculation(xdmf_file, qp_field_name, inc, num_elements):
+def two_tensor_p_q(xdmf_file, qp_field_name, inc, num_elements):
+
     p_output = numpy.zeros([num_elements, 1])
     q_output = numpy.zeros([num_elements, 1])
+
     data = xdmf_file.getIncrementData(inc, qp_field_name)
+
     for e in range(num_elements):
         chunk = data[0][0][e,:].reshape(3,3)
         p = (-1/3)*numpy.trace(chunk)
@@ -22,19 +25,69 @@ def p_q_calculation(xdmf_file, qp_field_name, inc, num_elements):
         q = numpy.sqrt(numpy.tensordot(dev, dev))
         p_output[e,:] = p
         q_output[e,:] = q
+
     return p_output, q_output
 
 
-def average_over_quadrature(xdmf_file_in, qp_field_name, inc, num_elements):
+def average_over_qp_two_tensor(xdmf_file_in, qp_field_name, inc, num_elements):
 
     p_all = numpy.zeros([8, num_elements, 1])
     q_all = numpy.zeros([8, num_elements, 1])
     for qp in range(8):
-        ps, qs = p_q_calculation(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
+        ps, qs = two_tensor_p_q(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
         p_all[qp, :, :] = ps
         q_all[qp, :, :] = qs
 
     return numpy.mean(p_all, axis=0), numpy.mean(q_all, axis=0)
+
+
+def three_tensor_p_q(xdmf_file, qp_field_name, inc, num_elements):
+
+    p_output_1 = numpy.zeros([num_elements, 1])
+    p_output_2 = numpy.zeros([num_elements, 1])
+    p_output_3 = numpy.zeros([num_elements, 1])
+    q_output_1 = numpy.zeros([num_elements, 1])
+    q_output_2 = numpy.zeros([num_elements, 1])
+    q_output_3 = numpy.zeros([num_elements, 1])
+
+    data = xdmf_file.getIncrementData(inc, qp_field_name)
+
+    for e in range(num_elements):
+        chunk = data[0][0][e,:].reshape(3,3)
+        for i, p_out, q_out in zip([0,1,2], [p_output_1, p_output_2, p_output_3], [q_output_1, q_output_2, q_output_3]):
+            p = (-1/3)*numpy.trace(chunk[:,:,i])
+            dev = chunk[:,:,i] + p*numpy.eye(3)
+            q = numpy.sqrt(numpy.tensordot(dev, dev))
+            p_out[e,:] = p
+            q_out[e,:] = q
+
+    return p_output_1, p_output_2, p_output_3, q_output_1, q_output_2, q_output_3
+
+
+def average_over_qp_three_tensor(xdmf_file_in, qp_field_name, inc, num_elements):
+
+    p_all_1 = numpy.zeros([8, num_elements, 1])
+    p_all_2 = numpy.zeros([8, num_elements, 1])
+    p_all_3 = numpy.zeros([8, num_elements, 1])
+    q_all_1 = numpy.zeros([8, num_elements, 1])
+    q_all_2 = numpy.zeros([8, num_elements, 1])
+    q_all_3 = numpy.zeros([8, num_elements, 1])
+
+    for qp in range(8):
+        ps_1, ps_2, ps_3, qs_1, qs_2, qs_3 = three_tensor_p_q(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
+        p_all_1[qp, :, :] = ps_1
+        p_all_2[qp, :, :] = ps_2
+        p_all_3[qp, :, :] = ps_3
+        q_all_1[qp, :, :] = qs_1
+        q_all_2[qp, :, :] = qs_2
+        q_all_3[qp, :, :] = qs_3
+
+    return numpy.mean(p_all_1, axis=0),
+           numpy.mean(p_all_2, axis=0),
+           numpy.mean(p_all_3, axis=0),
+           numpy.mean(q_all_1, axis=0),
+           numpy.mean(q_all_2, axis=0),
+           numpy.mean(q_all_3, axis=0),
 
 
 def xdmf_3d_calculations(input_file, output_file, num_elements):
@@ -69,6 +122,8 @@ def xdmf_3d_calculations(input_file, output_file, num_elements):
             xdmf_file_in, f'symmetric_micro_stress', i, num_elements)
         xdmf_file_out.addData(grid, f"test_p_sym", p_sym, center='Cell')
         xdmf_file_out.addData(grid, f"test_q_sym", q_sym, center='Cell')
+
+        
 
     xdmf_file_out.write()
     print("XDMF file written!")
