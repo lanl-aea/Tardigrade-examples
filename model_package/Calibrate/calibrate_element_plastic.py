@@ -16,6 +16,7 @@ sys.path.append(f'/projects/tea/tardigrade_plastic/tardigrade_micromorphic_linea
 
 import micromorphic
 import xdmf_reader_tools as XRT
+import evaluate_model
 import calibrate_element_temp as calibrate_element
 
 
@@ -106,7 +107,7 @@ def objective(x0, Y, inputs, cal_norm, case, element, increment=None, stresses_t
         max_inc = len(inputs[5])
     # try to evaluate model
     try:
-        PK2_sim, SIGMA_sim, M_sim, SDVS_sim = calibrate_element.evaluate_model(inputs, XX, model_name, stack_parameters, 55, element, max_inc)
+        PK2_sim, SIGMA_sim, M_sim, SDVS_sim = evaluate_model(inputs, XX, model_name, stack_parameters, 55, element, max_inc)
         print('model evaluated')
     except:
         print('oh no!')
@@ -138,7 +139,7 @@ def objective(x0, Y, inputs, cal_norm, case, element, increment=None, stresses_t
     # Accumulate errors
     elem = element
     e = 0
-    norm = True
+    norm = False
     for t in time_steps:
         if norm == True:
             PK2_norm = numpy.linalg.norm(deviatoric(PK2[0][t,0,:,:]), ord='fro')
@@ -399,7 +400,7 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         print('plotting...')
         print(f'parameters = {params}')
         model_name=r'LinearElasticityDruckerPragerPlasticity'
-        PK2_sim, SIGMA_sim, M_sim, SDVS_sim = calibrate_element.evaluate_model(inputs, params, model_name, stack_parameters, 55, element)
+        PK2_sim, SIGMA_sim, M_sim, SDVS_sim = evaluate_model(inputs, params, model_name, stack_parameters, 55, element)
         #PK2_sim, SIGMA_sim, M_sim, SDVS_sim = calibrate_element.evaluate_model(inputs, XX, model_name, stack_parameters, 55, element, max_inc)
         PK2_sim = XRT.map_sim(PK2_sim, ninc)
         SIGMA_sim = XRT.map_sim(SIGMA_sim, ninc)
