@@ -10,10 +10,12 @@ import scipy
 import pandas
 from itertools import compress
 
-# sys.path.append(r'/projects/tea/tardigrade_plastic/tardigrade_micromorphic_element/src/python')
-# sys.path.append(r'/projects/tea/tardigrade-examples/model_package')
-# sys.path.append(f'/projects/tea/tardigrade_plastic/tardigrade_micromorphic_linear_elasticity/src/python')
+sys.path.append(r'/projects/tea/tardigrade_plastic/tardigrade_micromorphic_element/src/python')
+sys.path.append(r'/projects/tea/tardigrade-examples/model_package')
+sys.path.append(f'/projects/tea/tardigrade_plastic/tardigrade_micromorphic_linear_elasticity/src/python')
 
+
+import calibration_tools
 import micromorphic
 import xdmf_reader_tools as XRT
 import linear_elastic_parameter_constraint_equations as constraints
@@ -39,164 +41,6 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
-
-
-def average_quantities(quantities, type, elem):
-    '''Average tensor quantites over 8 quadrature points
-
-    :param dict quantities: A 2nd or 3rd order tensor dictionary with keys for quadrature points and values storing an array where indices correspond to time, element number, and tensor components
-    :param str type: A string specifying the type of tensor to average. Use "3" for a vector. Use "3x3" for a regular second order tensor. Use "9" for a flattened second order tensor. Use "3x3x3" for a third order tensor.
-    :param int elem: The macro (filter) element to calibrate
-
-    :returns: ``output`` dict with same indices as ``quantities`` and a single key
-    '''
-
-    output = {}
-    shapes = numpy.shape(quantities[0])
-    
-    if type == '9':
-        output[0] = numpy.zeros((shapes[0], 1, shapes[2]))
-        for k in range(9):
-            mean_field = []
-            for qp in quantities.keys():
-                mean_field.append(quantities[qp][:,elem,k])
-            means = numpy.mean(mean_field, axis=0)
-            output[0][:,elem,k] = means
-    elif type == '3x3':
-        output[0] = numpy.zeros((shapes[0], 1, shapes[2], shapes[3]))
-        for i in range(3):
-            for j in range(3):
-                mean_field = []
-                for qp in quantities.keys():
-                    mean_field.append(quantities[qp][:,elem,i,j])
-                means = numpy.mean(mean_field, axis=0)
-                output[0][:,0,i,j] = means
-    elif type == '3x3x3':
-        output[0] = numpy.zeros((shapes[0], 1, shapes[2], shapes[3], shapes[4]))
-        for i in range(3):
-            for j in range(3):
-                for k in range(3):
-                    mean_field = []
-                    for qp in quantities.keys():
-                        mean_field.append(quantities[qp][:,elem,i,j,k])
-                    means = numpy.mean(mean_field, axis=0)
-                    output[0][:,0,i,j,k] = means
-    elif type == '3':
-        output[0] = numpy.zeros((shapes[0], 1, shapes[2]))
-        for i in range(3):
-            mean_field = []
-            for qp in quantities.keys():
-                mean_field.append(quantities[qp][:,elem,i])
-            means = numpy.mean(mean_field, axis=0)
-            output[0][:,0,i] = means
-
-    return(output)
-
-
-def plot_stresses(estrain, stress, stress_sim, output_name, element, increment=None,):
-    '''Plot comparison of stress vs strain (in the current configuration) between homogenized DNS results against calibrated model predictions
-
-    :param dict estrain: The quantities dict storing Euler-Almansi strain
-    :param dict stress: The quantities dict storing either Cauchy or symmetric micro stress of the homogenized DNS results
-    :param dict stress_sim: The quantities dict storing either Cauchy or symmetric micro stress of the calibrated model predictions
-    :param str output_name: The output plot name
-    :param int element: The macro (filter) element considered for calibration
-    :param list increment: An optional list of one or more increments to plot restults
-
-    :returns: ``output_name``
-    '''
-
-    name = output_name.replace('.PNG','')
-    fig1 = matplotlib.pyplot.figure(name, figsize=(11,9))
-    axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
-    ybounds = [-1, 1]
-
-    if increment:
-        inc = [int(i) for i in increment]
-    else:
-        inc = [i for i in range(0, numpy.shape(estrain[0][:,0,0,0])[0])]
-
-    colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
-    k = 0
-    e = 0
-    for i in range(3):
-        for j in range(3):
-            ax1 = axes1[i][j]
-            if 'cauchy' in output_name:
-                plot_label = r"$\sigma_{" + str(i+1) + str(j+1) + "}$ (MPa)"
-            if 'symm' in output_name:
-                plot_label = r"$s_{" + str(i+1) + str(j+1) + "}$ (MPa)"
-
-            ax1.plot(estrain[0][inc,e,i,j], stress[0][inc,e,i,j], 'o', label='Filter')
-            ax1.plot(estrain[0][inc,e,i,j], stress_sim[0][inc,e,i,j], '-', label='Fit')
- 
-            ax1.set_xlabel(r"$e_{" + str(i+1) + str(j+1) + "}$", fontsize=14)
-            ax1.set_ylabel(plot_label, fontsize=14)
-            matplotlib.pyplot.ticklabel_format(style='sci', axis='x')
-            matplotlib.pyplot.ticklabel_format(style='sci', axis='y')
-            if (i == 2) and (j ==2):
-                matplotlib.pyplot.xticks(rotation=45)
-            k = k + 1
-
-    handles, labels = ax1.get_legend_handles_labels()
-    fig1.legend(handles, labels, loc='lower center', bbox_to_anchor=(0.52, -0.01), ncols=2, fontsize=14)
-    fig1.tight_layout()
-    fig1.savefig(f'{output_name}')
-
-    return 0
-
-
-def plot_stresses_ref(E, stress, stress_sim, output_name, element, increment=None,):
-    '''Plot comparison of stress vs strain (in the current configuration) between homogenized DNS results against calibrated model predictions
-
-    :param dict E: The quantities dict storing Green-Lagrange strain
-    :param dict stress: The quantities dict storing either PK2 or Symmetric micro stress of the homogenized DNS results
-    :param dict stress_sim: The quantities dict storing either PK2 or Symmetric micro stress of the calibrated model predictions
-    :param str output_name: The output plot name
-    :param int element: The macro (filter) element considered for calibration
-    :param list increment: An optional list of one or more increments to plot restults
-
-    :returns: ``output_name``
-    '''
-
-    name = output_name.replace('.PNG','')
-    fig1 = matplotlib.pyplot.figure(name, figsize=(11,9))
-    axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
-    ybounds = [-1, 1]
-
-    if increment:
-        inc = [int(i) for i in increment]
-    else:
-        inc = [i for i in range(0, numpy.shape(E[0][:,0,0,0])[0])]
-
-    colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
-    k = 0
-    e = 0
-    for i in range(3):
-        for j in range(3):
-            ax1 = axes1[i][j]
-            if 'PK2' in output_name:
-                plot_label = r"$S_{" + str(i+1) + str(j+1) + "}$ (MPa)"
-            if 'SIGMA' in output_name:
-                plot_label = r"$\Sigma_{" + str(i+1) + str(j+1) + "}$ (MPa)"
-
-            ax1.plot(E[0][inc,e,i,j], stress[0][inc,e,i,j], 'o', label='Filter')
-            ax1.plot(E[0][inc,e,i,j], stress_sim[0][inc,e,i,j], '-', label='Fit')
- 
-            ax1.set_xlabel(r"$E_{" + str(i+1) + str(j+1) + "}$", fontsize=14)
-            ax1.set_ylabel(plot_label, fontsize=14)
-            matplotlib.pyplot.ticklabel_format(style='sci', axis='x')
-            matplotlib.pyplot.ticklabel_format(style='sci', axis='y')
-            if (i == 2) and (j ==2):
-                matplotlib.pyplot.xticks(rotation=45)
-            k = k + 1
-
-    handles, labels = ax1.get_legend_handles_labels()
-    fig1.legend(handles, labels, loc='lower center', bbox_to_anchor=(0.52, -0.01), ncols=2, fontsize=14)
-    fig1.tight_layout()
-    fig1.savefig(f'{output_name}')
- 
-    return 0
 
 
 def initial_estimate(Emod, nu, L):
@@ -247,194 +91,6 @@ def initial_estimate(Emod, nu, L):
     return(parameters)
 
 
-def evaluate_constraints(parameters, svals=None):
-    '''Evaluate Smith conditions by calling tardigrade_micromorphic_linear_elasticity/src/python/linear_elastic_parameter_constraint_equations
-
-    :param array-like parameters: an array of 18 micromorphic linear elasticity parameters
-    :param array-like svals: TODO figure out what this is for
-
-    :returns: a dictionary of constants from evaluating the Smith conditions
-    '''
- 
-    elastic_parameter_ordering = ['l', 'mu', 'eta', 'tau', 'kappa', 'nu', 'sigma',\
-                                  'tau1', 'tau2', 'tau3', 'tau4', 'tau5', 'tau6', 'tau7',\
-                                  'tau8', 'tau9', 'tau10', 'tau11']
- 
-    parameter_dictionary = dict(zip(elastic_parameter_ordering, parameters[:18]))
- 
-    consts = [constraints.evaluate_g1, 
-              constraints.evaluate_g2, 
-              constraints.evaluate_g3,
-              constraints.evaluate_g4,
-              constraints.evaluate_g5,
-              constraints.evaluate_g6, 
-              constraints.evaluate_g7, 
-              constraints.evaluate_g8,
-              constraints.evaluate_g9,
-              constraints.evaluate_g10,
-              constraints.evaluate_g11,
-              constraints.evaluate_g12,
-              constraints.evaluate_g13]
-
-    if (svals is None):
-        svals = dict([(f's{i+1}', 0) for i in range(len(consts))])
- 
-    parameter_dictionary.update(svals)
- 
-    return [const(**parameter_dictionary) for const in consts]
-
-
-def evaluate_model(inputs, parameters, model_name, parameters_to_fparams, nsdvs, element, maxinc=None, dim=3, maxsubiter=5):
-    """Evaluate the model given the parameters. Copied from overlap_coupling/src/python/read_xdmf_output.py.
-   
-    :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
-    :param numpy.ndarray parameters: The array of parameters
-    :param str model_name: The name of the model
-    :param func parameters_to_fparams: A function that converts the parameters vector to the fparams vector required
-        for the function
-    :param int nsdvs: The number of solution dependant state variables
-    :param int element: The macro (filter) element to calibration
-    :param int maxinc: The maximum increment to evaluate
-    :param int dim: The spatial dimension of the problem, default=3
-    :param int maxsubiter: The maximum number of sub iterations, default=5
-
-    :returns: evaluated micromorphic simulation quantities for PK2, SIGMA, M, and SDVS
-    """
-
-    E, displacement, grad_u, phi, grad_phi, time = inputs[0], inputs[1], inputs[2], inputs[3], inputs[4], inputs[5]
-    ninc = E[0].shape[0]
-
-    nel = 1
-    nqp = 1
-
-    if maxinc is None:
-        maxinc = ninc-1
-
-    PK2_sim   = dict([(qp,numpy.zeros((maxinc+1,nel,dim * dim))) for qp in range(nqp)])
-    SIGMA_sim = dict([(qp,numpy.zeros((maxinc+1,nel,dim * dim))) for qp in range(nqp)])
-    M_sim     = dict([(qp,numpy.zeros((maxinc+1,nel,dim * dim * dim))) for qp in range(nqp)])
-    SDVS_sim  = dict([(qp,numpy.zeros((maxinc+1,nel,nsdvs))) for qp in range(nqp)])
- 
-    keys = ['errorCode', 'PK2', 'SIGMA', 'M', 'SDVS',\
-            'DPK2Dgrad_u', 'DPK2Dphi', 'DPK2Dgrad_phi',\
-            'DSIGMADgrad_u', 'DSIGMADphi', 'DSIGMADgrad_phi',\
-            'DMDgrad_u', 'DMDphi', 'DMDgrad_phi',\
-            'ADD_TERMS', 'ADD_JACOBIANS', 'output_message']
-
-    tp = 0
-
-    nsubiter = 0
-
-    elem = element
-    e = 0
-    for qp in range(nqp):
-        for i in range(maxinc+1):
-            #print("increment: ", i)
-            # Map the parameters vector to the function parameters
-            fparams = parameters_to_fparams(parameters)
-
-            sp = 0
-            ds = 1.
-
-            if (i == 0):
-                previous_SDVS_s = numpy.zeros(nsdvs)
-            else:
-                previous_SDVS_s = numpy.copy(SDVS_sim[qp][i-1,e,:])
-       
-            while (sp < 1.0):
-
-                s = sp + ds
-
-                time_1     = time[i]
-                grad_u_1   = grad_u[qp][i, e, :, :]
-                phi_1      = phi[qp][i, e, :, :]
-                grad_phi_1 = grad_phi[qp][i, e, :, :, :]
-
-                if (i == 0):
-                    time_0     = 0
-                    grad_u_0   = numpy.zeros((3,3))
-                    phi_0      = numpy.zeros((3,3))
-                    grad_phi_0 = numpy.zeros((3,3,3))
-
-                else:
-                    time_0     = time[i-1]
-                    grad_u_0   = grad_u[qp][i-1, e, :, :]
-                    phi_0      = phi[qp][i-1, e, :, :]
-                    grad_phi_0 = grad_phi[qp][i-1, e, :, :]
-
-                t                = (time_1 - time_0) * s + time_0
-                current_grad_u   = (grad_u_1 - grad_u_0) * s + grad_u_0
-                current_phi      = (phi_1 - phi_0) * s + phi_0
-                current_grad_phi = (grad_phi_1 - grad_phi_0) * s + grad_phi_0
-
-                tp                = (time_1 - time_0) * sp + time_0
-                previous_grad_u   = (grad_u_1 - grad_u_0) * sp + grad_u_0
-                previous_phi      = (phi_1 - phi_0) * sp + phi_0
-                previous_grad_phi = (grad_phi_1 - grad_phi_0) * sp + grad_phi_0
-
-                current_phi = current_phi.flatten()
-                previous_phi = previous_phi.flatten()
-               
-                current_grad_phi = current_grad_phi.reshape((dim * dim, dim))
-                previous_grad_phi = previous_grad_phi.reshape((dim * dim, dim))
-
-                #TODO: add dof and add grad dof not currently used
-                current_ADD_DOF = numpy.zeros((1))
-                current_ADD_grad_DOF = numpy.zeros((1,3))
-
-                previous_ADD_DOF = numpy.zeros((1))
-                previous_ADD_grad_DOF = numpy.zeros((1,3))
-
-                # Evaluate the model
-                values = micromorphic.evaluate_model(model_name, numpy.array([t, t - tp]), fparams,
-                                                     current_grad_u, current_phi, current_grad_phi,
-                                                     previous_grad_u, previous_phi, previous_grad_phi,
-                                                     previous_SDVS_s,
-                                                     current_ADD_DOF, current_ADD_grad_DOF,
-                                                     previous_ADD_DOF, previous_ADD_grad_DOF)
-
-                results = dict(zip(keys, values))
-
-                if (results['errorCode'] == 1):
-                    #print("error")
-                    ds = 0.5 * ds
-                    nsubiter += 1
-
-                    if (nsubiter > maxsubiter):
-                        break
-
-                elif (results['errorCode'] == 2):
-                    errormessage = f"evaluate_model return error code {results['errorCode']}\n\n"
-                    errormessage += results['output_message'].decode("utf-8")
-                    raise IOError(errormessage)
-
-                else:
-                    sp += ds
-                    nsubiter = 0
-
-                    if numpy.isclose(sp, 1):
-                        ds = 1
-                    else:
-                        ds = 1 - sp
-
-                    previous_SDVS_s = numpy.copy(results['SDVS'])
-
-            if (results['errorCode'] != 0):
-                errormessage = f"evaluate_model returned error code {results['errorCode']}\n\n"
-                errormessage += results['output_message'].decode('utf-8')
-                print(parameters, 'fail')
-
-                return numpy.nan
-
-            PK2_sim[qp][i,e,:]   = results['PK2']
-            SIGMA_sim[qp][i,e,:] = results['SIGMA']
-            M_sim[qp][i,e,:]     = results['M']
-            SDVS                 = results['SDVS']
-            SDVS_sim[qp][i,e,:]  = results['SDVS']
-
-    return PK2_sim, SIGMA_sim, M_sim, SDVS_sim
-
-
 def parameters_to_fparams(parameters):
     '''Map the elastic parameters to the fparams vector for use in the Tardigrade-MOOSE micromorphic linear elastic material model
 
@@ -453,7 +109,7 @@ Xstore = []
 Lstore = []
 
 
-def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, increment=None, stresses_to_include=['S','SIGMA','M']):
+def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=None, stresses_to_include=['S','SIGMA','M']):
     '''Primary objective function for calibrating micromorphic linear elasticity constitutive model against homogenized DNS data
 
     :param array-like x0: Array of micromorphic linear elasticity parameters
@@ -481,7 +137,7 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, increment=None, s
     # except:
         # #return numpy.inf
         # return 1.e16
-    consts = evaluate_constraints(XX)
+    consts = calibration_tools.evaluate_constraints(XX)
     cvals = numpy.array([c[0] for c in consts])
 
     # enforce positivity condition
@@ -498,7 +154,7 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, increment=None, s
             return numpy.inf
 
     # Evaluate stresses from DNS strain inputs
-    PK2_sim, SIGMA_sim, M_sim, SDVS_sim = evaluate_model(inputs, XX, model_name, parameters_to_fparams, 0, element)
+    PK2_sim, SIGMA_sim, M_sim, SDVS_sim = calibration_tools.evaluate_model(inputs, XX, model_name, parameters_to_fparams, 0, element, nqp)
     displacement, grad_u, phi, grad_phi = inputs[1], inputs[2], inputs[3], inputs[4]
 
     # Parse out stresses from DNS stress data Y
@@ -527,18 +183,18 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, increment=None, s
     e = 0
     if case == 1:
         for t in time_steps:
-            PK2_error = numpy.hstack([PK2_error, PK2[0][t,0,2,2] - PK2_sim[0][t,0,-1]])
-            SIGMA_error = numpy.hstack([PK2_error, PK2[0][t,0,2,2] - PK2_sim[0][t,0,-1]])
+            PK2_error = numpy.hstack([PK2_error, numpy.sum([PK2[q][t,0,2,2] - PK2_sim[q][t,0,-1] for q in range(0, nqp)])])
+            SIGMA_error = numpy.hstack([SIGMA_error, numpy.sum([SIGMA[q][t,0,2,2] - SIGMA_sim[q][t,0,-1] for q in range(0, nqp)])])
             M_error = []
     elif case >= 4:
         for t in time_steps:
-            PK2_error = numpy.hstack([PK2_error, PK2[0][t,0,:,:].flatten() - PK2_sim[0][t,0,:]])
-            SIGMA_error = numpy.hstack([SIGMA_error, SIGMA[0][t,0,:,:].flatten() - SIGMA_sim[0][t,0,:]])
-            M_error = numpy.hstack([M_error, M[0][t,0,:,:,:].flatten() - M_sim[0][t,0,:]])
+            PK2_error = numpy.hstack([PK2_error, numpy.sum([PK2[q][t,0,:,:].flatten() - PK2_sim[q][t,0,:] for q in range(0, nqp)])])
+            SIGMA_error = numpy.hstack([SIGMA_error, numpy.sum([SIGMA[q][t,0,:,:].flatten() - SIGMA_sim[q][t,0,:] for q in range(0, nqp)])])
+            M_error = numpy.hstack([M_error, numpy.sum([M[q][t,0,:,:,:].flatten() - M_sim[q][t,0,:] for q in range(0, nqp)])])
     else:
         for t in time_steps:
-            PK2_error = numpy.hstack([PK2_error, PK2[0][t,0,:,:].flatten() - PK2_sim[0][t,0,:]])
-            SIGMA_error = numpy.hstack([SIGMA_error, SIGMA[0][t,0,:,:].flatten() - SIGMA_sim[0][t,0,:]])
+            PK2_error = numpy.hstack([PK2_error, numpy.sum([PK2[q][t,0,:,:].flatten() - PK2_sim[q][t,0,:] for q in range(0, nqp)])])
+            SIGMA_error = numpy.hstack([SIGMA_error, numpy.sum([SIGMA[q][t,0,:,:].flatten() - SIGMA_sim[q][t,0,:] for q in range(0, nqp)])])
             M_error = []
 
     # collect errors
@@ -569,7 +225,7 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, increment=None, s
     return obj
 
 
-def opti_options_1(X, Y, inputs, cal_norm, nu_targ, case, element, calibrate=True, increment=None):
+def opti_options_1(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None):
     '''Objective function number 1 used for calibrating first 2 parameters of micromorphic linear elasticity
 
     :param array-like X: Array of micromorphic linear elasticity parameters
@@ -592,12 +248,12 @@ def opti_options_1(X, Y, inputs, cal_norm, nu_targ, case, element, calibrate=Tru
         X1 = X[:2]
         XX = numpy.hstack([X1, others])
     if calibrate:
-        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, increment=increment, stresses_to_include=['S','SIGMA']))
+        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=increment, stresses_to_include=['S','SIGMA']))
     else:
         return(XX)
 
 
-def opti_options_2(X, Y, inputs, cal_norm, nu_targ, case, element, calibrate=True, increment=None):
+def opti_options_2(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None):
     '''Objective function number 2 used for calibrating 7 parameters of  micromorphic linear elasticity
 
     :param array-like X: Array of micromorphic linear elasticity parameters
@@ -616,12 +272,12 @@ def opti_options_2(X, Y, inputs, cal_norm, nu_targ, case, element, calibrate=Tru
     others = [0e-3, 0e-3, 0e-3, 0e-3, 0, 0, 1e-3, 0e-3, 0, 0e-3, 0e-3]
     XX = numpy.hstack([X1, others])
     if calibrate:
-        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, increment=increment, stresses_to_include=['S', 'SIGMA']))
+        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=increment, stresses_to_include=['S', 'SIGMA']))
     else:
         return(numpy.hstack([X1, others]))
 
 
-def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, calibrate=True, increment=None):
+def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None):
     '''Objective function number 3 used for calibrating 8 parameters of  micromorphic linear elasticity
 
     :param array-like X: Array of micromorphic linear elasticity parameters
@@ -642,12 +298,12 @@ def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, calibrate=Tru
     tau8to11 = [0e-3, 0, 0e-3, 0e-3]
     XX = numpy.hstack([X1, tau1to6, X2, tau8to11])
     if calibrate:
-        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, increment=increment, stresses_to_include=['S', 'SIGMA']))
+        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=increment, stresses_to_include=['S', 'SIGMA']))
     else:
         return(numpy.hstack([X1, tau1to6, X2, tau8to11]))
 
 
-def opti_options_4(X, Y, inputs, cal_norm, nu_targ, case, element, calibrate=True, increment=None):
+def opti_options_4(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None):
     '''Objective function number 4 used for calibrating all 18 parameters of  micromorphic linear elasticity
 
     :param array-like X: Array of micromorphic linear elasticity parameters
@@ -665,7 +321,7 @@ def opti_options_4(X, Y, inputs, cal_norm, nu_targ, case, element, calibrate=Tru
 
     XX = X
     if calibrate:
-        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, increment=increment, stresses_to_include=['S', 'SIGMA', 'M']))
+        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=increment, stresses_to_include=['S', 'SIGMA', 'M']))
     else:
         return(XX)
 
@@ -757,33 +413,36 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
     times = numpy.unique(data['time'])
     ninc = len(times)
     
-    # always average fields, but only for selected element
-    cauchy      = average_quantities(cauchy, '3x3', element)
-    symm        = average_quantities(symm, '3x3', element)
-    PK2         = average_quantities(PK2, '3x3', element)
-    SIGMA       = average_quantities(SIGMA, '3x3', element)
-    #F           = average_quantities(F, '3x3')
-    E           = average_quantities(E, '3x3', element)
-    displacement    = average_quantities(displacement, '3', element)
-    gradu       = average_quantities(gradu, '3x3', element)
-    phi         = average_quantities(phi, '3x3', element)
-    estrain     = average_quantities(estrain, '3x3', element)
-    h           = average_quantities(h, '3x3', element)
-    gradphi     = average_quantities(gradphi, '3x3x3', element)
+    if average == True:
+        cauchy = calibration_tools.average_quantities(cauchy, '3x3', element)
+        symm = calibration_tools.average_quantities(symm, '3x3', element)
+        PK2 = calibration_tools.average_quantities(PK2, '3x3', element)
+        SIGMA = calibration_tools.average_quantities(SIGMA, '3x3', element)
+        #F = calibration_tools.average_quantities(F, '3x3')
+        E = calibration_tools.average_quantities(E, '3x3', element)
+        displacement = calibration_tools.average_quantities(displacement, '3', element)
+        gradu = calibration_tools.average_quantities(gradu, '3x3', element)
+        phi = calibration_tools.average_quantities(phi, '3x3', element)
+        estrain = calibration_tools.average_quantities(estrain, '3x3', element)
+        h = calibration_tools.average_quantities(h, '3x3', element)
+        gradphi = calibration_tools.average_quantities(gradphi, '3x3x3', element)
+        nqp = 1
  
     # store data for calibration
     Y = [PK2, SIGMA, M]
     inputs = [E, displacement, gradu, phi, gradphi, times]
     
     # get target nu from E
-   # define time steps to calibrate against
+    # define time steps to calibrate against
     if increment and (len(increment) == 1):
         nu_inc = int(increment)
     elif increment and (len(increment) > 1):
         nu_inc = int(increment[-1])
     else:
         nu_inc = -1
-    nu_targ = numpy.average(-1*numpy.average([E[0][nu_inc,0,0,0],E[0][nu_inc,0,1,1]])/E[0][nu_inc,0,2,2])
+    nu_targ = numpy.average([(-1*numpy.average([E[q][nu_inc,0,0,0],
+                                                E[q][nu_inc,0,1,1]])/E[q][nu_inc,0,2,2]) for q in range(0,nqp)])
+
  
     # Estimate initial parameters
     param_est = initial_estimate(Emod, nu, L)
@@ -814,10 +473,10 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print(param_est)
         #param_est = [59.25, 70.395]
         parameter_bounds = list(compress(parameter_bounds,param_mask))
-        res = scipy.optimize.differential_evolution(func=opti_options_1, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, True, increment))
+        res = scipy.optimize.differential_evolution(func=opti_options_1, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment))
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
-        params = opti_options_1(list(res.x), Y, inputs, cal_norm, nu_targ, case, element, calibrate=False)
+        params = opti_options_1(list(res.x), Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
     # calibrate first 7 parameters
     elif case == 2:
         param_mask = [True, True, True, True, True, True, True,
@@ -825,10 +484,10 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                       False, False, False, False, False]
         param_est = list(compress(param_est, param_mask))
         parameter_bounds = list(compress(parameter_bounds,param_mask))
-        res = scipy.optimize.differential_evolution(func=opti_options_2, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, increment))
+        res = scipy.optimize.differential_evolution(func=opti_options_2, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
-        params = opti_options_2(res.x, Y, inputs, cal_norm, nu_targ, case, element, calibrate=False)
+        params = opti_options_2(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
     # calibrate first 7 parameters and tau 7
     elif case == 3:
         param_mask = [True, True, True, True, True, True, True,
@@ -838,10 +497,10 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print('initial parameter estimation:')
         print(param_est)
         parameter_bounds = list(compress(parameter_bounds,param_mask))
-        res = scipy.optimize.differential_evolution(func=opti_options_3, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, increment))
+        res = scipy.optimize.differential_evolution(func=opti_options_3, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
-        params = opti_options_3(res.x, Y, inputs, cal_norm, nu_targ, case, element, calibrate=False)
+        params = opti_options_3(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
     # calibrate all parameters
     elif case == 4:
         param_mask = [True, True, True, True, True, True, True,
@@ -850,10 +509,10 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print('initial parameter estimation:')
         print(param_est)
         parameter_bounds = list(compress(parameter_bounds,param_mask))
-        res = scipy.optimize.differential_evolution(func=opti_options_4, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, increment))
+        res = scipy.optimize.differential_evolution(func=opti_options_4, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
-        params = opti_options_4(res.x, Y, inputs, cal_norm, nu_targ, case, element, calibrate=False)
+        params = opti_options_4(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
     elif case == 5:
         # Same as case 3, but this time we'll force the calibrate function to use errors
         #  from the higher order stress
@@ -864,10 +523,10 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print('initial parameter estimation:')
         print(param_est)
         parameter_bounds = list(compress(parameter_bounds,param_mask))
-        res = scipy.optimize.differential_evolution(func=opti_options_3, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, increment))
+        res = scipy.optimize.differential_evolution(func=opti_options_3, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
-        params = opti_options_3(res.x, Y, inputs, cal_norm, nu_targ, case, element, calibrate=False)
+        params = opti_options_3(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
     else:
         print('Select valid calibration case!')
 
@@ -894,25 +553,25 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
     if plot_file:
         print('plotting...')
         model_name=r'LinearElasticity'
-        PK2_sim, SIGMA_sim, M_sim, SDVS_sim = evaluate_model(inputs, params, model_name, parameters_to_fparams, 0, element)
+        PK2_sim, SIGMA_sim, M_sim, SDVS_sim = calibration_tools.evaluate_model(inputs, params, model_name, parameters_to_fparams, 0, element, nqp)
         PK2_sim = XRT.map_sim(PK2_sim, ninc)
         SIGMA_sim = XRT.map_sim(SIGMA_sim, ninc)
         cauchy_sim, symm_sim = XRT.get_current_configuration_stresses(PK2_sim, SIGMA_sim, inputs[2], inputs[3])
 
         if increment:
-            plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element, increment=increment)
-            plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element, increment=increment)
-            plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}_ALL.PNG', element)
-            plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}_ALL.PNG', element)
-            plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}.PNG', element, increment=increment)
-            plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}.PNG', element, increment=increment)
-            plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}_ALL.PNG', element)
-            plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}_ALL.PNG', element)
+            calibration_tools.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element, nqp, increment=increment)
+            calibration_tools.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element, nqp, increment=increment)
+            calibration_tools.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}_ALL.PNG', element, nqp)
+            calibration_tools.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}_ALL.PNG', element, nqp)
+            calibration_tools.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}.PNG', element, nqp, increment=increment)
+            calibration_tools.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}.PNG', element, nqp, increment=increment)
+            calibration_tools.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}_ALL.PNG', element, nqp)
+            calibration_tools.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}_ALL.PNG', element, nqp)
         else:
-            plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element)
-            plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element)
-            plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}.PNG', element)
-            plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}.PNG', element)
+            calibration_tools.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element, nqp)
+            calibration_tools.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element, nqp)
+            calibration_tools.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}.PNG', element, nqp)
+            calibration_tools.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}.PNG', element, nqp)
 
     # output parameters!
     output_filename = output_file
