@@ -389,6 +389,7 @@ workflow_configurations = [
     "Tardigrade_dynamic_convergence",
     # Brazilian Disk Compression
     "Tardigrade_Brazilian_disk",
+    "Tardigrade_Brazilian_disk_platens",
 ]
 for workflow in workflow_configurations:
     build_dir = str(variant_dir_base / workflow)
