@@ -36,4 +36,19 @@ Brazilian_disk = {
     'spec_dep': 5.1,
     'tol': 0.001,
     'seed_size': 0.5,
+    # material_E
+    'lambda': 696.441593,
+    'mu': 126.7138,
+    'eta': -18.67498,
+    'tau': -37.817315,
+    'kappa': 15.177654,
+    'nu': -24.071197,
+    'sigma': -5.861821,
+    'tau7': 792.523471,
+    'cu0': 3.192202765,
+    'fraction': 0.1,
+    # macro_BC
+    'macro_BC': 'brazil',
+    'macro_disp': 1.0,
+    'macro_duration': 1.0,
 }
