@@ -64,8 +64,8 @@ def initial_estimate(Emod, nu, L):
     Lc = numpy.sqrt(3*(L**2))
    
     # estimate micromorphic parameters
-    lamb = lame_lambda
-    mu = lame_mu
+    lamb = 0.7435*lame_lambda
+    mu = 0.583*lame_mu
     eta = 1.53*lame_lambda
     tau = 0.256*lame_lambda
     kappa = 0.833*lame_mu
@@ -183,19 +183,32 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=No
     e = 0
     if case == 1:
         for t in time_steps:
-            PK2_error = numpy.hstack([PK2_error, numpy.sum([PK2[q][t,e,2,2] - PK2_sim[q][t,0,-1] for q in range(nqp)])])
-            SIGMA_error = numpy.hstack([SIGMA_error, numpy.sum([SIGMA[q][t,e,2,2] - SIGMA_sim[q][t,0,-1] for q in range(nqp)])])
-            M_error = []
-    elif case >= 4:
+            PK2_diff = numpy.array([PK2[q][t,e,2,2].flatten() - PK2_sim[q][t,0,-1] for q in range(nqp)]).flatten()
+            SIGMA_diff = numpy.array([SIGMA[q][t,e,2,2].flatten() - SIGMA_sim[q][t,0,-1] for q in range(nqp)]).flatten()
+            PK2_error = numpy.hstack([PK2_error, PK2_diff])
+            SIGMA_error = numpy.hstack([SIGMA_error, SIGMA_diff])
+            M_error = [0.]
+    elif case == 4 or case == 5:
         for t in time_steps:
-            PK2_error = numpy.hstack([PK2_error, numpy.sum([PK2[q][t,e,:,:].flatten() - PK2_sim[q][t,0,:] for q in range(nqp)])])
-            SIGMA_error = numpy.hstack([SIGMA_error, numpy.sum([SIGMA[q][t,e,:,:].flatten() - SIGMA_sim[q][t,0,:] for q in range(nqp)])])
-            M_error = numpy.hstack([M_error, numpy.sum([M[q][t,e,:,:,:].flatten() - M_sim[q][t,0,:] for q in range(nqp)])])
+            PK2_diff = numpy.array([PK2[q][t,e,:,:].flatten() - PK2_sim[q][t,0,:] for q in range(nqp)]).flatten()
+            SIGMA_diff = numpy.array([SIGMA[q][t,e,:,:].flatten() - SIGMA_sim[q][t,0,:] for q in range(nqp)]).flatten()
+            M_diff = numpy.array([M[q][t,e,:,:,:].flatten() - M_sim[q][t,0,:] for q in range(nqp)]).flatten()
+            PK2_error = numpy.hstack([PK2_error, PK2_diff])
+            SIGMA_error = numpy.hstack([SIGMA_error, SIGMA_diff])
+            M_error = numpy.hstack([M_error, M_diff])
+    elif case == 6:
+        for t in time_steps:
+            PK2_error =  [0.]
+            SIGMA_error =  [0.]
+            M_diff = numpy.array([M[q][t,e,:,:,:].flatten() - M_sim[q][t,0,:] for q in range(nqp)]).flatten()
+            M_error = numpy.hstack([M_error, M_diff])
     else:
         for t in time_steps:
-            PK2_error = numpy.hstack([PK2_error, numpy.sum([PK2[q][t,e,:,:].flatten() - PK2_sim[q][t,0,:] for q in range(nqp)])])
-            SIGMA_error = numpy.hstack([SIGMA_error, numpy.sum([SIGMA[q][t,e,:,:].flatten() - SIGMA_sim[q][t,0,:] for q in range(nqp)])])
-            M_error = []
+            PK2_diff = numpy.array([PK2[q][t,e,:,:].flatten() - PK2_sim[q][t,0,:] for q in range(nqp)]).flatten()
+            SIGMA_diff = numpy.array([SIGMA[q][t,e,:,:].flatten() - SIGMA_sim[q][t,0,:] for q in range(nqp)]).flatten()
+            PK2_error = numpy.hstack([PK2_error, PK2_diff])
+            SIGMA_error = numpy.hstack([SIGMA_error, SIGMA_diff])
+            M_error = [0.]
 
     # collect errors
     errors    = {'S':PK2_error, 'SIGMA':SIGMA_error, 'M':M_error}
@@ -240,8 +253,8 @@ def opti_options_1(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
 
     :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
     '''
-    others = [0e-3, 0e-3, 0e-3, 0e-3, 0e-3,
-              0e-3, 0e-3, 0e-3, 0e-3, 0, 0, 1e-3, 0e-3, 0, 0e-3, 0e-3]
+    others = [0., 0., 0., 0., 0.,
+              0., 0., 0., 0., 0, 0, 1.e-3, 0., 0, 0., 0.]
     if numpy.isclose(nu_targ, 0.0, atol=1e-4):
         XX = numpy.hstack([0.0, X, others])
     else:
@@ -254,7 +267,7 @@ def opti_options_1(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
 
 
 def opti_options_2(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None):
-    '''Objective function number 2 used for calibrating 7 parameters of  micromorphic linear elasticity
+    '''Objective function number 2 used for calibrating 7 parameters of micromorphic linear elasticity
 
     :param array-like X: Array of micromorphic linear elasticity parameters
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
@@ -269,7 +282,7 @@ def opti_options_2(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
     :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
     '''
     X1 = X[:7]
-    others = [0e-3, 0e-3, 0e-3, 0e-3, 0, 0, 1e-3, 0e-3, 0, 0e-3, 0e-3]
+    others = [0., 0., 0., 0., 0, 0, 1.e-3, 0., 0, 0., 0.]
     XX = numpy.hstack([X1, others])
     if calibrate:
         return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=increment, stresses_to_include=['S', 'SIGMA']))
@@ -278,7 +291,7 @@ def opti_options_2(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
 
 
 def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None):
-    '''Objective function number 3 used for calibrating 8 parameters of  micromorphic linear elasticity
+    '''Objective function number 3 used for calibrating 8 parameters of micromorphic linear elasticity
 
     :param array-like X: Array of micromorphic linear elasticity parameters
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
@@ -294,8 +307,8 @@ def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
     '''
 
     X1, X2 = X[:7], X[-1]
-    tau1to6 = [0e-3, 0e-3, 0e-3, 0e-3, 0, 0]
-    tau8to11 = [0e-3, 0, 0e-3, 0e-3]
+    tau1to6 = [0., 0., 0., 0., 0, 0]
+    tau8to11 = [0., 0, 0., 0.]
     XX = numpy.hstack([X1, tau1to6, X2, tau8to11])
     if calibrate:
         return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=increment, stresses_to_include=['S', 'SIGMA', 'M']))
@@ -304,7 +317,7 @@ def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
 
 
 def opti_options_4(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None):
-    '''Objective function number 4 used for calibrating all 18 parameters of  micromorphic linear elasticity
+    '''Objective function number 4 used for calibrating all 18 parameters of micromorphic linear elasticity
 
     :param array-like X: Array of micromorphic linear elasticity parameters
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
@@ -320,6 +333,29 @@ def opti_options_4(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
     '''
 
     XX = X
+    if calibrate:
+        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=increment, stresses_to_include=['S', 'SIGMA', 'M']))
+    else:
+        return(XX)
+
+
+def opti_options_6(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, second_order_params, calibrate=True, increment=None):
+    '''Objective function number 6 used for calibrating 11 higher order "tau" parameters of micromorphci linear elasticity
+
+    :param array-like X: Array of micromorphic linear elasticity parameters
+    :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
+    :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
+    :param float nu_targ: The targeted Poisson ratio if calibrating 2 parameter elasticity
+    :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
+    :param int element: The macro (filter) element to calibration
+    :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
+    :param int increment: An optional list of one or more increments to perform calibration
+
+    :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
+    '''
+
+    XX = numpy.hstack([second_order_params, X])
     if calibrate:
         return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=increment, stresses_to_include=['S', 'SIGMA', 'M']))
     else:
@@ -373,7 +409,8 @@ def handle_output_for_UQ(Xstore, Lstore, case):
     return(UQ_dict)
 
 
-def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=None, plot_file=None, average=True, UQ_file=None):
+def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=None, plot_file=None,
+              average=False, UQ_file=None, cal_norm='L1', bound_half_width=1.e5):
     ''' Unpack DNS data and run calibration routine
 
     :param str input_file: The homogenized XDMF file output by the Micromorphic Filter
@@ -384,6 +421,8 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
     :param float L: DNS max dimension (width, height, depth, etc.), used for initial parameter estimation
     :param int element: The macro (filter) element to calibration, default is zero
     :param int increment: An optional list of one or more increments to perform calibration
+    :param str cal_norm: The type of norm to use for calibration ("L1", "L2", or "L1-L2")
+    :param float bound_half_width: The uniform parameter bound "half-width" to apply for all parameters to be calibrated. Bounds for lambda will be [0., bound_half_width]. All other parameter bounds will be [-1*bound_half_width, bound_half_width]
 
     :returns: calibrated parameters by minimizing a specified objective function
     '''
@@ -460,13 +499,15 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
     param_est = initial_estimate(Emod, nu, L)
  
     # Define the elastic bounds
-    parameter_bounds = [[0.0, 1.e5]] + [[-1.e5, 1.e5] for _ in range(6)] + [[-1.e5, 1.e5] for _ in range(11)]
+    upper = bound_half_width
+    lower = -1*upper
+    parameter_bounds = [[0.0, upper]] + [[lower, upper] for _ in range(6)] + [[lower, upper] for _ in range(11)]
     if len(elastic_parameter_ordering) != len(parameter_bounds):
         raise ValueError(f"The parameter bounds and the parameter names do not have the same length {len(parmaeter_bounds)} vs. {len(elastic_parameter_ordering)}")
 
     # calibrate!
-    cal_norm = 'L1'
     maxit = 2000
+    num_workers = 8
     # TODO: streamline this workflow, very redundant
     # calibrate just lambda and mu
     if case == 1:
@@ -485,7 +526,12 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print(param_est)
         #param_est = [59.25, 70.395]
         parameter_bounds = list(compress(parameter_bounds,param_mask))
-        res = scipy.optimize.differential_evolution(func=opti_options_1, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment))
+        res = scipy.optimize.differential_evolution(func=opti_options_1,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=1,
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment))
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
         params = opti_options_1(list(res.x), Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
@@ -496,7 +542,12 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                       False, False, False, False, False]
         param_est = list(compress(param_est, param_mask))
         parameter_bounds = list(compress(parameter_bounds,param_mask))
-        res = scipy.optimize.differential_evolution(func=opti_options_2, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
+        res = scipy.optimize.differential_evolution(func=opti_options_2,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=num_workers,
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
         params = opti_options_2(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
@@ -509,7 +560,12 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print('initial parameter estimation:')
         print(param_est)
         parameter_bounds = list(compress(parameter_bounds,param_mask))
-        res = scipy.optimize.differential_evolution(func=opti_options_3, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
+        res = scipy.optimize.differential_evolution(func=opti_options_3,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=num_workers,
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
         params = opti_options_3(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
@@ -521,7 +577,12 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print('initial parameter estimation:')
         print(param_est)
         parameter_bounds = list(compress(parameter_bounds,param_mask))
-        res = scipy.optimize.differential_evolution(func=opti_options_4, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
+        res = scipy.optimize.differential_evolution(func=opti_options_4,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=num_workers,
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
         params = opti_options_4(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
@@ -535,10 +596,33 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print('initial parameter estimation:')
         print(param_est)
         parameter_bounds = list(compress(parameter_bounds,param_mask))
-        res = scipy.optimize.differential_evolution(func=opti_options_3, bounds=parameter_bounds, maxiter=maxit, x0=param_est, args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
+        res = scipy.optimize.differential_evolution(func=opti_options_3,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=num_workers,
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
         params = opti_options_3(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
+    elif case == 6:
+        # Calibrate all higher order tau parmaeters
+        param_mask = [False, False, False, False, False, False, False,
+                      True, True, True, True, True, True, True, True, True, True, True]
+        second_order_params = param_est[0:7]
+        param_est = list(compress(param_est, param_mask))
+        print('initial parameter estimation:')
+        print(param_est)
+        parameter_bounds = list(compress(parameter_bounds,param_mask))
+        res = scipy.optimize.differential_evolution(func=opti_options_6,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=num_workers,
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, second_order_params, increment))
+        print(f"res = {res}")
+        print(f"fit params = {res.x}")
+        params = opti_options_6(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, second_order_params, calibrate=False)
     else:
         print('Select valid calibration case!')
 
@@ -568,22 +652,25 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         PK2_sim, SIGMA_sim, M_sim, SDVS_sim = calibration_tools.evaluate_model(inputs, params, model_name, parameters_to_fparams, 0, element, nqp)
         PK2_sim = XRT.map_sim(PK2_sim, ninc)
         SIGMA_sim = XRT.map_sim(SIGMA_sim, ninc)
+        M_sim = XRT.map_sim(M_sim, ninc, third_order=True)
         cauchy_sim, symm_sim = XRT.get_current_configuration_stresses(PK2_sim, SIGMA_sim, inputs[2], inputs[3])
 
         if increment:
-            calibration_tools.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element, nqp, increment=increment)
-            calibration_tools.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element, nqp, increment=increment)
-            calibration_tools.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}_ALL.PNG', element, nqp)
-            calibration_tools.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}_ALL.PNG', element, nqp)
+            #calibration_tools.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element, nqp, increment=increment)
+            #calibration_tools.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element, nqp, increment=increment)
+            #calibration_tools.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}_ALL.PNG', element, nqp)
+            #calibration_tools.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}_ALL.PNG', element, nqp)
             calibration_tools.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}.PNG', element, nqp, increment=increment)
             calibration_tools.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}.PNG', element, nqp, increment=increment)
-            calibration_tools.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}_ALL.PNG', element, nqp)
-            calibration_tools.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}_ALL.PNG', element, nqp)
+            #calibration_tools.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}_ALL.PNG', element, nqp)
+            #calibration_tools.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}_ALL.PNG', element, nqp)
+            calibration_tools.plot_higher_order_stresses_ref(Gamma, M, M_sim, f'{plot_file}_M_fit_case_{case}.PNG', element, nqp, increment=increment)
         else:
             calibration_tools.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element, nqp)
             calibration_tools.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element, nqp)
             calibration_tools.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}.PNG', element, nqp)
             calibration_tools.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}.PNG', element, nqp)
+            calibration_tools.plot_higher_order_stresses_ref(Gamma, M, M_sim, f'{plot_file}_M_fit_case_{case}.PNG', element, nqp)
 
     # output parameters!
     output_filename = output_file
@@ -627,10 +714,16 @@ def get_parser():
     parser.add_argument('--plot-file', type=str, required=False, default=None,
         help="Optional root filename to plot Cauchy and symmetric micro stress\
               comparison between DNS and calibration results")
-    parser.add_argument('--average', type=str, required=False, default=True,
+    parser.add_argument('--average', type=str, required=False, default=False,
         help='Boolean whether or not homogenized DNS results will be averaged')
     parser.add_argument('--UQ-file', type=str, required=False,
         help='Optional csv filename to store function evaluations and parameter sets for UQ')
+    parser.add_argument('--cal-norm', type=str, required=False, default='L1',
+        help='The type of norm to use for calibration ("L1", "L2", or "L1-L2")')
+    parser.add_argument('--bound-half-width', type=float, required=False, default=1.e5,
+        help='The uniform parameter bound "half-width" to apply for all parameters to be calibrated.\
+              Bounds for lambda will be [0., bound_half_width].\
+              All other parameter bounds will be [-1*bound_half_width, bound_half_width]')
 
     return parser
 
@@ -651,4 +744,6 @@ if __name__ == '__main__':
                     plot_file=args.plot_file,
                     average=str2bool(args.average),
                     UQ_file=args.UQ_file,
+                    cal_norm=args.cal_norm,
+                    bound_half_width=args.bound_half_width,
                     ))
