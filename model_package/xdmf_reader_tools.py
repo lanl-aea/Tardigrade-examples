@@ -303,12 +303,13 @@ def get_reference_configuration_stresses(data, nqp, nel, dim=3):
     return(PK2, SIGMA, M)
 
 
-def map_sim(stress, ninc, dim=3):
-    '''Map a flattened 2nd order stress tensor to index component notation. This function is used for converting output from ``micromorphic.evaluate_model`` to a convenient form for post-processing against Micromorphic Filter output data.
+def map_sim(stress, ninc, dim=3, third_order=False):
+    '''Map a flattened stress tensor to index component notation. This function is used for converting output from ``micromorphic.evaluate_model`` to a convenient form for post-processing against Micromorphic Filter output data.
 
     :param dict stress: The dictionary of flattened 2nd order stress tensor
     :param int ninc: The number of time increments
     :param int dim: The number of spatial dimensions, default=3
+    :param bool third_order: Boolean specifying if the tensor is third order, default=False
 
     :returns: dictionary with reshaped stress data
     '''
@@ -319,12 +320,21 @@ def map_sim(stress, ninc, dim=3):
     new_stress = {}
 
     for qp in range(nqp):
-        new_stress.update({qp:np.zeros((ninc, nel, dim, dim))})
-        k = 0
-        for i in range(dim):
-            for j in range(dim):
-                new_stress[qp][:,:,i,j] = stress[qp][:,:,k]
-                k = k + 1
+        if third_order == True:
+            new_stress.update({qp:np.zeros((ninc, nel, dim, dim, dim))})
+            m = 0
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
+                        new_stress[qp][:,:,i,j,k] = stress[qp][:,:,m]
+                        m = m + 1
+        else:
+            new_stress.update({qp:np.zeros((ninc, nel, dim, dim))})
+            k = 0
+            for i in range(dim):
+                for j in range(dim):
+                    new_stress[qp][:,:,i,j] = stress[qp][:,:,k]
+                    k = k + 1
 
     return(new_stress)
 
