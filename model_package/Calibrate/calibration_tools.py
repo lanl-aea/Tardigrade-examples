@@ -57,6 +57,43 @@ def average_quantities(quantities, type, elem):
     return(output)
 
 
+def isolate_element(quantities, type, elem):
+    '''Average tensor quantites over 8 quadrature points
+
+    :param dict quantities: A 2nd or 3rd order tensor dictionary with keys for quadrature points and values storing an array where indices correspond to time, element number, and tensor components
+    :param str type: A string specifying the type of tensor to average. Use "3" for a vector. Use "3x3" for a regular second order tensor. Use "9" for a flattened second order tensor. Use "3x3x3" for a third order tensor.
+    :param int elem: The macro (filter) element to calibrate
+
+    :returns: ``output`` dict with same indices as ``quantities`` and a single key
+    '''
+
+    output = {}
+    shapes = numpy.shape(quantities[0])
+
+    for qp in range(8):
+        if type == '9':
+            output[qp] = numpy.zeros((shapes[0], 1, shapes[2]))
+            for k in range(9):
+                output[qp][:,0,k] = quantities[qp][:,elem,k]
+        elif type == '3x3':
+            output[qp] = numpy.zeros((shapes[0], 1, shapes[2], shapes[3]))
+            for i in range(3):
+                for j in range(3):
+                    output[qp][:,0,i,j] = quantities[qp][:,elem,i,j]
+        elif type == '3x3x3':
+            output[qp] = numpy.zeros((shapes[0], 1, shapes[2], shapes[3], shapes[4]))
+            for i in range(3):
+                for j in range(3):
+                    for k in range(3):
+                        output[qp][:,0,i,j,k] = quantities[qp][:,elem,i,j,k]
+        elif type == '3':
+            output[qp] = numpy.zeros((shapes[0], 1, shapes[2]))
+            for i in range(3):
+                output[qp][:,0,i] = quantities[qp][:,elem,i]
+
+    return(output)
+
+
 def plot_stresses(estrain, stress, stress_sim, output_name, element, nqp, increment=None,):
     '''Plot comparison of stress vs strain (in the current configuration) between homogenized DNS results against calibrated model predictions
 
@@ -95,15 +132,15 @@ def plot_stresses(estrain, stress, stress_sim, output_name, element, nqp, increm
                 ax1.plot(estrain[0][inc,e,i,j], stress[0][inc,e,i,j], 'o', label='Filter')
                 ax1.plot(estrain[0][inc,e,i,j], stress_sim[0][inc,e,i,j], '-', label='Fit')
             else:
-                for qp in range(0, nqp):
+                for qp in range(nqp):
                     ax1.plot(estrain[qp][inc,e,i,j], stress[qp][inc,e,i,j], 'o', color=colors[qp], label=f'Filter, qp #{qp+1}')
                     ax1.plot(estrain[qp][inc,e,i,j], stress_sim[qp][inc,e,i,j], '-', color=colors[qp], label=f'Fit, qp #{qp+1}')
             ax1.set_xlabel(r"$e_{" + str(i+1) + str(j+1) + "}$", fontsize=14)
             ax1.set_ylabel(plot_label, fontsize=14)
             matplotlib.pyplot.ticklabel_format(style='sci', axis='x')
             matplotlib.pyplot.ticklabel_format(style='sci', axis='y')
-            if (i == 2) and (j ==2):
-                matplotlib.pyplot.xticks(rotation=45)
+            #if (i == 2) and (j ==2):
+            matplotlib.pyplot.xticks(rotation=45)
             k = k + 1
 
     handles, labels = ax1.get_legend_handles_labels()[0:2]
@@ -152,7 +189,7 @@ def plot_stresses_ref(E, stress, stress_sim, output_name, element, nqp, incremen
                 ax1.plot(E[0][inc,e,i,j], stress[0][inc,e,i,j], 'o', label='Filter')
                 ax1.plot(E[0][inc,e,i,j], stress_sim[0][inc,e,i,j], '-', label='Fit')
             else:
-                for qp in range(0, nqp):
+                for qp in range(nqp):
                     ax1.plot(E[qp][inc,e,i,j], stress[qp][inc,e,i,j], 'o', color=colors[qp], label=f'Filter, qp #{qp+1}')
                     ax1.plot(E[qp][inc,e,i,j], stress_sim[qp][inc,e,i,j], '-', color=colors[qp], label=f'Fit, qp #{qp+1}')
 
@@ -160,8 +197,8 @@ def plot_stresses_ref(E, stress, stress_sim, output_name, element, nqp, incremen
             ax1.set_ylabel(plot_label, fontsize=14)
             matplotlib.pyplot.ticklabel_format(style='sci', axis='x')
             matplotlib.pyplot.ticklabel_format(style='sci', axis='y')
-            if (i == 2) and (j ==2):
-                matplotlib.pyplot.xticks(rotation=45)
+            #if (i == 2) and (j ==2):
+            matplotlib.pyplot.xticks(rotation=45)
             k = k + 1
 
     handles, labels = ax1.get_legend_handles_labels()
