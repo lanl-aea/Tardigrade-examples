@@ -19,30 +19,30 @@ quantities using volume and surface integrals of DNS data over selected
 micro-averaing domains. The following equations
 (Eq. :math:numref:`{number} <homogenized_quantities>`)
 define the macroscale
-density, Cauchy stress, force, acceleration, couple stress, symmetric
-micro stress, body force couple, and micro spin inertia. Further details
-of the Micromorphic Filter and micromorphic quantities are provided by
+density, force, acceleration, body force couple, micro spin inertia,
+symmetric micro stress, Cauchy stress, and higher order (or couple) stress.
+Further details of the Micromorphic Filter and micromorphic quantities are provided by
 Miller 2021 :cite:`miller_micromorphic_2021`, Miller et al. 2022
 :cite:`miller_micromorphic_2022`, and a variety of other resources.
 
 .. math::
     :label: homogenized_quantities
 
-    \rho dv &\stackrel{\text{def}}{=} \int_{da}\rho^{\left(\alpha\right)}\,{dv^{\left(\alpha\right)}}
-
-    \sigma_{ij} n_i da &\stackrel{\text{def}}{=} \int_{da} \sigma_{ij}^{\left(\alpha\right)} n_{i}^{\left(\alpha\right)} \,{da^{\left(\alpha\right)} }
+    \rho dv &\stackrel{\text{def}}{=} \int_{dv}\rho^{\left(\alpha\right)}\,{dv^{\left(\alpha\right)}}
 
     \rho f_{i} dv &\stackrel{\text{def}}{=} \int_{dv} \rho^{\left(\alpha\right)} f_{i}^{\left(\alpha\right)} \,{dv^{\left(\alpha\right)} }
 
     \rho a_{i} dv &\stackrel{\text{def}}{=} \int_{dv} \rho^{\left(\alpha\right)} a_{i}^{\left(\alpha\right)} \,{dv^{\left(\alpha\right)} }
 
-    m_{ijk} n_i da &\stackrel{\text{def}}{=} \int_{da} \sigma_{ij}^{\left(\alpha\right)} \xi_k n_{i}^{\left(\alpha\right)} \,{da^{\left(\alpha\right)} }
-
-    s_{ij} dv &\stackrel{\text{def}}{=} \int_{dv} \sigma_{ij}^{\left(\alpha\right)} \,{dv^{\left(\alpha\right)} }
-
     \rho l_{ij} dv &\stackrel{\text{def}}{=} \int_{dv} \rho^{\left(\alpha\right)} f_{i}^{\left(\alpha\right)} \xi_j\,{dv^{\left(\alpha\right)} }
 
     \rho \omega_{ij} dv &\stackrel{\text{def}}{=} \int_{dv} \rho^{\left(\alpha\right)} \ddot{\xi_i} \xi_j \,{dv^{\left(\alpha\right)}}
+
+    s_{ij} dv &\stackrel{\text{def}}{=} \int_{dv} \sigma_{ij}^{\left(\alpha\right)} \,{dv^{\left(\alpha\right)} }
+
+    \sigma_{ij} n_i da &\stackrel{\text{def}}{=} \int_{da} \sigma_{ij}^{\left(\alpha\right)} n_{i}^{\left(\alpha\right)} \,{da^{\left(\alpha\right)} }
+
+    m_{ijk} n_i da &\stackrel{\text{def}}{=} \int_{da} \sigma_{ij}^{\left(\alpha\right)} \xi_k n_{i}^{\left(\alpha\right)} \,{da^{\left(\alpha\right)} }
 
 ..
    TODO: update description for new version of Micromorphic Filter (no surface integration?) provide description of how the new Micromorphic Filter calculates Cauchy and Higher Order Stress
