@@ -12,6 +12,7 @@ from itertools import compress
 
 sys.path.append(r'/projects/tea/tardigrade_plastic/tardigrade_micromorphic_element/src/python')
 sys.path.append(r'/projects/tea/tardigrade-examples/model_package')
+sys.path.append(r'/projects/tea/tardigrade-examples/model_package/Calibrate')
 sys.path.append(f'/projects/tea/tardigrade_plastic/tardigrade_micromorphic_linear_elasticity/src/python')
 
 
@@ -179,22 +180,21 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=No
         time_steps = range(steps)
 
     # Accumulate errors
-    elem = element
     e = 0
     if case == 1:
         for t in time_steps:
-            PK2_error = numpy.hstack([PK2_error, numpy.sum([PK2[q][t,0,2,2] - PK2_sim[q][t,0,-1] for q in range(0, nqp)])])
-            SIGMA_error = numpy.hstack([SIGMA_error, numpy.sum([SIGMA[q][t,0,2,2] - SIGMA_sim[q][t,0,-1] for q in range(0, nqp)])])
+            PK2_error = numpy.hstack([PK2_error, numpy.sum([PK2[q][t,e,2,2] - PK2_sim[q][t,0,-1] for q in range(nqp)])])
+            SIGMA_error = numpy.hstack([SIGMA_error, numpy.sum([SIGMA[q][t,e,2,2] - SIGMA_sim[q][t,0,-1] for q in range(nqp)])])
             M_error = []
     elif case >= 4:
         for t in time_steps:
-            PK2_error = numpy.hstack([PK2_error, numpy.sum([PK2[q][t,0,:,:].flatten() - PK2_sim[q][t,0,:] for q in range(0, nqp)])])
-            SIGMA_error = numpy.hstack([SIGMA_error, numpy.sum([SIGMA[q][t,0,:,:].flatten() - SIGMA_sim[q][t,0,:] for q in range(0, nqp)])])
-            M_error = numpy.hstack([M_error, numpy.sum([M[q][t,0,:,:,:].flatten() - M_sim[q][t,0,:] for q in range(0, nqp)])])
+            PK2_error = numpy.hstack([PK2_error, numpy.sum([PK2[q][t,e,:,:].flatten() - PK2_sim[q][t,0,:] for q in range(nqp)])])
+            SIGMA_error = numpy.hstack([SIGMA_error, numpy.sum([SIGMA[q][t,e,:,:].flatten() - SIGMA_sim[q][t,0,:] for q in range(nqp)])])
+            M_error = numpy.hstack([M_error, numpy.sum([M[q][t,e,:,:,:].flatten() - M_sim[q][t,0,:] for q in range(nqp)])])
     else:
         for t in time_steps:
-            PK2_error = numpy.hstack([PK2_error, numpy.sum([PK2[q][t,0,:,:].flatten() - PK2_sim[q][t,0,:] for q in range(0, nqp)])])
-            SIGMA_error = numpy.hstack([SIGMA_error, numpy.sum([SIGMA[q][t,0,:,:].flatten() - SIGMA_sim[q][t,0,:] for q in range(0, nqp)])])
+            PK2_error = numpy.hstack([PK2_error, numpy.sum([PK2[q][t,e,:,:].flatten() - PK2_sim[q][t,0,:] for q in range(nqp)])])
+            SIGMA_error = numpy.hstack([SIGMA_error, numpy.sum([SIGMA[q][t,e,:,:].flatten() - SIGMA_sim[q][t,0,:] for q in range(nqp)])])
             M_error = []
 
     # collect errors
@@ -298,7 +298,7 @@ def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
     tau8to11 = [0e-3, 0, 0e-3, 0e-3]
     XX = numpy.hstack([X1, tau1to6, X2, tau8to11])
     if calibrate:
-        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=increment, stresses_to_include=['S', 'SIGMA']))
+        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=increment, stresses_to_include=['S', 'SIGMA', 'M']))
     else:
         return(numpy.hstack([X1, tau1to6, X2, tau8to11]))
 
@@ -427,6 +427,19 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         h = calibration_tools.average_quantities(h, '3x3', element)
         gradphi = calibration_tools.average_quantities(gradphi, '3x3x3', element)
         nqp = 1
+    else:
+        cauchy = calibration_tools.isolate_element(cauchy, '3x3', element)
+        symm = calibration_tools.isolate_element(symm, '3x3', element)
+        PK2 = calibration_tools.isolate_element(PK2, '3x3', element)
+        SIGMA = calibration_tools.isolate_element(SIGMA, '3x3', element)
+        #F = calibration_tools.isolate_element(F, '3x3')
+        E = calibration_tools.isolate_element(E, '3x3', element)
+        displacement = calibration_tools.isolate_element(displacement, '3', element)
+        gradu = calibration_tools.isolate_element(gradu, '3x3', element)
+        phi = calibration_tools.isolate_element(phi, '3x3', element)
+        estrain = calibration_tools.isolate_element(estrain, '3x3', element)
+        h = calibration_tools.isolate_element(h, '3x3', element)
+        gradphi = calibration_tools.isolate_element(gradphi, '3x3x3', element)
  
     # store data for calibration
     Y = [PK2, SIGMA, M]
@@ -443,7 +456,6 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
     nu_targ = numpy.average([(-1*numpy.average([E[q][nu_inc,0,0,0],
                                                 E[q][nu_inc,0,1,1]])/E[q][nu_inc,0,2,2]) for q in range(0,nqp)])
 
- 
     # Estimate initial parameters
     param_est = initial_estimate(Emod, nu, L)
  
