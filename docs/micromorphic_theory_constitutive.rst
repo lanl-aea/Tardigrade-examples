@@ -91,21 +91,21 @@ as follows:
 .. math::
    :label: PK2_1
 
-   S_{IK} = 2 \frac{\left(\rho_{0}\psi\right)^e}{\partial \mathcal{C}_{IJ}}
-      + \frac{\left(\rho_{0}\psi\right)^e}{\partial \Psi_{IQ}} \Psi_{KQ} \mathcal{C}_{JK}^{-1}
-      + \frac{\left(\rho_{0}\psi\right)^e}{\partial \Gamma_{IQK}} \Gamma_{SQK} \mathcal{C}_{JS}^{-1}
+   S_{IK} = 2 \frac{\partial\left(\rho_{0}\psi\right)^e}{\partial \mathcal{C}_{IJ}}
+      + \frac{\partial\left(\rho_{0}\psi\right)^e}{\partial \Psi_{IQ}} \Psi_{KQ} \mathcal{C}_{JK}^{-1}
+      + \frac{\partial\left(\rho_{0}\psi\right)^e}{\partial \Gamma_{IQK}} \Gamma_{SQK} \mathcal{C}_{JS}^{-1}
 
 .. math::
    :label: SIGMA_1
 
-   \Sigma_{IJ} = 2 \frac{\left(\rho_{0}\psi\right)^e}{\partial \mathcal{C}_{IJ}}
-      + 2 symm\left[ \frac{\left(\rho_{0}\psi\right)^e}{\partial \Psi_{IQ}} \Psi_{KQ} \mathcal{C}_{JK}^{-1}
-      + \frac{\left(\rho_{0}\psi\right)^e}{\partial \Gamma_{IQK}} \Gamma_{SQK} \mathcal{C}_{JS}^{-1} \right]
+   \Sigma_{IJ} = 2 \frac{\partial\left(\rho_{0}\psi\right)^e}{\partial \mathcal{C}_{IJ}}
+      + 2 symm\left[ \frac{\partial\left(\rho_{0}\psi\right)^e}{\partial \Psi_{IQ}} \Psi_{KQ} \mathcal{C}_{JK}^{-1}
+      + \frac{\partial\left(\rho_{0}\psi\right)^e}{\partial \Gamma_{IQK}} \Gamma_{SQK} \mathcal{C}_{JS}^{-1} \right]
 
 .. math::
    :label: M_1
 
-   M_{IJK} = \frac{\left(\rho_{0}\psi\right)^e}{\partial \Gamma_{JKI}}.
+   M_{IJK} = \frac{\partial\left(\rho_{0}\psi\right)^e}{\partial \Gamma_{JKI}}.
 
 By taking the relevant partial derivatives of the elastic Helmholtz free energy function,
 equations :math:numref:`{number} <PK2_1>`, :math:numref:`{number} <SIGMA_1>`, and :math:numref:`{number} <M_1>`
