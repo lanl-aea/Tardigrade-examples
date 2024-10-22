@@ -202,10 +202,75 @@ def plot_stresses_ref(E, stress, stress_sim, output_name, element, nqp, incremen
             k = k + 1
 
     handles, labels = ax1.get_legend_handles_labels()
+    if nqp != 1:
+        labels = ['Filter', 'Fit']
     fig1.legend(handles[0:2], labels[0:2], loc='lower center', bbox_to_anchor=(0.52, -0.01), ncols=2, fontsize=14)
     fig1.tight_layout()
     fig1.savefig(f'{output_name}')
- 
+
+    return 0
+
+
+def plot_higher_order_stresses_ref(Gamma, M, M_sim, output_name, element, nqp, increment=None,):
+    '''Plot comparison of stress vs strain (in the current configuration) between homogenized DNS results against calibrated model predictions
+
+    :param dict E: The quantities dict storing Green-Lagrange strain
+    :param dict stress: The quantities dict storing either PK2 or Symmetric micro stress of the homogenized DNS results
+    :param dict stress_sim: The quantities dict storing either PK2 or Symmetric micro stress of the calibrated model predictions
+    :param str output_name: The output plot name
+    :param int element: The macro (filter) element considered for calibration
+    :param list increment: An optional list of one or more increments to plot restults
+
+    :returns: ``output_name``
+    '''
+
+    name = output_name.replace('.PNG','')
+    fig1 = matplotlib.pyplot.figure(name, figsize=(12,9))
+    axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
+    ybounds = [-1, 1]
+
+    if increment:
+        inc = [int(i) for i in increment]
+    else:
+        inc = [i for i in range(0, numpy.shape(M[0][:,0,0,0,0])[0])]
+
+    colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
+    k = 0
+    e = 0
+    for i in range(3):
+        for j in range(3):
+            #for k in range(3)
+            ax1 = axes1[i][j]
+            plot_label = r"$M_{" + str(i+1) + str(j+1) + "K}$ (MPa)"
+
+            if nqp == 1:
+                ax1.plot(Gamma[0][inc,e,i,j,0], M[0][inc,e,i,j,0], 'o', color=colors[0], label='Filter, K=1')
+                ax1.plot(Gamma[0][inc,e,i,j,0], M_sim[0][inc,e,i,j,0], '-', color=colors[0], label='Fit, K=1')
+                ax1.plot(Gamma[0][inc,e,i,j,1], M[0][inc,e,i,j,1], 'o', color=colors[1], label='Filter, K=2')
+                ax1.plot(Gamma[0][inc,e,i,j,1], M_sim[0][inc,e,i,j,1], '-', color=colors[1], label='Fit, K=2')
+                ax1.plot(Gamma[0][inc,e,i,j,2], M[0][inc,e,i,j,2], 'o', color=colors[2], label='Filter, K=3')
+                ax1.plot(Gamma[0][inc,e,i,j,2], M_sim[0][inc,e,i,j,2], '-', color=colors[2], label='Fit, K=3')
+            else:
+                for qp in range(nqp):
+                    ax1.plot(Gamma[qp][inc,e,i,j,0], M[qp][inc,e,i,j,0], 'o', color=colors[qp], label=f'Filter, K=1')
+                    ax1.plot(Gamma[qp][inc,e,i,j,0], M_sim[qp][inc,e,i,j,0], '-o', color=colors[qp], label=f'Fit, K=1')
+                    ax1.plot(Gamma[qp][inc,e,i,j,1], M[qp][inc,e,i,j,1], '^', color=colors[qp], label=f'Filter, K=2')
+                    ax1.plot(Gamma[qp][inc,e,i,j,1], M_sim[qp][inc,e,i,j,1], '-^', color=colors[qp], label=f'Fit, K=2')
+                    ax1.plot(Gamma[qp][inc,e,i,j,2], M[qp][inc,e,i,j,2], 'v', color=colors[qp], label=f'Filter, K=3')
+                    ax1.plot(Gamma[qp][inc,e,i,j,2], M_sim[qp][inc,e,i,j,2], '-v', color=colors[qp], label=f'Fit, K=3')
+            ax1.set_xlabel(r"$\Gamma_{" + str(i+1) + str(j+1) + "K}$", fontsize=14)
+            ax1.set_ylabel(plot_label, fontsize=14)
+            matplotlib.pyplot.ticklabel_format(style='sci', axis='x')
+            matplotlib.pyplot.ticklabel_format(style='sci', axis='y')
+            #if (i == 2) and (j ==2):
+            matplotlib.pyplot.xticks(rotation=45)
+            k = k + 1
+
+    handles, labels = ax1.get_legend_handles_labels()
+    fig1.legend(handles[0:6], labels[0:6], loc='lower center', bbox_to_anchor=(0.52, -0.01), ncols=6, fontsize=12)
+    fig1.tight_layout()
+    fig1.savefig(f'{output_name}')
+
     return 0
 
 
