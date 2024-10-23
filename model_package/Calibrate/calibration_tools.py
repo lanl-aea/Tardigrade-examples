@@ -241,11 +241,12 @@ def plot_higher_order_stresses(Gamma, M, M_sim, output_name, element, nqp, incre
 
 
 def deviatoric_norm(stress, third_order=False):
-    '''Calculate the norm of the deviatoric component of a stress quantity
+    '''Calculate the norm(s) of the deviatoric part of a stress quantity
 
-    :param array-like stress: A second order tensor or 9-component slice of a third order tensor
+    :param array-like stress: A second or third order stress tenosr
+    :param bool third_order: A boolean specifying whether the stress tensor is third order
 
-    :returns: deviatoric of ``stress``
+    :returns: list of norm of deviatoric stresses (1 item for second order stress, 3 for third order)
     '''
 
     if third_order == True:
@@ -261,6 +262,20 @@ def deviatoric_norm(stress, third_order=False):
 
 
 def collect_deviatoric_norm_errors(nqp, t, e, PK2, PK2_sim, SIGMA, SIGMA_sim, M, M_sim):
+    '''Calculate the errors between filtered and simulated deviatoric norms for second and third order stresses
+
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
+    :param int t: The current time increment
+    :param int e: The current macro element being considered for calibration
+    :param dict PK2: The quantities dict storing a homogenized DNS second Piola-Kirchhoff stress
+    :param dict PK2_sim: The quantities dict storing a simulated second Piola-Kirchhoff stress
+    :param dict SIGMA: The quantities dict storing a homogenized DNS symmetric micro stress
+    :param dict SIGMA_sim: The quantities dict storing a simulated symmetric micro stress
+    :param dict M: The quantities dict storing a homogenized DNS higher order stress
+    :param dict M_sim: The quantities dict storing a simulated higher order stress
+
+    :returns: error between homogenized and simulations deviatoric second Piola-Kirchhoff, symmetric micro, and higher order stresses
+    '''
 
     PK2_dev_norms = numpy.array([deviatoric_norm(PK2[q][t,e,:,:]) for q in range(nqp)]).flatten()
     PK2_sim_dev_norms = numpy.array([deviatoric_norm(PK2_sim[q][t,e,:,:]) for q in range(nqp)]).flatten()
@@ -269,7 +284,6 @@ def collect_deviatoric_norm_errors(nqp, t, e, PK2, PK2_sim, SIGMA, SIGMA_sim, M,
     M_dev_norms = numpy.array([deviatoric_norm(M[q][t,e,:,:,:], third_order=True) for q in range(nqp)]).flatten()
     M_sim_dev_norms = numpy.array([deviatoric_norm(M_sim[q][t,e,:,:,:], third_order=True) for q in range(nqp)]).flatten()
 
-    #return PK2_dev_norms, PK2_sim_dev_norms, SIGMA_dev_norms, SIGMA_sim_dev_norms, M_dev_norms, M_sim_dev_norms
     return PK2_dev_norms-PK2_sim_dev_norms, SIGMA_dev_norms-SIGMA_sim_dev_norms, M_dev_norms-M_sim_dev_norms
 
 
