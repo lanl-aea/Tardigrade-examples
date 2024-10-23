@@ -110,7 +110,7 @@ Xstore = []
 Lstore = []
 
 
-def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=None, stresses_to_include=['S','SIGMA','M']):
+def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=None, stresses_to_include=['S','SIGMA','M'], dev_norm_errors=False):
     '''Primary objective function for calibrating micromorphic linear elasticity constitutive model against homogenized DNS data
 
     :param array-like x0: Array of micromorphic linear elasticity parameters
@@ -210,6 +210,24 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=No
             SIGMA_error = numpy.hstack([SIGMA_error, SIGMA_diff])
             M_error = [0.]
 
+    if dev_norm_errors == True:
+        PK2_dev_error, SIGMA_dev_error, M_dev_error = [], [], []
+        ninc = len(inputs[5])
+        PK2_sim_mapped = XRT.map_sim(PK2_sim, ninc)
+        SIGMA_sim_mapped = XRT.map_sim(SIGMA_sim, ninc)
+        M_sim_mapped = XRT.map_sim(M_sim, ninc, third_order=True)
+        for t in time_steps:
+            error1, error2, error3 = calibration_tools.collect_deviatoric_norm_errors(nqp, t, e,
+                                                                                PK2, PK2_sim_mapped,
+                                                                                SIGMA, SIGMA_sim_mapped,
+                                                                                M, M_sim_mapped)
+            PK2_dev_error = numpy.hstack([PK2_dev_error, error1.flatten()])
+            SIGMA_dev_error = numpy.hstack([SIGMA_dev_error, error2.flatten()])
+            M_dev_error = numpy.hstack([M_dev_error, error3.flatten()])
+        PK2_error = numpy.hstack([PK2_error, PK2_dev_error])
+        SIGMA_error = numpy.hstack([SIGMA_error, SIGMA_dev_error])
+        M_error = numpy.hstack([M_error, M_dev_error])
+
     # collect errors
     errors    = {'S':PK2_error, 'SIGMA':SIGMA_error, 'M':M_error}
 
@@ -266,7 +284,7 @@ def opti_options_1(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
         return(XX)
 
 
-def opti_options_2(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None):
+def opti_options_2(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None, dev_norm_errors=False):
     '''Objective function number 2 used for calibrating 7 parameters of micromorphic linear elasticity
 
     :param array-like X: Array of micromorphic linear elasticity parameters
@@ -285,12 +303,13 @@ def opti_options_2(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
     others = [0., 0., 0., 0., 0, 0, 1.e-3, 0., 0, 0., 0.]
     XX = numpy.hstack([X1, others])
     if calibrate:
-        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=increment, stresses_to_include=['S', 'SIGMA']))
+        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp,
+                         increment=increment, stresses_to_include=['S', 'SIGMA'], dev_norm_errors=dev_norm_errors))
     else:
         return(numpy.hstack([X1, others]))
 
 
-def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None):
+def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None, dev_norm_errors=False):
     '''Objective function number 3 used for calibrating 8 parameters of micromorphic linear elasticity
 
     :param array-like X: Array of micromorphic linear elasticity parameters
@@ -311,12 +330,13 @@ def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
     tau8to11 = [0., 0, 0., 0.]
     XX = numpy.hstack([X1, tau1to6, X2, tau8to11])
     if calibrate:
-        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=increment, stresses_to_include=['S', 'SIGMA', 'M']))
+        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp,
+                         increment=increment, stresses_to_include=['S', 'SIGMA', 'M'], dev_norm_errors=dev_norm_errors))
     else:
         return(numpy.hstack([X1, tau1to6, X2, tau8to11]))
 
 
-def opti_options_4(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None):
+def opti_options_4(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None, dev_norm_errors=False):
     '''Objective function number 4 used for calibrating all 18 parameters of micromorphic linear elasticity
 
     :param array-like X: Array of micromorphic linear elasticity parameters
@@ -334,12 +354,13 @@ def opti_options_4(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
 
     XX = X
     if calibrate:
-        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=increment, stresses_to_include=['S', 'SIGMA', 'M']))
+        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp,
+                         increment=increment, stresses_to_include=['S', 'SIGMA', 'M'], dev_norm_errors=dev_norm_errors))
     else:
         return(XX)
 
 
-def opti_options_6(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, second_order_params, calibrate=True, increment=None):
+def opti_options_6(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, second_order_params, calibrate=True, increment=None, dev_norm_errors=False):
     '''Objective function number 6 used for calibrating 11 higher order "tau" parameters of micromorphci linear elasticity
 
     :param array-like X: Array of micromorphic linear elasticity parameters
@@ -357,7 +378,8 @@ def opti_options_6(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, second_o
 
     XX = numpy.hstack([second_order_params, X])
     if calibrate:
-        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=increment, stresses_to_include=['S', 'SIGMA', 'M']))
+        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp,
+                         increment=increment, stresses_to_include=['M'], dev_norm_errors=dev_norm_errors))
     else:
         return(XX)
 
@@ -410,7 +432,7 @@ def handle_output_for_UQ(Xstore, Lstore, case):
 
 
 def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=None, plot_file=None,
-              average=False, UQ_file=None, cal_norm='L1', bound_half_width=1.e5):
+              average=False, UQ_file=None, cal_norm='L1', bound_half_width=1.e5, dev_norm_errors=False):
     ''' Unpack DNS data and run calibration routine
 
     :param str input_file: The homogenized XDMF file output by the Micromorphic Filter
@@ -531,7 +553,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                                     maxiter=maxit,
                                                     x0=param_est,
                                                     workers=1,
-                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment))
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
         params = opti_options_1(list(res.x), Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
@@ -547,7 +569,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                                     maxiter=maxit,
                                                     x0=param_est,
                                                     workers=num_workers,
-                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment, dev_norm_errors))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
         params = opti_options_2(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
@@ -565,7 +587,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                                     maxiter=maxit,
                                                     x0=param_est,
                                                     workers=num_workers,
-                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment, dev_norm_errors))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
         params = opti_options_3(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
@@ -582,7 +604,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                                     maxiter=maxit,
                                                     x0=param_est,
                                                     workers=num_workers,
-                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment, dev_norm_errors))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
         params = opti_options_4(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
@@ -601,7 +623,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                                     maxiter=maxit,
                                                     x0=param_est,
                                                     workers=num_workers,
-                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, increment))
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment, dev_norm_errors))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
         params = opti_options_3(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
@@ -619,7 +641,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                                     maxiter=maxit,
                                                     x0=param_est,
                                                     workers=num_workers,
-                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, second_order_params, increment))
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, second_order_params, True, increment, dev_norm_errors))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
         params = opti_options_6(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, second_order_params, calibrate=False)
@@ -656,14 +678,10 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         cauchy_sim, symm_sim = XRT.get_current_configuration_stresses(PK2_sim, SIGMA_sim, inputs[2], inputs[3])
 
         if increment:
-            #calibration_tools.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element, nqp, increment=increment)
-            #calibration_tools.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element, nqp, increment=increment)
-            #calibration_tools.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}_ALL.PNG', element, nqp)
-            #calibration_tools.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}_ALL.PNG', element, nqp)
             calibration_tools.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}.PNG', element, nqp, increment=increment)
             calibration_tools.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}.PNG', element, nqp, increment=increment)
-            #calibration_tools.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}_ALL.PNG', element, nqp)
-            #calibration_tools.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}_ALL.PNG', element, nqp)
+            calibration_tools.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}_ALL.PNG', element, nqp)
+            calibration_tools.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}_ALL.PNG', element, nqp)
             calibration_tools.plot_higher_order_stresses_ref(Gamma, M, M_sim, f'{plot_file}_M_fit_case_{case}.PNG', element, nqp, increment=increment)
         else:
             calibration_tools.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element, nqp)
@@ -724,6 +742,8 @@ def get_parser():
         help='The uniform parameter bound "half-width" to apply for all parameters to be calibrated.\
               Bounds for lambda will be [0., bound_half_width].\
               All other parameter bounds will be [-1*bound_half_width, bound_half_width]')
+    parser.add_argument('--dev-norm-errors', type=str, required=False, default=False,
+        help='Boolean whether to inclue deviatoric stress norms during calibraiton')
 
     return parser
 
@@ -746,4 +766,5 @@ if __name__ == '__main__':
                     UQ_file=args.UQ_file,
                     cal_norm=args.cal_norm,
                     bound_half_width=args.bound_half_width,
+                    dev_norm_errors=str2bool(args.dev_norm_errors),
                     ))
