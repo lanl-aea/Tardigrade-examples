@@ -274,6 +274,38 @@ def plot_higher_order_stresses_ref(Gamma, M, M_sim, output_name, element, nqp, i
     return 0
 
 
+def deviatoric_norm(stress, third_order=False):
+    '''Calculate the norm of the deviatoric component of a stress quantity
+
+    :param array-like stress: A second order tensor or 9-component slice of a third order tensor
+
+    :returns: deviatoric of ``stress``
+    '''
+
+    if third_order == True:
+        norm = []
+        for k in range(3):
+            dev = stress[:,:,k] - (1/3)*numpy.eye(3)*numpy.trace(stress[:,:,k])
+            norm.append(numpy.linalg.norm(dev, ord='fro'))
+    else:
+        dev = stress - (1/3)*numpy.eye(3)*numpy.trace(stress)
+        norm = [numpy.linalg.norm(dev, ord='fro')]
+
+    return norm
+
+
+def collect_deviatoric_norm_errors(nqp, t, e, PK2, PK2_sim, SIGMA, SIGMA_sim, M, M_sim):
+
+    PK2_dev_norms = numpy.array([deviatoric_norm(PK2[q][t,e,:,:]) for q in range(nqp)]).flatten()
+    PK2_sim_dev_norms = numpy.array([deviatoric_norm(PK2_sim[q][t,e,:,:]) for q in range(nqp)]).flatten()
+    SIGMA_dev_norms = numpy.array([deviatoric_norm(SIGMA[q][t,e,:,:]) for q in range(nqp)]).flatten()
+    SIGMA_sim_dev_norms = numpy.array([deviatoric_norm(SIGMA_sim[q][t,e,:,:]) for q in range(nqp)]).flatten()
+    M_dev_norms = numpy.array([deviatoric_norm(M[q][t,e,:,:,:], third_order=True) for q in range(nqp)]).flatten()
+    M_sim_dev_norms = numpy.array([deviatoric_norm(M_sim[q][t,e,:,:,:], third_order=True) for q in range(nqp)]).flatten()
+
+    #return PK2_dev_norms, PK2_sim_dev_norms, SIGMA_dev_norms, SIGMA_sim_dev_norms, M_dev_norms, M_sim_dev_norms
+    return PK2_dev_norms-PK2_sim_dev_norms, SIGMA_dev_norms-SIGMA_sim_dev_norms, M_dev_norms-M_sim_dev_norms
+
 def evaluate_constraints(parameters, svals=None):
     '''Evaluate Smith conditions by calling tardigrade_micromorphic_linear_elasticity/src/python/linear_elastic_parameter_constraint_equations
 
