@@ -375,6 +375,7 @@ def opti_options_6(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, second_o
     :param float nu_targ: The targeted Poisson ratio if calibrating 2 parameter elasticity
     :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
     :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
     :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
     :param int increment: An optional list of one or more increments to perform calibration
 
