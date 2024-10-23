@@ -94,132 +94,84 @@ def isolate_element(quantities, type, elem):
     return(output)
 
 
-def plot_stresses(estrain, stress, stress_sim, output_name, element, nqp, increment=None,):
-    '''Plot comparison of stress vs strain (in the current configuration) between homogenized DNS results against calibrated model predictions
+def plot_stresses(strain, stress, stress_sim, output_name, element, nqp, x_label_base, y_label_base, increment=None, find_bounds=False):
+    '''Plot comparison of stress vs strain between homogenized DNS results against calibrated model predictions
 
-    :param dict estrain: The quantities dict storing Euler-Almansi strain
-    :param dict stress: The quantities dict storing either Cauchy or symmetric micro stress of the homogenized DNS results
-    :param dict stress_sim: The quantities dict storing either Cauchy or symmetric micro stress of the calibrated model predictions
+    :param dict strain: The quantities dict storing a strain measure
+    :param dict stress: The quantities dict storing a homogenized DNS stress
+    :param dict stress_sim: The quantities dict storing a calibrated stress
     :param str output_name: The output plot name
     :param int element: The macro (filter) element considered for calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
     :param list increment: An optional list of one or more increments to plot restults
+    :param bool find_bounds: Boolean specifying whether or not to identify common y-axis bounds for all subplots
 
     :returns: ``output_name``
     '''
 
     name = output_name.replace('.PNG','')
-    fig1 = matplotlib.pyplot.figure(name, figsize=(11,9))
+    fig1 = matplotlib.pyplot.figure(name, figsize=(11,10))
     axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
-    ybounds = [-1, 1]
+    ybounds = [0., 1.]
 
     if increment:
         inc = [int(i) for i in increment]
     else:
-        inc = [i for i in range(0, numpy.shape(estrain[0][:,0,0,0])[0])]
+        inc = [i for i in range(0, numpy.shape(strain[0][:,0,0,0])[0])]
 
     colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
-    k = 0
     e = 0
     for i in range(3):
         for j in range(3):
             ax1 = axes1[i][j]
-            if 'cauchy' in output_name:
-                plot_label = r"$\sigma_{" + str(i+1) + str(j+1) + "}$ (MPa)"
-            if 'symm' in output_name:
-                plot_label = r"$s_{" + str(i+1) + str(j+1) + "}$ (MPa)"
-
+            x_label = r"$" + str(x_label_base) + "_{" + str(i+1) + str(j+1) + "}$"
+            y_label = r"$" + str(y_label_base) + "_{" + str(i+1) + str(j+1) + "}$ (MPa)"
             if nqp == 1:
-                ax1.plot(estrain[0][inc,e,i,j], stress[0][inc,e,i,j], 'o', label='Filter')
-                ax1.plot(estrain[0][inc,e,i,j], stress_sim[0][inc,e,i,j], '-', label='Fit')
+                ax1.plot(strain[0][inc,e,i,j], stress[0][inc,e,i,j], 'o', label='Filter')
+                ax1.plot(strain[0][inc,e,i,j], stress_sim[0][inc,e,i,j], '-', label='Fit')
+                ybounds[0] = numpy.min([ybounds[0], numpy.min([stress[0][inc,e,i,j], stress_sim[0][inc,e,i,j]])])
+                ybounds[1] = numpy.max([ybounds[1], numpy.max([stress[0][inc,e,i,j], stress_sim[0][inc,e,i,j]])])
             else:
                 for qp in range(nqp):
-                    ax1.plot(estrain[qp][inc,e,i,j], stress[qp][inc,e,i,j], 'o', color=colors[qp], label=f'Filter, qp #{qp+1}')
-                    ax1.plot(estrain[qp][inc,e,i,j], stress_sim[qp][inc,e,i,j], '-', color=colors[qp], label=f'Fit, qp #{qp+1}')
-            ax1.set_xlabel(r"$e_{" + str(i+1) + str(j+1) + "}$", fontsize=14)
-            ax1.set_ylabel(plot_label, fontsize=14)
-            matplotlib.pyplot.ticklabel_format(style='sci', axis='x')
-            matplotlib.pyplot.ticklabel_format(style='sci', axis='y')
-            #if (i == 2) and (j ==2):
-            matplotlib.pyplot.xticks(rotation=45)
-            k = k + 1
-
-    handles, labels = ax1.get_legend_handles_labels()[0:2]
-    fig1.legend(handles[0:2], labels[0:2], loc='lower center', bbox_to_anchor=(0.52, -0.01), ncols=2, fontsize=14)
-    fig1.tight_layout()
-    fig1.savefig(f'{output_name}')
-
-    return 0
-
-
-def plot_stresses_ref(E, stress, stress_sim, output_name, element, nqp, increment=None,):
-    '''Plot comparison of stress vs strain (in the current configuration) between homogenized DNS results against calibrated model predictions
-
-    :param dict E: The quantities dict storing Green-Lagrange strain
-    :param dict stress: The quantities dict storing either PK2 or Symmetric micro stress of the homogenized DNS results
-    :param dict stress_sim: The quantities dict storing either PK2 or Symmetric micro stress of the calibrated model predictions
-    :param str output_name: The output plot name
-    :param int element: The macro (filter) element considered for calibration
-    :param list increment: An optional list of one or more increments to plot restults
-
-    :returns: ``output_name``
-    '''
-
-    name = output_name.replace('.PNG','')
-    fig1 = matplotlib.pyplot.figure(name, figsize=(11,9))
-    axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
-    ybounds = [-1, 1]
-
-    if increment:
-        inc = [int(i) for i in increment]
-    else:
-        inc = [i for i in range(0, numpy.shape(E[0][:,0,0,0])[0])]
-
-    colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
-    k = 0
-    e = 0
-    for i in range(3):
-        for j in range(3):
-            ax1 = axes1[i][j]
-            if 'PK2' in output_name:
-                plot_label = r"$S_{" + str(i+1) + str(j+1) + "}$ (MPa)"
-            if 'SIGMA' in output_name:
-                plot_label = r"$\Sigma_{" + str(i+1) + str(j+1) + "}$ (MPa)"
-
-            if nqp == 1:
-                ax1.plot(E[0][inc,e,i,j], stress[0][inc,e,i,j], 'o', label='Filter')
-                ax1.plot(E[0][inc,e,i,j], stress_sim[0][inc,e,i,j], '-', label='Fit')
-            else:
-                for qp in range(nqp):
-                    ax1.plot(E[qp][inc,e,i,j], stress[qp][inc,e,i,j], 'o', color=colors[qp], label=f'Filter, qp #{qp+1}')
-                    ax1.plot(E[qp][inc,e,i,j], stress_sim[qp][inc,e,i,j], '-', color=colors[qp], label=f'Fit, qp #{qp+1}')
-
-            ax1.set_xlabel(r"$E_{" + str(i+1) + str(j+1) + "}$", fontsize=14)
-            ax1.set_ylabel(plot_label, fontsize=14)
-            matplotlib.pyplot.ticklabel_format(style='sci', axis='x')
-            matplotlib.pyplot.ticklabel_format(style='sci', axis='y')
-            #if (i == 2) and (j ==2):
-            matplotlib.pyplot.xticks(rotation=45)
-            k = k + 1
+                    ax1.plot(strain[qp][inc,e,i,j], stress[qp][inc,e,i,j], 'o', color=colors[qp], label=f'Filter, qp #{qp+1}')
+                    ax1.plot(strain[qp][inc,e,i,j], stress_sim[qp][inc,e,i,j], '-', color=colors[qp], label=f'Fit, qp #{qp+1}')
+                    ybounds[0] = numpy.min([ybounds[0], numpy.min([stress[qp][inc,e,i,j], stress_sim[qp][inc,e,i,j]])])
+                    ybounds[1] = numpy.max([ybounds[1], numpy.max([stress[qp][inc,e,i,j], stress_sim[qp][inc,e,i,j]])])
+            ax1.set_xlabel(x_label, fontsize=14)
+            ax1.set_ylabel(y_label, fontsize=14)
+            ax1.set_xticks(ax1.get_xticks(), ax1.get_xticklabels(), rotation=45)
+            ax1.xaxis.set_major_formatter(matplotlib.pyplot.ScalarFormatter())
+            ax1.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
 
     handles, labels = ax1.get_legend_handles_labels()
     if nqp != 1:
         labels = ['Filter', 'Fit']
-    fig1.legend(handles[0:2], labels[0:2], loc='lower center', bbox_to_anchor=(0.52, -0.01), ncols=2, fontsize=14)
+    if find_bounds == True:
+        for i in range(3):
+            for j in range(3):
+                mult=1.02
+                ybounds = [mult*ybounds[0], mult*ybounds[1]]
+                axes1[i][j].set_ybound(ybounds)
+    fig1.legend(handles[0:2], labels[0:2], loc='lower center', bbox_to_anchor=(0.52, 0.00), ncols=2, fontsize=14)
     fig1.tight_layout()
+    matplotlib.pyplot.tight_layout()
+    matplotlib.pyplot.subplots_adjust(bottom=0.12)
     fig1.savefig(f'{output_name}')
 
     return 0
 
 
-def plot_higher_order_stresses_ref(Gamma, M, M_sim, output_name, element, nqp, increment=None,):
-    '''Plot comparison of stress vs strain (in the current configuration) between homogenized DNS results against calibrated model predictions
+def plot_higher_order_stresses(Gamma, M, M_sim, output_name, element, nqp, increment=None, find_bounds=False):
+    '''Plot comparison of higher order stress and micro-deformation gradient between homogenized DNS results against calibrated model predictions
 
-    :param dict E: The quantities dict storing Green-Lagrange strain
-    :param dict stress: The quantities dict storing either PK2 or Symmetric micro stress of the homogenized DNS results
-    :param dict stress_sim: The quantities dict storing either PK2 or Symmetric micro stress of the calibrated model predictions
+    :param dict Gamma: The quantities dict storing the micro-deformation gradient
+    :param dict M: The quantities dict storing higher order stress from the homogenized DNS results
+    :param dict M_sim: The quantities dict storing higher order stress from the calibrated model predictions
     :param str output_name: The output plot name
     :param int element: The macro (filter) element considered for calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
     :param list increment: An optional list of one or more increments to plot restults
+    :param bool find_bounds: Boolean specifying whether or not to identify common y-axis bounds for all subplots
 
     :returns: ``output_name``
     '''
@@ -227,7 +179,7 @@ def plot_higher_order_stresses_ref(Gamma, M, M_sim, output_name, element, nqp, i
     name = output_name.replace('.PNG','')
     fig1 = matplotlib.pyplot.figure(name, figsize=(12,9))
     axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
-    ybounds = [-1, 1]
+    ybounds = [-0.01, 0.01]
 
     if increment:
         inc = [int(i) for i in increment]
@@ -250,25 +202,39 @@ def plot_higher_order_stresses_ref(Gamma, M, M_sim, output_name, element, nqp, i
                 ax1.plot(Gamma[0][inc,e,i,j,1], M_sim[0][inc,e,i,j,1], '-', color=colors[1], label='Fit, K=2')
                 ax1.plot(Gamma[0][inc,e,i,j,2], M[0][inc,e,i,j,2], 'o', color=colors[2], label='Filter, K=3')
                 ax1.plot(Gamma[0][inc,e,i,j,2], M_sim[0][inc,e,i,j,2], '-', color=colors[2], label='Fit, K=3')
+                lowers = numpy.min([M[0][inc,e,i,j,:], M_sim[0][inc,e,i,j,:]])
+                uppers = numpy.max([M[0][inc,e,i,j,:], M_sim[0][inc,e,i,j,:]])
+                ybounds[0] = numpy.min([ybounds[0], lowers])
+                ybounds[1] = numpy.max([ybounds[1], uppers])
             else:
                 for qp in range(nqp):
                     ax1.plot(Gamma[qp][inc,e,i,j,0], M[qp][inc,e,i,j,0], 'o', color=colors[qp], label=f'Filter, K=1')
-                    ax1.plot(Gamma[qp][inc,e,i,j,0], M_sim[qp][inc,e,i,j,0], '-o', color=colors[qp], label=f'Fit, K=1')
+                    ax1.plot(Gamma[qp][inc,e,i,j,0], M_sim[qp][inc,e,i,j,0], '-', color=colors[qp], label=f'Fit, K=1')
                     ax1.plot(Gamma[qp][inc,e,i,j,1], M[qp][inc,e,i,j,1], '^', color=colors[qp], label=f'Filter, K=2')
-                    ax1.plot(Gamma[qp][inc,e,i,j,1], M_sim[qp][inc,e,i,j,1], '-^', color=colors[qp], label=f'Fit, K=2')
+                    ax1.plot(Gamma[qp][inc,e,i,j,1], M_sim[qp][inc,e,i,j,1], ':', color=colors[qp], label=f'Fit, K=2')
                     ax1.plot(Gamma[qp][inc,e,i,j,2], M[qp][inc,e,i,j,2], 'v', color=colors[qp], label=f'Filter, K=3')
-                    ax1.plot(Gamma[qp][inc,e,i,j,2], M_sim[qp][inc,e,i,j,2], '-v', color=colors[qp], label=f'Fit, K=3')
+                    ax1.plot(Gamma[qp][inc,e,i,j,2], M_sim[qp][inc,e,i,j,2], '-.', color=colors[qp], label=f'Fit, K=3')
+                    lowers = numpy.min([M[qp][inc,e,i,j,:], M_sim[qp][inc,e,i,j,:]])
+                    uppers = numpy.max([M[qp][inc,e,i,j,:], M_sim[qp][inc,e,i,j,:]])
+                    ybounds[0] = numpy.min([ybounds[0], lowers])
+                    ybounds[1] = numpy.max([ybounds[1], uppers])
             ax1.set_xlabel(r"$\Gamma_{" + str(i+1) + str(j+1) + "K}$", fontsize=14)
             ax1.set_ylabel(plot_label, fontsize=14)
-            matplotlib.pyplot.ticklabel_format(style='sci', axis='x')
-            matplotlib.pyplot.ticklabel_format(style='sci', axis='y')
-            #if (i == 2) and (j ==2):
-            matplotlib.pyplot.xticks(rotation=45)
-            k = k + 1
+            ax1.set_xticks(ax1.get_xticks(), ax1.get_xticklabels(), rotation=45)
+            ax1.xaxis.set_major_formatter(matplotlib.pyplot.ScalarFormatter())
+            ax1.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
 
     handles, labels = ax1.get_legend_handles_labels()
-    fig1.legend(handles[0:6], labels[0:6], loc='lower center', bbox_to_anchor=(0.52, -0.01), ncols=6, fontsize=12)
+    if find_bounds == True:
+        for i in range(3):
+            for j in range(3):
+                mult=1.02
+                ybounds = [mult*ybounds[0], mult*ybounds[1]]
+                axes1[i][j].set_ybound(ybounds)
+    fig1.legend(handles[0:6], labels[0:6], loc='lower center', bbox_to_anchor=(0.52, 0.), ncols=6, fontsize=12)
     fig1.tight_layout()
+    matplotlib.pyplot.tight_layout()
+    matplotlib.pyplot.subplots_adjust(bottom=0.12)
     fig1.savefig(f'{output_name}')
 
     return 0
@@ -305,6 +271,7 @@ def collect_deviatoric_norm_errors(nqp, t, e, PK2, PK2_sim, SIGMA, SIGMA_sim, M,
 
     #return PK2_dev_norms, PK2_sim_dev_norms, SIGMA_dev_norms, SIGMA_sim_dev_norms, M_dev_norms, M_sim_dev_norms
     return PK2_dev_norms-PK2_sim_dev_norms, SIGMA_dev_norms-SIGMA_sim_dev_norms, M_dev_norms-M_sim_dev_norms
+
 
 def evaluate_constraints(parameters, svals=None):
     '''Evaluate Smith conditions by calling tardigrade_micromorphic_linear_elasticity/src/python/linear_elastic_parameter_constraint_equations
@@ -353,6 +320,7 @@ def evaluate_model(inputs, parameters, model_name, parameters_to_fparams, nsdvs,
         for the function
     :param int nsdvs: The number of solution dependant state variables
     :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
     :param int maxinc: The maximum increment to evaluate
     :param int dim: The spatial dimension of the problem, default=3
     :param int maxsubiter: The maximum number of sub iterations, default=5
