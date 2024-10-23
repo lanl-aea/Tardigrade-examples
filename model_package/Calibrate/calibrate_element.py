@@ -119,6 +119,7 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=No
     :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
     :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
     :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
     :param int increment: An optional list of one or more increments to perform calibration
     :param list stresses_to_include: Which reference configuration stresses to calculate an error for the objective function, default=['S', 'SIGMA', 'M']
 
@@ -266,6 +267,7 @@ def opti_options_1(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
     :param float nu_targ: The targeted Poisson ratio if calibrating 2 parameter elasticity
     :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
     :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
     :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
     :param int increment: An optional list of one or more increments to perform calibration
 
@@ -294,6 +296,7 @@ def opti_options_2(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
     :param float nu_targ: The targeted Poisson ratio if calibrating 2 parameter elasticity
     :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
     :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
     :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
     :param int increment: An optional list of one or more increments to perform calibration
 
@@ -319,6 +322,7 @@ def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
     :param float nu_targ: The targeted Poisson ratio if calibrating 2 parameter elasticity
     :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
     :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
     :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
     :param int increment: An optional list of one or more increments to perform calibration
 
@@ -346,6 +350,7 @@ def opti_options_4(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
     :param float nu_targ: The targeted Poisson ratio if calibrating 2 parameter elasticity
     :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
     :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
     :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
     :param int increment: An optional list of one or more increments to perform calibration
 
@@ -677,18 +682,26 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         M_sim = XRT.map_sim(M_sim, ninc, third_order=True)
         cauchy_sim, symm_sim = XRT.get_current_configuration_stresses(PK2_sim, SIGMA_sim, inputs[2], inputs[3])
 
+        calibration_tools.plot_stresses(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}.PNG',
+                                        element, nqp, 'E', 'S', increment=increment)
+        calibration_tools.plot_stresses(Ecal, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}.PNG',
+                                        element, nqp, '\mathcal{E}', '\Sigma', increment=increment)
+        calibration_tools.plot_higher_order_stresses(Gamma, M, M_sim, f'{plot_file}_M_fit_case_{case}.PNG',
+                                                     element, nqp, increment=increment)
+        calibration_tools.plot_stresses(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}_bounded.PNG',
+                                        element, nqp, 'E', 'S',increment=increment, find_bounds=True)
+        calibration_tools.plot_stresses(Ecal, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}_bounded.PNG',
+                                        element, nqp, '\mathcal{E}', '\Sigma', increment=increment, find_bounds=True)
+        calibration_tools.plot_higher_order_stresses(Gamma, M, M_sim, f'{plot_file}_M_fit_case_{case}_bounded.PNG',
+                                                     element, nqp, increment=increment, find_bounds=True)
+        # plot the full range of predictions if specific increments were speficied
         if increment:
-            calibration_tools.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}.PNG', element, nqp, increment=increment)
-            calibration_tools.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}.PNG', element, nqp, increment=increment)
-            calibration_tools.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}_ALL.PNG', element, nqp)
-            calibration_tools.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}_ALL.PNG', element, nqp)
-            calibration_tools.plot_higher_order_stresses_ref(Gamma, M, M_sim, f'{plot_file}_M_fit_case_{case}.PNG', element, nqp, increment=increment)
-        else:
-            calibration_tools.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element, nqp)
-            calibration_tools.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element, nqp)
-            calibration_tools.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}.PNG', element, nqp)
-            calibration_tools.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}.PNG', element, nqp)
-            calibration_tools.plot_higher_order_stresses_ref(Gamma, M, M_sim, f'{plot_file}_M_fit_case_{case}.PNG', element, nqp)
+            calibration_tools.plot_stresses(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}_ALL.PNG',
+                                            element, nqp, 'E', 'S')
+            calibration_tools.plot_stresses(Ecal, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}_ALL.PNG',
+                                            element, nqp, '\mathcal{E}', '\Sigma')
+            calibration_tools.plot_higher_order_stresses(Gamma, M, M_sim, f'{plot_file}_M_fit_case_{case}_ALL.PNG',
+                                                         element, nqp)
 
     # output parameters!
     output_filename = output_file
