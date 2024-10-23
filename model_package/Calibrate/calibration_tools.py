@@ -1,3 +1,5 @@
+import yaml
+
 import numpy
 import matplotlib.pyplot
 
@@ -94,7 +96,8 @@ def isolate_element(quantities, type, elem):
     return(output)
 
 
-def plot_stresses(strain, stress, stress_sim, output_name, element, nqp, x_label_base, y_label_base, increment=None, find_bounds=False):
+def plot_stresses(strain, stress, stress_sim, output_name, element, nqp, x_label_base, y_label_base,
+                  increment=None, find_bounds=False):
     '''Plot comparison of stress vs strain between homogenized DNS results against calibrated model predictions
 
     :param dict strain: The quantities dict storing a strain measure
@@ -187,7 +190,6 @@ def plot_higher_order_stresses(Gamma, M, M_sim, output_name, element, nqp, incre
         inc = [i for i in range(0, numpy.shape(M[0][:,0,0,0,0])[0])]
 
     colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
-    k = 0
     e = 0
     for i in range(3):
         for j in range(3):
@@ -240,20 +242,116 @@ def plot_higher_order_stresses(Gamma, M, M_sim, output_name, element, nqp, incre
     return 0
 
 
-def deviatoric_norm(stress, third_order=False):
+def plot_stress_norm_calibration_comparison(PK2, PK2_sim, SIGMA, SIGMA_sim, M, M_sim, E, Ecal, Gamma,
+                                            output_name, nqp, increment=None):
+    '''Plot the infinity norms of deviatoric Cauchy, symmetric micro, and higher stresses for both homogenized DNS and calibration
+
+    :param dict PK2: The quantities dict storing homogenized DNS second Piola-Kirchhoff stress
+    :param dict PK2_sim: The quantities dict storing calibrated second Piola-Kirchhoff stress
+    :param dict SIGMA: The quantities dict storing homogenized DNS symmetric micro stress
+    :param dict SIGMA_sim: The quantities dict storing calibrated symmetric micro stress
+    :param dict M: The quantities dict storing homogenized DNS higher order stress
+    :param dict M_sim: The quantities dict storing calibrated higher order stress
+    :param dict E: The quantities dict storing homogenized DNS Green-Lagrange strain
+    :param dict Ecal: The quantities dict storing homogenized DNS micro strain
+    :param dict Gamma: The quantities dict storing homogenized DNS micro-deformation gradient
+    :param str output_name: Output filename
+    :param int nqp: The number of quadrature points
+    :param list increment: An optional list of one or more increments to plot restults
+
+    :returns: ``output_name`` plot
+    '''
+
+    fig, axes = matplotlib.pyplot.subplots(1, 3)
+
+    if increment:
+        inc = [int(i) for i in increment]
+    else:
+        inc = [i for i in range(0, numpy.shape(E[0][:,0,0,0])[0])]
+
+    e = 0
+
+    colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
+    for qp in range(nqp):
+        # take norms
+        PK2_norm, SIGMA_norm, PK2_norm_sim, SIGMA_norm_sim = [], [], [], []
+        M1_norm, M2_norm, M3_norm = [], [], []
+        M1_norm_sim, M2_norm_sim, M3_norm_sim = [], [], []
+        E_norm, Ecal_norm, Gamma_norm = [], [], []
+        for t in inc:
+            PK2_norm = numpy.hstack([PK2_norm, deviatoric_norm(PK2[qp][t,e,:,:])])
+            PK2_norm_sim = numpy.hstack([PK2_norm_sim, deviatoric_norm(PK2_sim[qp][t,e,:,:])])
+            SIGMA_norm = numpy.hstack([SIGMA_norm, deviatoric_norm(SIGMA[qp][t,e,:,:])])
+            SIGMA_norm_sim = numpy.hstack([SIGMA_norm_sim, deviatoric_norm(SIGMA_sim[qp][t,e,:,:])])
+            M_norms = deviatoric_norm(M[qp][t,e,:,:,:], third_order=True)
+            M_norms_sim = deviatoric_norm(M_sim[qp][t,e,:,:,:], third_order=True)
+            M1_norm = numpy.hstack([M1_norm, M_norms[0]])
+            M1_norm_sim = numpy.hstack([M1_norm_sim, M_norms_sim[0]])
+            M2_norm = numpy.hstack([M2_norm, M_norms[1]])
+            M2_norm_sim = numpy.hstack([M2_norm_sim, M_norms_sim[1]])
+            M3_norm = numpy.hstack([M3_norm, M_norms[2]])
+            M3_norm_sim = numpy.hstack([M3_norm_sim, M_norms_sim[2]])
+            E_norm = numpy.hstack([E_norm, deviatoric_norm(E[qp][t,e,:,:])])
+            Ecal_norm = numpy.hstack([Ecal_norm, deviatoric_norm(Ecal[qp][t,e,:,:])])
+            Gamma_norm = numpy.hstack([Gamma_norm, deviatoric_norm(Gamma[qp][t,e,:,:,:], third_order=True, full_norm=True)])
+
+        axes[0].plot(E_norm, PK2_norm, 'o', color=colors[qp])
+        axes[0].plot(E_norm, PK2_norm_sim, '-', color=colors[qp])
+        axes[1].plot(Ecal_norm, SIGMA_norm, 'o', color=colors[qp])
+        axes[1].plot(Ecal_norm, SIGMA_norm_sim, '-', color=colors[qp])
+        axes[2].plot(Gamma_norm, M1_norm, 'o', label=f"Filter, K=1", color=colors[qp])
+        axes[2].plot(Gamma_norm, M1_norm_sim, '-', label=f"Fit, K=1", color=colors[qp])
+        axes[2].plot(Gamma_norm, M2_norm, '^', label=f"Filter, K=2", color=colors[qp])
+        axes[2].plot(Gamma_norm, M2_norm_sim, ':', label=f"Fit, K=2", color=colors[qp])
+        axes[2].plot(Gamma_norm, M3_norm, 'v', label=f"Filter, K=3", color=colors[qp])
+        axes[2].plot(Gamma_norm, M3_norm_sim, '-.', label=f"Fit, K=3", color=colors[qp])
+
+    axes[0].set_ylabel(r'$||dev\left(S_{IJ}\right)|| \left( MPa \right)$', fontsize=14)
+    axes[0].set_xlabel(r'$||dev\left(E_{IJ}\right)||$', fontsize=14)
+
+    axes[1].set_ylabel(r'$||dev\left(\Sigma_{IJ}\right)|| \left( MPa \right)$', fontsize=14)
+    axes[1].set_xlabel(r'$||dev\left(\mathcal{E}_{IJ}\right)|| $', fontsize=14)
+
+    axes[2].set_ylabel(r'$||dev\left(M_{IJK}\right)|| \left( MPa \cdot mm^2 \right)$', fontsize=14)
+    axes[2].set_xlabel(r'$||dev\left(\Gamma_{IJK}\right)||$', fontsize=14)
+
+    fig.set_figheight(5)
+    fig.set_figwidth(12)
+    handles, labels = axes[2].get_legend_handles_labels()
+    fig.legend(handles[0:6], labels[0:6], loc='lower center', bbox_to_anchor=(0.52, 0.), ncols=6, fontsize=12)
+    fig.tight_layout()
+    matplotlib.pyplot.tight_layout()
+    matplotlib.pyplot.subplots_adjust(bottom=0.2)
+    fig.savefig(f'{output_name}')
+
+    return 0
+
+
+def deviatoric_norm(stress, third_order=False, full_norm=False):
     '''Calculate the norm(s) of the deviatoric part of a stress quantity
 
     :param array-like stress: A second or third order stress tenosr
     :param bool third_order: A boolean specifying whether the stress tensor is third order
+    :param bool full_norm: A boolean specifying whether a third order tensor norm should be across all indices
 
     :returns: list of norm of deviatoric stresses (1 item for second order stress, 3 for third order)
     '''
 
+    # Third order tenosr norms
     if third_order == True:
-        norm = []
-        for k in range(3):
-            dev = stress[:,:,k] - (1/3)*numpy.eye(3)*numpy.trace(stress[:,:,k])
-            norm.append(numpy.linalg.norm(dev, ord='fro'))
+        # norm of each "K index"
+        if full_norm ==False:
+            norm = []
+            for k in range(3):
+                dev = stress[:,:,k] - (1/3)*numpy.eye(3)*numpy.trace(stress[:,:,k])
+                norm.append(numpy.linalg.norm(dev, ord='fro'))
+        # Full norm
+        else:
+            dev = 0
+            for k in range(3):
+                dev = dev + stress[:,:,k] - (1/3)*numpy.eye(3)*numpy.trace(stress[:,:,k])
+            norm = [numpy.linalg.norm(dev, ord='fro')]
+    # Norm of second order tensor
     else:
         dev = stress - (1/3)*numpy.eye(3)*numpy.trace(stress)
         norm = [numpy.linalg.norm(dev, ord='fro')]
@@ -322,6 +420,35 @@ def evaluate_constraints(parameters, svals=None):
     parameter_dictionary.update(svals)
  
     return [const(**parameter_dictionary) for const in consts]
+
+
+def parse_input_parameters(input_parameters):
+    ''' Parse materials from a YAML file contained calibration results
+
+    :param str input_parameters: YAML file containing calibration results
+
+    :returns: array of elastic parameters and plastic parameters (if there are any)
+    '''
+
+    stream = open(input_parameters, 'r')
+    UI = yaml.load(stream, Loader=yaml.FullLoader)
+    stream.close()
+    # elastic parameters case
+    if len(UI.keys()) <= 5:
+        e_params = numpy.hstack([[2], [float(i) for i in UI['line 1'].split(' ')[1:]],
+                                 [5], [float(i) for i in UI['line 2'].split(' ')[1:]],
+                                 [11],[float(i) for i in UI['line 3'].split(' ')[1:]],
+                                 [2], [float(i) for i in UI['line 4'].split(' ')[1:]]])
+        return e_params, None
+    else:
+        e_params = numpy.hstack([[2], [float(i) for i in UI['line 10'].split(' ')[1:]],
+                                 [5], [float(i) for i in UI['line 11'].split(' ')[1:]],
+                                 [11],[float(i) for i in UI['line 12'].split(' ')[1:]],
+                                 [2], [float(i) for i in UI['line 13'].split(' ')[1:]]])
+        p_params = numpy.hstack([[float(i) for i in UI['line 01'].split(' ')[1:]],
+                                 [float(i) for i in UI['line 02'].split(' ')[1:]],
+                                 [float(i) for i in UI['line 03'].split(' ')[1:]]])
+        return e_params, p_params
 
 
 def evaluate_model(inputs, parameters, model_name, parameters_to_fparams, nsdvs, element, nqp, maxinc=None, dim=3, maxsubiter=5):
