@@ -130,10 +130,10 @@ env.Default()
 
 # ============================================================ LINK SOFTWARE ===
 # Sbatch
-env['sbatch'] = waves.scons_extensions.add_program(["sbatch"], env)
+env['sbatch'] = waves.scons_extensions.add_program(env,["sbatch"])
 
 # Sphinx
-env["sphinx_build"] = waves.scons_extensions.add_program(["sphinx-build"], env)
+env["sphinx_build"] = waves.scons_extensions.add_program(env, ["sphinx-build"])
 
 # Read in config.yml
 config_file = 'config_software.yml'
@@ -143,18 +143,18 @@ stream.close()
 
 # MPI
 mpi_location = program_paths['mpi']
-env['mpi'] = waves.scons_extensions.find_program(mpi_location, env)
+env['mpi'] = waves.scons_extensions.find_program(env, mpi_location)
 
 # Abaqus
 abaqus_windows = ["C:/Simulia/Commands/abaqus.bat"]
-env["abaqus"] = waves.scons_extensions.find_program(program_paths['Abaqus'] + abaqus_windows, env)
+env["abaqus"] = waves.scons_extensions.find_program(env, program_paths['Abaqus'] + abaqus_windows)
 
 # Cubit
-env["cubit"] = waves.scons_extensions.add_cubit(program_paths['Cubit'] + ["cubit"], env)
+env["cubit"] = waves.scons_extensions.add_cubit(env, program_paths['Cubit'] + ["cubit"])
 
 # Ratel
 ratel_location = program_paths['Ratel']
-env['Ratel'] = waves.scons_extensions.find_program(ratel_location, env)
+env['Ratel'] = waves.scons_extensions.find_program(env, ratel_location)
 if env['Ratel']:
     env.PrependENVPath("PATH", str(pathlib.Path(env['Ratel']).parent))
 ratel_solver = Builder(
@@ -208,7 +208,7 @@ env['LD_PATH'] = program_paths['LD_PATH']
 
 # Tardigrade-MOOSE
 tardigrade_location = program_paths['Tardigrade']
-env['Tardigrade'] = waves.scons_extensions.find_program(tardigrade_location, env)
+env['Tardigrade'] = waves.scons_extensions.find_program(env, tardigrade_location)
 if env['Tardigrade']:
     env.PrependENVPath("PATH", str(pathlib.Path(env['Tardigrade']).parent))
 tardigrade_solver = Builder(
