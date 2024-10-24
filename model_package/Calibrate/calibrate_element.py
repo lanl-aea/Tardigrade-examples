@@ -105,10 +105,6 @@ def parameters_to_fparams(parameters):
 
     return fparams
 
-# Objective function evaluation lists
-Xstore = []
-Lstore = []
-
 
 def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=None, stresses_to_include=['S','SIGMA','M'], dev_norm_errors=False):
     '''Primary objective function for calibrating micromorphic linear elasticity constitutive model against homogenized DNS data
@@ -422,42 +418,41 @@ def handle_output_for_UQ(Xstore, Lstore, case):
         'lamb':[], 'mu':[], 'eta':[], 'tau':[], 'kappa':[], 'nu':[], 'sigma':[],
         'tau1':[], 'tau2':[], 'tau3':[], 'tau4':[], 'tau5':[], 'tau6':[], 'tau7':[],
         'tau8':[], 'tau9':[], 'tau10':[], 'tau11':[]}
-    # Store results into dictionary
-    for X, L in zip(Xstore, Lstore):
-
-        UQ_dict['obj'].append(L)
-        UQ_dict['lamb'].append(X[0])
-        UQ_dict['mu'].append(X[1])
-        UQ_dict['eta'].append(X[2])
-        UQ_dict['tau'].append(X[3])
-        UQ_dict['kappa'].append(X[4])
-        UQ_dict['nu'].append(X[5])
-        UQ_dict['sigma'].append(X[6])
-        UQ_dict['tau1'].append(X[7])
-        UQ_dict['tau2'].append(X[8])
-        UQ_dict['tau3'].append(X[9])
-        UQ_dict['tau4'].append(X[10])
-        UQ_dict['tau5'].append(X[11])
-        UQ_dict['tau6'].append(X[12])
-        UQ_dict['tau7'].append(X[13])
-        UQ_dict['tau8'].append(X[14])
-        UQ_dict['tau9'].append(X[15])
-        UQ_dict['tau10'].append(X[16])
-        UQ_dict['tau11'].append(X[17])
+    # # Store results into dictionary
+    Xstore = numpy.array(Xstore).T
+    UQ_dict['obj'] = Lstore
+    UQ_dict['lamb'] = Xstore[0].flatten()
+    UQ_dict['mu'] = Xstore[1].flatten()
+    UQ_dict['eta'] = Xstore[2].flatten()
+    UQ_dict['tau'] = Xstore[3].flatten()
+    UQ_dict['kappa'] = Xstore[4].flatten()
+    UQ_dict['nu'] = Xstore[5].flatten()
+    UQ_dict['sigma'] = Xstore[6].flatten()
+    UQ_dict['tau1'] = Xstore[7].flatten()
+    UQ_dict['tau2'] = Xstore[8].flatten()
+    UQ_dict['tau3'] = Xstore[9].flatten()
+    UQ_dict['tau4'] = Xstore[10].flatten()
+    UQ_dict['tau5'] = Xstore[11].flatten()
+    UQ_dict['tau6'] = Xstore[12].flatten()
+    UQ_dict['tau7'] = Xstore[13].flatten()
+    UQ_dict['tau8'] = Xstore[14].flatten()
+    UQ_dict['tau9'] = Xstore[15].flatten()
+    UQ_dict['tau10'] = Xstore[16].flatten()
+    UQ_dict['tau11'] = Xstore[17].flatten()
 
     # remove zero entries depending on case
-    remove = []
-    if case == 1:
-        remove = ['eta','tau','kappa','nu','sigma','tau1','tau2','tau3',
-                  'tau4','tau5','tau6','tau7','tau8','tau9','tau10','tau11']
-    elif case == 2:
-        remove = ['tau1','tau2','tau3','tau4','tau5','tau6','tau7','tau8',
-                  'tau9','tau10','tau11']
-    elif case == 3:
-        remove = ['tau1','tau2','tau3','tau4','tau5','tau6','tau8','tau9',
-                  'tau10','tau11']
-    for item in remove:
-        UQ_dict.pop(item)
+    # remove = []
+    # if case == 1:
+        # remove = ['eta','tau','kappa','nu','sigma','tau1','tau2','tau3',
+                  # 'tau4','tau5','tau6','tau7','tau8','tau9','tau10','tau11']
+    # elif case == 2:
+        # remove = ['tau1','tau2','tau3','tau4','tau5','tau6','tau7','tau8',
+                  # 'tau9','tau10','tau11']
+    # elif case == 3:
+        # remove = ['tau1','tau2','tau3','tau4','tau5','tau6','tau8','tau9',
+                  # 'tau10','tau11']
+    # for item in remove:
+        # UQ_dict.pop(item)
 
     return(UQ_dict)
 
@@ -547,6 +542,8 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         nu_inc = -1
     nu_targ = numpy.average([(-1*numpy.average([E[q][nu_inc,0,0,0],
                                                 E[q][nu_inc,0,1,1]])/E[q][nu_inc,0,2,2]) for q in range(0,nqp)])
+
+
 
     # Estimate initial parameters
     param_est = initial_estimate(Emod, nu, L)
@@ -840,7 +837,11 @@ def get_parser():
 
 if __name__ == '__main__':
     parser = get_parser()
-   
+
+    # Objective function evaluation lists
+    Xstore = []
+    Lstore = []
+
     args, unknown = parser.parse_known_args()
     sys.exit(calibrate(
                     input_file=args.input_file,
