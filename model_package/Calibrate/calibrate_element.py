@@ -309,7 +309,7 @@ def opti_options_2(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
         return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp,
                          increment=increment, stresses_to_include=['S', 'SIGMA'], dev_norm_errors=dev_norm_errors))
     else:
-        return(numpy.hstack([X1, others]))
+        return(XX)
 
 
 def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None, dev_norm_errors=False):
@@ -337,7 +337,7 @@ def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
         return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp,
                          increment=increment, stresses_to_include=['S', 'SIGMA', 'M'], dev_norm_errors=dev_norm_errors))
     else:
-        return(numpy.hstack([X1, tau1to6, X2, tau8to11]))
+        return(XX)
 
 
 def opti_options_4(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None, dev_norm_errors=False):
@@ -390,6 +390,31 @@ def opti_options_6(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, second_o
         return(XX)
 
 
+def opti_options_7(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, third_order_parameters, calibrate=True, increment=None, dev_norm_errors=False):
+    '''Objective function number 3 used for calibrating 8 parameters of micromorphic linear elasticity
+
+    :param array-like X: Array of micromorphic linear elasticity parameters
+    :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
+    :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
+    :param float nu_targ: The targeted Poisson ratio if calibrating 2 parameter elasticity
+    :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
+    :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
+    :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
+    :param int increment: An optional list of one or more increments to perform calibration
+
+    :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
+    '''
+
+    XX = numpy.hstack([X, third_order_parameters])
+    if calibrate:
+        return(objective(XX, Y, inputs, cal_norm, nu_targ, case, element, nqp,
+                         increment=increment, stresses_to_include=['S', 'SIGMA'], dev_norm_errors=dev_norm_errors))
+    else:
+        return(XX)
+
+
 def handle_output_for_UQ(Xstore, Lstore, case):
 
     UQ_dict = {
@@ -438,7 +463,7 @@ def handle_output_for_UQ(Xstore, Lstore, case):
 
 
 def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=None, plot_file=None,
-              average=False, UQ_file=None, cal_norm='L1', bound_half_width=1.e5, dev_norm_errors=False):
+              average=False, UQ_file=None, cal_norm='L1', bound_half_width=1.e5, dev_norm_errors=False, input_elastic_parameters=None):
     ''' Unpack DNS data and run calibration routine
 
     :param str input_file: The homogenized XDMF file output by the Micromorphic Filter
@@ -634,7 +659,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print(f"fit params = {res.x}")
         params = opti_options_3(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
     elif case == 6:
-        # Calibrate all higher order tau parmaeters
+        # Calibrate only higher order tau parmaeters
         param_mask = [False, False, False, False, False, False, False,
                       True, True, True, True, True, True, True, True, True, True, True]
         second_order_params = param_est[0:7]
@@ -651,6 +676,55 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print(f"res = {res}")
         print(f"fit params = {res.x}")
         params = opti_options_6(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, second_order_params, calibrate=False)
+    elif case == 7:
+        # Calibrate second order parmaeters and read in existing higher order parameters
+        param_mask = [True, True, True, True, True, True, True,
+                      False, False, False, False, False, False,
+                      False, False, False, False, False]
+        param_est = list(compress(param_est, param_mask))
+        print('initial parameter estimation:')
+        print(param_est)
+        # unpack previously calibrated parameters
+        assert input_elastic_parameters != None, "input_elastic_parameters must be provided!"
+        input_parameters, _ = calibration_tools.parse_input_parameters(input_elastic_parameters)
+        third_order_params = input_parameters[10:21]
+        print(f'input third_order_parameters = {third_order_params}')
+        parameter_bounds = list(compress(parameter_bounds,param_mask))
+        res = scipy.optimize.differential_evolution(func=opti_options_7,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=num_workers,
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, third_order_params, True, increment, dev_norm_errors))
+        print(f"res = {res}")
+        print(f"fit params = {res.x}")
+        params = opti_options_7(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, third_order_params, calibrate=False)
+    elif case == 8:
+        # Calibrate all parameters using an initial guess for third order parameters from an initial calibration
+        param_mask = [True, True, True, True, True, True, True,
+                      False, False, False, False, False, False,
+                      False, False, False, False, False]
+        param_est = list(compress(param_est, param_mask))
+        parameter_bounds = list(compress(parameter_bounds,param_mask))
+        print('initial parameter estimation:')
+        print(param_est)
+        # unpack previously calibrated parameters
+        assert input_elastic_parameters != None, "input_elastic_parameters must be provided!"
+        input_parameters, _ = calibration_tools.parse_input_parameters(input_elastic_parameters)
+        third_order_params = input_parameters[10:21]
+        print(f'input third_order_parameters = {third_order_params}')
+        param_est = numpy.hstack([param_est, third_order_params])
+        third_order_bounds = [sorted([0.1*p, 10.*p]) for p in third_order_params]
+        parameter_bounds = parameter_bounds + third_order_bounds
+        res = scipy.optimize.differential_evolution(func=opti_options_4,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=num_workers,
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment, dev_norm_errors))
+        print(f"res = {res}")
+        print(f"fit params = {res.x}")
+        params = opti_options_4(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
     else:
         print('Select valid calibration case!')
 
@@ -723,7 +797,7 @@ def get_parser():
     filename = inspect.getfile(lambda: None)
     basename = os.path.basename(filename)
     basename_without_extension, extension = os.path.splitext(basename)
-    cli_description = "Calibrate micromorphic linear elasticity for averaged output on a single filter domain (i.e. macroscale element)"
+    cli_description = "Calibrate micromorphic linear elasticity on a single filter domain (i.e. macroscale element)"
     parser = argparse.ArgumentParser(description=cli_description,
                                      prog=os.path.basename(filename))
     parser.add_argument('-i', '--input-file', type=str,
@@ -758,6 +832,8 @@ def get_parser():
               All other parameter bounds will be [-1*bound_half_width, bound_half_width]')
     parser.add_argument('--dev-norm-errors', type=str, required=False, default=False,
         help='Boolean whether to inclue deviatoric stress norms during calibraiton')
+    parser.add_argument('--input-elastic-parameters', type=str, required=False, default=None,
+        help='Yaml file containing previously calibrated elastic parameters')
 
     return parser
 
@@ -781,4 +857,5 @@ if __name__ == '__main__':
                     cal_norm=args.cal_norm,
                     bound_half_width=args.bound_half_width,
                     dev_norm_errors=str2bool(args.dev_norm_errors),
+                    input_elastic_parameters=args.input_elastic_parameters,
                     ))
