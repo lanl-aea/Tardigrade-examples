@@ -508,9 +508,8 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
     # calibrate!
     maxit = 2000
     num_workers = 8
-    # TODO: streamline this workflow, very redundant
-    # calibrate just lambda and mu
     if case == 1:
+        # Case 1 - calibrate just lambda and mu
         print(f'Target Poisson ratio = {nu_targ}')
         if numpy.isclose(nu_targ, 0.0, atol=1e-4):
             print(f'nu_targ is too close to zero to calibrate lambda')
@@ -535,8 +534,8 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
         params = opti_options_1(list(res.x), Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
-    # calibrate first 7 parameters
     elif case == 2:
+        # Case 2 - calibrate first 7 parameters
         param_mask = [True, True, True, True, True, True, True,
                       False, False, False, False, False, False,
                       False, False, False, False, False]
@@ -551,8 +550,8 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print(f"res = {res}")
         print(f"fit params = {res.x}")
         params = opti_options_2(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
-    # calibrate first 7 parameters and tau 7
     elif case == 3:
+        # Case 3 - calibrate first 7 parameters and tau 7, do not use error for M in objective function
         param_mask = [True, True, True, True, True, True, True,
                       False, False, False, False, False, False,
                       True, False, False, False, False]
@@ -569,8 +568,8 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print(f"res = {res}")
         print(f"fit params = {res.x}")
         params = opti_options_3(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
-    # calibrate all parameters
     elif case == 4:
+        # Case 4 - calibrate all parameters simultaneously
         param_mask = [True, True, True, True, True, True, True,
                       True, True, True, True, True, True, True, True, True, True, True]
         param_est = list(compress(param_est, param_mask))
@@ -587,8 +586,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print(f"fit params = {res.x}")
         params = opti_options_4(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
     elif case == 5:
-        # Same as case 3, but this time we'll force the calibrate function to use errors
-        #  from the higher order stress
+        # Case 5 - Same as case 3, but include M error in objective function
         param_mask = [True, True, True, True, True, True, True,
                       False, False, False, False, False, False,
                       True, False, False, False, False]
@@ -606,7 +604,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print(f"fit params = {res.x}")
         params = opti_options_3(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
     elif case == 6:
-        # Calibrate only higher order tau parmaeters
+        # Case 6 - Calibrate only the 11 higher order tau parmaeters
         param_mask = [False, False, False, False, False, False, False,
                       True, True, True, True, True, True, True, True, True, True, True]
         second_order_params = param_est[0:7]
@@ -624,7 +622,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print(f"fit params = {res.x}")
         params = opti_options_6(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, second_order_params, calibrate=False)
     elif case == 7:
-        # Calibrate second order parmaeters and read in existing higher order parameters
+        # Case 7 - Calibrate 7 second order parmaeters and read in existing higher order parameters which are fixed
         param_mask = [True, True, True, True, True, True, True,
                       False, False, False, False, False, False,
                       False, False, False, False, False]
@@ -647,7 +645,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         print(f"fit params = {res.x}")
         params = opti_options_7(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, third_order_params, calibrate=False)
     elif case == 8:
-        # Calibrate all parameters using an initial guess for third order parameters from an initial calibration
+        # Case 8 - Calibrate all 18 parameters and read in existing higher order parameters which as an initial estimate with adjusted bounds
         param_mask = [True, True, True, True, True, True, True,
                       False, False, False, False, False, False,
                       False, False, False, False, False]
@@ -691,9 +689,6 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
     #print(f'population = \n {population}\n')
     #print(f'energies = \n {energies}\n')
 
-    # Manage Objective evaluation for UQ
-
-
     # plot resulting calibration
     if plot_file:
         print('plotting...')
@@ -725,7 +720,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
             calibration_tools.plot_higher_order_stresses(Gamma, M, M_sim, f'{plot_file}_M_fit_case_{case}_ALL.PNG',
                                                          element, nqp)
 
-    # output parameters!
+    # output parameters
     output_filename = output_file
     output_dict = {}
     p = params
