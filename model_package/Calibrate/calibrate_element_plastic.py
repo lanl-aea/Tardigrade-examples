@@ -139,6 +139,17 @@ def objective(x0, Y, inputs, cal_norm, case, element, nqp, increment=None, stres
 def opti_options_1(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
     '''Calibrate macro-plasticity initial cohesion parameter
 
+    :param array-like X: Array of micromorphic plasticity parameters to calibrate
+    :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
+    :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
+    :param int case: The calibration "case".
+    :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
+    :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
+    :param int increment: An optional list of one or more increments to perform calibration
+
+    :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
     '''
     others = [1.e-4,       # macro hardening
               1.e8, 1.e-4, # micro terms
@@ -155,6 +166,17 @@ def opti_options_1(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibra
 def opti_options_2(X, cohesion, Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
     '''Calibrate macro plasticity hardening using an initial estimate/calibration for cohesion
 
+    :param array-like X: Array of micromorphic plasticity parameters to calibrate
+    :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
+    :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
+    :param int case: The calibration "case".
+    :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
+    :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
+    :param int increment: An optional list of one or more increments to perform calibration
+
+    :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
     '''
     others = [
               1.e8, 1.e-8, # micro terms
@@ -171,6 +193,17 @@ def opti_options_2(X, cohesion, Y, inputs, e_params, cal_norm, case, element, nq
 def opti_options_3(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
     '''Calibrate micro-plasticity initial cohesion parameter
 
+    :param array-like X: Array of micromorphic plasticity parameters to calibrate
+    :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
+    :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
+    :param int case: The calibration "case".
+    :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
+    :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
+    :param int increment: An optional list of one or more increments to perform calibration
+
+    :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
     '''
     others = [1.e8, 1.e-8]
 
@@ -184,6 +217,17 @@ def opti_options_3(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibra
 def opti_options_4(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
     '''Calibrate macro-plasticity initial cohesion and hardening parameters
 
+    :param array-like X: Array of micromorphic plasticity parameters to calibrate
+    :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
+    :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
+    :param int case: The calibration "case".
+    :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
+    :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
+    :param int increment: An optional list of one or more increments to perform calibration
+
+    :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
     '''
     others = [1.e8, 1.e-8]
 
@@ -197,6 +241,17 @@ def opti_options_4(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibra
 def opti_options_5(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
     '''Calibrate micro-plasticity initial cohesion and hardening parameters
 
+    :param array-like X: Array of micromorphic plasticity parameters to calibrate
+    :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
+    :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
+    :param int case: The calibration "case".
+    :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
+    :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
+    :param int increment: An optional list of one or more increments to perform calibration
+
+    :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
     '''
     others = [1.e8, 1.e-8]
 
@@ -210,6 +265,17 @@ def opti_options_5(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibra
 def opti_options_6(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
     '''Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters
 
+    :param array-like X: Array of micromorphic plasticity parameters to calibrate
+    :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
+    :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
+    :param int case: The calibration "case".
+    :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
+    :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
+    :param int increment: An optional list of one or more increments to perform calibration
+
+    :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
     '''
     others = [1.e8, 1.e-8]
 
@@ -282,8 +348,6 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
 
     # Unpack elastic parameters
     e_params, f_params = calibration_tools.parse_input_parameters(input_parameters)
-
-    # Assume we are just calibrating macro plasticity for now!
 
     # calibrate!
     cal_norm = 'L1'
