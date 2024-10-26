@@ -136,8 +136,8 @@ def Isbuga_micrormorphic_elasticity_parameters(Emod, nu, L):
 
     # collect
     parameters = numpy.array([lamb, mu, eta, tau, kappa, nu_new, sigma,
-                           tau_1, tau_2, tau_3, tau_4, tau_5, tau_6,
-                           tau_7, tau_8, tau_9, tau_10, tau_11])
+                              tau_1, tau_2, tau_3, tau_4, tau_5, tau_6,
+                              tau_7, tau_8, tau_9, tau_10, tau_11])
 
     return(parameters)
 
