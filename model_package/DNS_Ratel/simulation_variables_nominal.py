@@ -196,8 +196,7 @@ I43_damage = {
     'filter_parallel': 8,
     # parameters for elastic calibration
     'calibration_case': 4,
-    'calibration_increment': [0, 1, 2, 3],
-    'ignore_boundary': False,
+    'calibration_increment': [0, 1, 2, 3, 4],
     # parameters for plastic calibration
     'cohesion_case': 1,
     'cohesion_increment': [3, 4, 5],
@@ -237,3 +236,47 @@ I43_damage_coarse['DNS_files'] = [
     'from_Erik_9-17-2024/Monitor_215.vtu',
     ]
 I43_damage_coarse['DNS_forces'] = 'from_Erik_9-17-2024/Export_I43-09_QOI-DF20-DenImp.csv'
+# I41_damage
+I43_damage_coarse_finetime = {
+    # DNS parameters
+    'diam': 5.05934739145766,
+    'height': 4.400976867675782,
+    'center': [3.0664815594943176, 3.065754248753459, 2.7645057067871095],
+    'material_E': 250.0,
+    'material_nu': 0.25,
+    'cut': True,
+    # Mesh file root to copy if Cubit is not found
+    'mesh_copy_root': 'Ratel_I43_09',
+    # parameters for micromorphic filter
+    'acceleration': False,
+    'velocity': False,
+    'filter_parallel': 8,
+    # parameters for elastic calibration
+    'plastic_calibration_case': 4,
+    'calibration_increment_elastic': [0, 1, 2, 3, 4],
+    'calibration_increment_plastic': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    # parameters for plastic calibration
+    'cohesion_case': 1,
+    'cohesion_increment': [3, 4, 5],
+    # paramters for Tardigrade-MOOSE
+    'macro_disp': 0.156857,
+    'macro_duration': 1.0,
+    'macro_BC': 'clamp',
+}
+I43_damage_coarse_finetime['DNS_files'] = [
+    'from_Erik_10-24-2024/Monitor_0.vtu',
+    'from_Erik_10-24-2024/Monitor_10.vtu',
+    'from_Erik_10-24-2024/Monitor_20.vtu',
+    'from_Erik_10-24-2024/Monitor_25.vtu',
+    'from_Erik_10-24-2024/Monitor_30.vtu',
+    'from_Erik_10-24-2024/Monitor_35.vtu',
+    'from_Erik_10-24-2024/Monitor_40.vtu',
+    'from_Erik_10-24-2024/Monitor_45.vtu',
+    'from_Erik_10-24-2024/Monitor_50.vtu',
+    'from_Erik_10-24-2024/Monitor_55.vtu',
+    'from_Erik_10-24-2024/Monitor_60.vtu',
+    'from_Erik_10-24-2024/Monitor_70.vtu',
+    'from_Erik_10-24-2024/Monitor_75.vtu',
+    'from_Erik_10-24-2024/Monitor_80.vtu',
+    ]
+I43_damage_coarse_finetime['DNS_forces'] = 'from_Erik_9-17-2024/Export_I43-09_QOI-DF20-DenImp.csv'
