@@ -153,7 +153,7 @@ def opti_options_1(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibra
 
 
 def opti_options_2(X, cohesion, Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
-    '''Calibrate macro-plasticity hardening parameter
+    '''Calibrate macro plasticity hardening using an initial estimate/calibration for cohesion
 
     '''
     others = [
@@ -289,8 +289,8 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
     cal_norm = 'L1'
     maxit = 2000
     num_workers = 8
-    # Case 1 calibrated just initial cohesion
     if case == 1:
+        # Case 1 - Calibrate macro-plasticity initial cohesion parameter
         parameter_bounds = [[1.0, 10.]]
         param_est = [3.0]
         res = scipy.optimize.differential_evolution(func=opti_options_1,
@@ -303,6 +303,7 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         print(f"fit params = {list(res.x)}")
         params = opti_options_1(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
     elif case == 2:
+        # Case 2 - Calibrate macro plasticity hardening using an initial estimate/calibration for cohesion
         cohesion = f_params[0]
         parameter_bounds = [[-1000., 1000.]]
         param_est = [-1.0]
@@ -316,6 +317,7 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         print(f"fit params = {list(res.x)}")
         params = opti_options_2(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
     elif case == 3:
+        # Case 3 - Calibrate micro-plasticity initial cohesion parameter
         parameter_bounds = [[1.0, 10.]]
         param_est = [3.0]
         res = scipy.optimize.differential_evolution(func=opti_options_3,
@@ -328,6 +330,7 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         print(f"fit params = {list(res.x)}")
         params = opti_options_3(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
     elif case == 4:
+        # Case 4 - Calibrate macro-plasticity initial cohesion and hardening parameters
         parameter_bounds = [[1.0, 100.], [-100., 100]]
         param_est = [3.0, 1.e-8]
         res = scipy.optimize.differential_evolution(func=opti_options_4,
@@ -340,6 +343,7 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         print(f"fit params = {list(res.x)}")
         params = opti_options_4(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
     elif case == 5:
+        # Case 5 - Calibrate micro-plasticity initial cohesion and hardening parameters
         parameter_bounds = [[0.0, 10.], [-100., 10]]
         param_est = [3.0, 1.e-8]
         res = scipy.optimize.differential_evolution(func=opti_options_5,
@@ -352,8 +356,8 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         print(f"fit params = {list(res.x)}")
         params = opti_options_5(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
     elif case == 6:
-        #parameter_bounds = [[0.0, 10.], [-100., 10], [0.0, 10.], [-100., 10]]
-        parameter_bounds = [[1.0, 10.], [1.e-8, 10], [1.0, 10.], [1.e-8, 10]]
+        # Case 6 - Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters
+        parameter_bounds = [[1.0, 10.], [1.e-8, 500.], [1.0, 100.], [1.e-8, 500.]]
         param_est = [3.0, 1.e-4, 3.0, 1.e-4]
         res = scipy.optimize.differential_evolution(func=opti_options_6,
                                                     bounds=parameter_bounds,
@@ -372,27 +376,6 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         print('plotting...')
         print(f'parameters = {params}')
         model_name=r'LinearElasticityDruckerPragerPlasticity'
-        # PK2_sim, SIGMA_sim, M_sim, SDVS_sim = evaluate_model(inputs, params, model_name, stack_parameters, 55, element)
-        # #PK2_sim, SIGMA_sim, M_sim, SDVS_sim = calibrate_element.evaluate_model(inputs, XX, model_name, stack_parameters, 55, element, max_inc)
-        # PK2_sim = XRT.map_sim(PK2_sim, ninc)
-        # SIGMA_sim = XRT.map_sim(SIGMA_sim, ninc)
-        # cauchy_sim, symm_sim = XRT.get_current_configuration_stresses(PK2_sim, SIGMA_sim, inputs[2], inputs[3])
-
-        # if increment:
-            # calibrate_element.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_PLASTIC_cauchy_fit_case_{case}.PNG', element, increment=increment)
-            # calibrate_element.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_PLASTIC_symm_fit_case_{case}.PNG', element, increment=increment)
-            # calibrate_element.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_PLASTIC_cauchy_fit_case_{case}_ALL.PNG', element)
-            # calibrate_element.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_PLASTIC_symm_fit_case_{case}_ALL.PNG', element)
-            # calibrate_element.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PLASTIC_PK2_fit_case_{case}.PNG', element, increment=increment)
-            # calibrate_element.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_PLASTIC_SIGMA_fit_case_{case}.PNG', element, increment=increment)
-            # calibrate_element.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PLASTIC_PK2_fit_case_{case}_ALL.PNG', element)
-            # calibrate_element.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_PLASTIC_SIGMA_fit_case_{case}_ALL.PNG', element)
-        # else:
-            # calibrate_element.plot_stresses(estrain, cauchy, cauchy_sim, f'{plot_file}_cauchy_fit_case_{case}.PNG', element)
-            # calibrate_element.plot_stresses(estrain, symm, symm_sim, f'{plot_file}_symm_fit_case_{case}.PNG', element)
-            # calibrate_element.plot_stresses_ref(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}.PNG', element)
-            # calibrate_element.plot_stresses_ref(E, SIGMA, SIGMA_sim, f'{plot_file}_SIGMA_fit_case_{case}.PNG', element)
-
         PK2_sim, SIGMA_sim, M_sim, SDVS_sim = calibration_tools.evaluate_model(inputs, params, model_name, stack_parameters, 55, element, nqp)
         PK2_sim = XRT.map_sim(PK2_sim, ninc)
         SIGMA_sim = XRT.map_sim(SIGMA_sim, ninc)
