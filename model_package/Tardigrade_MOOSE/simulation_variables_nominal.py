@@ -1,3 +1,8 @@
+import numpy
+import copy
+
+import model_package.Calibrate.calibration_tools as CT
+
 elastic_cylinder = {
     # DNS parameters
     'diam': 5.0,
@@ -34,21 +39,25 @@ Brazilian_disk = {
     'app_dep': 5.5,
     'spec_rad': 9.55,
     'spec_dep': 5.1,
-    'tol': 0.001,
+    'tol': 0.0,
     'seed_size': 0.5,
     # material_E
-    'lambda': 696.441593,
-    'mu': 126.7138,
-    'eta': -18.67498,
-    'tau': -37.817315,
-    'kappa': 15.177654,
-    'nu': -24.071197,
-    'sigma': -5.861821,
-    'tau7': 792.523471,
-    'cu0': 3.192202765,
+    'material_E': 833.75,
+    'material_nu': 0.3625,
+    'cu0': 3.0,
     'fraction': 0.1,
     # macro_BC
     'macro_BC': 'brazil',
     'macro_disp': 1.0,
     'macro_duration': 1.0,
 }
+
+elastic_parameter_ordering = ['lambda', 'mu', 'eta', 'tau', 'kappa', 'nu', 'sigma',\
+                              'tau1', 'tau2', 'tau3', 'tau4', 'tau5', 'tau6', 'tau7',\
+                              'tau8', 'tau9', 'tau10', 'tau11']
+
+elasticity_parameters = CT.Isbuga_micrormorphic_elasticity_parameters(Brazilian_disk['material_E'], Brazilian_disk['material_nu'], 0.5)
+for key, param in zip(elastic_parameter_ordering, elasticity_parameters):
+    Brazilian_disk[key] = param
+
+Brazilian_disk_platens = copy.deepcopy(Brazilian_disk)
