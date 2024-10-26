@@ -10,6 +10,22 @@ import subprocess
 
 
 def brazilian_disk_apparatus(output_file, seed_size, height, width, chord, app_rad, app_dep, spec_rad, spec_dep, tol):
+    '''Create a Brazilian Disk specimen and loading apparatus
+
+    :param str output_file: The output filename
+    :param float seed_size: The approximate mesh size
+    :param float height: The height of a single Brazilian disk compression platen
+    :param float width: The base width of a Brazilian disk compression platen
+    :param float chord: The chord distance of the Brazilian disk compression platen
+    :param float app_rad: The radius of curvature of the Brazilian disk compression platen
+    :param float depth: The extrusion depth of the Brazilian disk compression platen
+    :param float spec_rad: The radius of the Brazilian disk compression specimen
+    :param float spec_dep: The extrusion depth of the Brazilian disk compression specimen
+    :param float tol: A tolerance / gap distance to insert between Brazilian disk \
+                      compression specimen and platens
+
+    :returns: ``output_file``
+    '''
 
     perp_dist = app_rad - numpy.sqrt((app_rad**2 - (0.5*chord)**2))
     print(perp_dist)
@@ -61,6 +77,14 @@ def brazilian_disk_apparatus(output_file, seed_size, height, width, chord, app_r
     cubit.cmd('sideset 2 name "top"')
     cubit.cmd('sideset 3 add surface 53 55 60 66')
     cubit.cmd('sideset 3 name "back"')
+    cubit.cmd('sideset 4 add surface 31 38')
+    cubit.cmd('sideset 4 name "top_platen_contact"')
+    cubit.cmd('sideset 5 add surface 21 28')
+    cubit.cmd('sideset 5 name "bottom_platen_contact"')
+    cubit.cmd('sideset 6 add surface 47 50')
+    cubit.cmd('sideset 6 name "specimen_top"')
+    cubit.cmd('sideset 7 add surface 46 57')
+    cubit.cmd('sideset 7 name "specimen_bottom"')
 
     # Mesh
     cubit.cmd('imprint volume all')
@@ -71,6 +95,7 @@ def brazilian_disk_apparatus(output_file, seed_size, height, width, chord, app_r
     cubit.cmd('mesh volume all')
 
     # Export
+    cubit.cmd(f'save as "{output_file}.cub" overwrite')
     cubit.cmd(f'export mesh "{output_file}.e"  overwrite')
 
     return
