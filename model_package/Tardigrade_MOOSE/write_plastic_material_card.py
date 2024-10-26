@@ -7,7 +7,8 @@ import inspect
 
 def write_plastic_material_card(output_file,
                                 lamb, mu, eta, tau, kappa, nu, sigma,
-                                tau7, cu0, fraction):
+                                tau1, tau2, tau3, tau4, tau5, tau6, tau7, tau8, tau9, tau10, tau11,
+                                cu0, fraction):
     output_dict = {}
     # plastic
     output_dict['line 01'] = '2 1e4 1e-8'
@@ -22,7 +23,7 @@ def write_plastic_material_card(output_file,
     # elastic
     output_dict['line 10'] = f'2 {lamb} {mu}'
     output_dict['line 11'] = f'5 {eta} {tau} {kappa} {nu} {sigma}'
-    output_dict['line 12'] = f'11 0. 0. 0. 0. 0. 0. {tau7} 0. 0. 0. 0.'
+    output_dict['line 12'] = f'11 {tau1} {tau2} {tau3} {tau4} {tau5} {tau6} {tau7} {tau8} {tau9} {tau10} {tau11}'
     output_dict['line 13'] = f'2 {tau} {sigma}'
     # integration
     output_dict['line 14'] = '0.5 0.5 0.5 1e-9 1e-9'
@@ -57,8 +58,28 @@ def get_parser():
         help="Specify nu")
     parser.add_argument('--sigma', type=float, required=True,
         help="Specify sigma")
-    parser.add_argument('--tau7', type=float, required=True,
+    parser.add_argument('--tau1', type=float, required=False, default=0.0,
+        help="Specify tau1")
+    parser.add_argument('--tau2', type=float, required=False, default=0.0,
+        help="Specify tau2")
+    parser.add_argument('--tau3', type=float, required=False, default=0.0,
+        help="Specify tau3")
+    parser.add_argument('--tau4', type=float, required=False, default=0.0,
+        help="Specify tau4")
+    parser.add_argument('--tau5', type=float, required=False, default=0.0,
+        help="Specify tau5")
+    parser.add_argument('--tau6', type=float, required=False, default=0.0,
+        help="Specify tau6")
+    parser.add_argument('--tau7', type=float, required=False, default=0.001,
         help="Specify tau7")
+    parser.add_argument('--tau8', type=float, required=False, default=0.0,
+        help="Specify tau8")
+    parser.add_argument('--tau9', type=float, required=False, default=0.0,
+        help="Specify tau9")
+    parser.add_argument('--tau10', type=float, required=False, default=0.0,
+        help="Specify tau10")
+    parser.add_argument('--tau11', type=float, required=False, default=0.0,
+        help="Specify tau11")
     parser.add_argument('--cu0', type=float, required=True,
         help="Specify c^{u,0}")
     parser.add_argument('--fraction', type=float, required=True,
@@ -78,7 +99,17 @@ if __name__ == '__main__':
                                          kappa=args.kappa,
                                          nu=args.nu,
                                          sigma=args.sigma,
+                                         tau1=args.tau1,
+                                         tau2=args.tau2,
+                                         tau3=args.tau3,
+                                         tau4=args.tau4,
+                                         tau5=args.tau5,
+                                         tau6=args.tau6,
                                          tau7=args.tau7,
+                                         tau8=args.tau8,
+                                         tau9=args.tau9,
+                                         tau10=args.tau10,
+                                         tau11=args.tau11,
                                          cu0=args.cu0,
                                          fraction=args.fraction,
                                          ))
