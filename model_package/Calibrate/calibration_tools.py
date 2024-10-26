@@ -96,6 +96,52 @@ def isolate_element(quantities, type, elem):
     return(output)
 
 
+def Isbuga_micrormorphic_elasticity_parameters(Emod, nu, L):
+    '''Calculate initial estimate of 18 parameter micromorphic linear elasticity model parameters using method defined in https://doi.org/10.1016/j.ijengsci.2011.04.006
+
+    :param float Emod: An estimate of homogenized elastic modulus
+    :param float nu: An estimate of the homogenized Poisson ratio
+    :param float L: An estimate of the length scale parameter
+
+    :returns: array of estimated micromorphic linear elasticity parameters
+    '''
+
+    # calculate "classic" lame parameters
+    lame_lambda = Emod*nu/((1.+nu)*(1.-2*nu))
+    lame_mu     = Emod/(2*(1.+nu)) #shear modulus, K
+
+    # estimate characteristic length
+    Lc = numpy.sqrt(3*(L**2))
+
+    # estimate micromorphic parameters
+    lamb = 0.7435*lame_lambda
+    mu = 0.583*lame_mu
+    eta = 1.53*lame_lambda
+    tau = 0.256*lame_lambda
+    kappa = 0.833*lame_mu
+    nu_new = 0.667*lame_mu
+    sigma = 0.4167*lame_mu
+
+    tau_1 = 0.111*(lame_lambda*Lc*Lc)
+    tau_2 = 0.185*(lame_lambda*Lc*Lc)
+    tau_3 = 0.185*(lame_lambda*Lc*Lc)
+    tau_4 = 0.204*(lame_lambda*Lc*Lc)
+    tau_5 = 0.1*(lame_lambda*Lc*Lc)
+    tau_6 = 0.256*(lame_lambda*Lc*Lc)
+    tau_7 = 0.670*(lame_mu*Lc*Lc)
+    tau_8 = 0.495*(lame_mu*Lc*Lc)
+    tau_9 = 0.495*(lame_mu*Lc*Lc)
+    tau_10 = 0.408*(lame_mu*Lc*Lc)
+    tau_11 = 0.495*(lame_mu*Lc*Lc)
+
+    # collect
+    parameters = numpy.array([lamb, mu, eta, tau, kappa, nu_new, sigma,
+                           tau_1, tau_2, tau_3, tau_4, tau_5, tau_6,
+                           tau_7, tau_8, tau_9, tau_10, tau_11])
+
+    return(parameters)
+
+
 def plot_stresses(strain, stress, stress_sim, output_name, element, nqp, x_label_base, y_label_base,
                   increment=None, find_bounds=False):
     '''Plot comparison of stress vs strain between homogenized DNS results against calibrated model predictions
