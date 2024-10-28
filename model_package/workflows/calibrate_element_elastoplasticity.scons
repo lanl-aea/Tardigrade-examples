@@ -91,7 +91,7 @@ if domain_number == 1:
     ))
     # Calibrate plasticity
     elastic_parameters = calibration_targs[0]
-    case = 4
+    case = params['plastic_calibration_case']
     plastic_plot_root = f'{plot_root}_plastic'
     calibration_targs = [f'calibrated_plastic_parameters_case_{case}_elem_0.yml',
                          f'{plastic_plot_root}_PK2_fit_case_{case}.PNG',
