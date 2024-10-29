@@ -497,6 +497,47 @@ def parse_input_parameters(input_parameters):
         return e_params, p_params
 
 
+def parse_fparams_file(parameter_file, material_type='elastic'):
+    '''Parse calibration results from a YAML file into an array with parameter names listed
+
+    :param str input_parameters: YAML file containing calibration results
+    :param str material_type: The material type: 'elastic', 'plastic', or 'full_plastic'
+
+    :returns: array of parameters and list of parameter names
+    '''
+
+    stream = open(parameter_file, 'r')
+    UI = yaml.load(stream, Loader=yaml.FullLoader)
+    stream.close()
+
+    elastic_parameter_ordering = ['lambda', 'mu', 'eta', 'tau', 'kappa', 'nu', 'sigma',\
+                                  'tau1', 'tau2', 'tau3', 'tau4', 'tau5', 'tau6', 'tau7',\
+                                  'tau8', 'tau9', 'tau10', 'tau11']
+    plastic_parameter_ordering = ['cu0', 'Hu', 'cchi0', 'Hchi', 'cnablachi0', 'Hnablachi']
+
+    if material_type == 'elastic':
+        parameter_ordering = elastic_parameter_ordering + ['obj_func_value']
+        params = numpy.hstack([[float(i) for i in UI['line 1'].split(' ')[1:]],
+                               [float(i) for i in UI['line 2'].split(' ')[1:]],
+                               [float(i) for i in UI['line 3'].split(' ')[1:]],
+                               float(UI['obj'])])
+    elif material_type == 'plastic':
+        parameter_ordering = plastic_parameter_ordering + elastic_parameter_ordering + ['obj_func_value']
+        params = numpy.hstack([[float(i) for i in UI['line 01'].split(' ')[1:]],
+                                [float(i) for i in UI['line 02'].split(' ')[1:]],
+                                [float(i) for i in UI['line 03'].split(' ')[1:]],
+                                [float(i) for i in UI['line 10'].split(' ')[1:]],
+                                [float(i) for i in UI['line 11'].split(' ')[1:]],
+                                [float(i) for i in UI['line 12'].split(' ')[1:]],
+                                float(UI['obj'])])
+    elif material_type == 'full_plastic':
+        raise NotImplementedError("'full_plastic' option has not been implemented yet!")
+    else:
+        raise NameError("Specify a valid material_type!")
+
+    return params, parameter_ordering
+
+
 def evaluate_model(inputs, parameters, model_name, parameters_to_fparams, nsdvs, element, nqp, maxinc=None, dim=3, maxsubiter=5):
     """Evaluate the model given the parameters. Adapted from overlap_coupling/src/python/read_xdmf_output.py.
    
