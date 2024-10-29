@@ -5,6 +5,7 @@ import inspect
 import argparse
 
 import numpy
+import pandas
 
 sys.path.append(r'/projects/tea/PSAAP/tardigrade_filter/src/python')
 
@@ -64,46 +65,33 @@ def three_tensor_p_q(xdmf_file, qp_field_name, inc, num_elements):
     return p_output_1, p_output_2, p_output_3, q_output_1, q_output_2, q_output_3
 
 
-def average_over_qp_three_tensor(xdmf_file_in, qp_field_name, inc, num_elements):
+# def average_over_qp_three_tensor(xdmf_file_in, qp_field_name, inc, num_elements):
 
-    p_all_1 = numpy.zeros([8, num_elements, 1])
-    p_all_2 = numpy.zeros([8, num_elements, 1])
-    p_all_3 = numpy.zeros([8, num_elements, 1])
-    q_all_1 = numpy.zeros([8, num_elements, 1])
-    q_all_2 = numpy.zeros([8, num_elements, 1])
-    q_all_3 = numpy.zeros([8, num_elements, 1])
+    # p_all_1 = numpy.zeros([8, num_elements, 1])
+    # p_all_2 = numpy.zeros([8, num_elements, 1])
+    # p_all_3 = numpy.zeros([8, num_elements, 1])
+    # q_all_1 = numpy.zeros([8, num_elements, 1])
+    # q_all_2 = numpy.zeros([8, num_elements, 1])
+    # q_all_3 = numpy.zeros([8, num_elements, 1])
 
-    for qp in range(8):
-        ps_1, ps_2, ps_3, qs_1, qs_2, qs_3 = three_tensor_p_q(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
-        p_all_1[qp, :, :] = ps_1
-        p_all_2[qp, :, :] = ps_2
-        p_all_3[qp, :, :] = ps_3
-        q_all_1[qp, :, :] = qs_1
-        q_all_2[qp, :, :] = qs_2
-        q_all_3[qp, :, :] = qs_3
+    # for qp in range(8):
+        # ps_1, ps_2, ps_3, qs_1, qs_2, qs_3 = three_tensor_p_q(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
+        # p_all_1[qp, :, :] = ps_1
+        # p_all_2[qp, :, :] = ps_2
+        # p_all_3[qp, :, :] = ps_3
+        # q_all_1[qp, :, :] = qs_1
+        # q_all_2[qp, :, :] = qs_2
+        # q_all_3[qp, :, :] = qs_3
 
-    return numpy.mean(p_all_1, axis=0),
-           numpy.mean(p_all_2, axis=0),
-           numpy.mean(p_all_3, axis=0),
-           numpy.mean(q_all_1, axis=0),
-           numpy.mean(q_all_2, axis=0),
-           numpy.mean(q_all_3, axis=0),
-
-
-def xdmf_3d_calculations(input_file, output_file, num_elements):
+    # return numpy.mean(p_all_1, axis=0),
+           # numpy.mean(p_all_2, axis=0),
+           # numpy.mean(p_all_3, axis=0),
+           # numpy.mean(q_all_1, axis=0),
+           # numpy.mean(q_all_2, axis=0),
+           # numpy.mean(q_all_3, axis=0),
 
 
-    xdmf_file_in = file_io.xdmf.XDMF(input_file)
-    xdmf_file_in.open()
-
-    xdmf_file_out = file_io.xdmf.XDMF(output_filename=output_file)
-
-    num_increments = xdmf_file_in.getNumIncrements()
-    incs = list(range(0, num_increments))
-    times = [xdmf_file_in.getIncrementTime(i)[0] for i in incs]
-
-    reference_positions = xdmf_file_in.getIncrementReferenceNodePositions(0)[0][0]
-    connectivity = xdmf_file_in.getIncrementConnectivity(0)[0][0].reshape((1,-1))
+def filter_stress_measures(xdmf_file_in, xdmf_file_out, incs, times, num_elements, reference_positions, connectivity):
 
     # calculate p and q
     for i in incs:
@@ -123,7 +111,53 @@ def xdmf_3d_calculations(input_file, output_file, num_elements):
         xdmf_file_out.addData(grid, f"test_p_sym", p_sym, center='Cell')
         xdmf_file_out.addData(grid, f"test_q_sym", q_sym, center='Cell')
 
-        
+    return 0
+
+
+def assign_calibration_results(xdmf_file_out, calibration_map_file, reference_positions, connectivity):
+
+    # setup XDMF output
+    grid = xdmf_file_out.addGrid(xdmf_file_out.output_timegrid, {})
+    xdmf_file_out.addTime(grid, 0.0)
+    xdmf_file_out.addPoints(grid, reference_positions,
+                            duplicate='filter_reference_positions')
+    xdmf_file_out.addConnectivity(grid, "HEXAHEDRON", connectivity,
+                            duplicate='filter_connectivity')
+
+    # output parameters
+    df = pandas.read_csv(calibration_map_file)
+    parameters = list(df.columns)
+    for param in parameters:
+        array_out = df[param].values.reshape((1,-1))
+        xdmf_file_out.addData(grid, param, array_out, center='Cell')
+
+    return 0
+
+
+def xdmf_3d_calculations(input_file, output_file, write_type, num_elements=None, calibration_map_file=None):
+
+
+    xdmf_file_in = file_io.xdmf.XDMF(input_file)
+    xdmf_file_in.open()
+
+    xdmf_file_out = file_io.xdmf.XDMF(output_filename=output_file)
+
+    num_increments = xdmf_file_in.getNumIncrements()
+    incs = list(range(0, num_increments))
+    times = [xdmf_file_in.getIncrementTime(i)[0] for i in incs]
+
+    reference_positions = xdmf_file_in.getIncrementReferenceNodePositions(0)[0][0]
+    connectivity = xdmf_file_in.getIncrementConnectivity(0)[0][0].reshape((1,-1))
+
+    if write_type == 'filter_stress_measures':
+        assert num_elements != None, "num_elements must be specified!"
+        filter_stress_measures(xdmf_file_in, xdmf_file_out, incs, times, num_elements,
+                               reference_positions, connectivity)
+    elif write_type == 'calibration':
+        assert calibration_map_file != None, "input_parameters must be provided!"
+        assign_calibration_results(xdmf_file_out, calibration_map_file, reference_positions, connectivity)
+    else:
+        print('Specify a valid write_type')
 
     xdmf_file_out.write()
     print("XDMF file written!")
@@ -143,9 +177,15 @@ def get_parser():
         help='Specify the input filename for the h5 + XDMF file pair')
     parser.add_argument('-o', '--output-file', type=str,
         help='Specify the output filenmae for the h5 + XDMF file pair')
-    parser.add_argument('--num-elements', type=int,
+    parser.add_argument('--num-elements', type=int, required=False, default=None,
         help='The number of macroscale elements')
-
+    parser.add_argument('--write-type', type=str, required=True,
+        help='The type of quantities to write to XDMF. Choose "filter_stress_measures"\
+              to calculate stress invariants directly on filter results.\
+              Choose "calibration" results to display calibrations on static mesh.')
+    parser.add_argument('--calibration-map-file', type=str, required=False, default=None,
+        help='A csv file containing previously calibrated parameters.\
+              Required if "--write-type calibration"')
 
     return parser
 
@@ -157,4 +197,6 @@ if __name__ == '__main__':
     sys.exit(xdmf_3d_calculations(input_file=args.input_file,
                                   output_file=args.output_file,
                                   num_elements=args.num_elements,
+                                  write_type=args.write_type,
+                                  calibration_map_file=args.calibration_map_file,
                                   ))
