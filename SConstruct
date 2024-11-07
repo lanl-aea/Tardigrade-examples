@@ -385,12 +385,15 @@ workflow_configurations = [
     "Ratel_I43_09_multi_domain",
     "Ratel_I43_09_multi_domain_coarse",
     "Ratel_I43_09_multi_domain_coarse_finetime",
+    "Ratel_I43_09_test_new_filter",
     # Tardigrade solo studies
     "Tardigrade_convergence",
     "Tardigrade_dynamic_convergence",
     # Brazilian Disk Compression
     "Tardigrade_Brazilian_disk",
     "Tardigrade_Brazilian_disk_platens",
+    "Tardigrade_Brazilian_disk_platens_eighth_symmetry",
+    "Abaqus_Brazilian_disk_platens_eighth_symmetry",
 ]
 for workflow in workflow_configurations:
     build_dir = str(variant_dir_base / workflow)
