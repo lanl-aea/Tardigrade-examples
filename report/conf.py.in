@@ -18,7 +18,8 @@ mock_modules = ["abaqus", "abaqusConstants", "mesh", "cubit", "scipy", "scipy.st
                 "odbAccess", "seaborn",
                 "file_io", "file_io.xdmf", "meshio", "micromorphic_filter",
                 "micromorphic_filter.filter_dns", "linear_elastic_parameter_constraint_equations",
-                "micromorphic", "summarize_calibration_results"]
+                "micromorphic", "summarize_calibration_results", "finite_stVK_calculation",
+                "summarize_micro_macro_lateral_displacements"]
 for mod_name in mock_modules:
     sys.modules[mod_name] = unittest.mock.Mock()
 
@@ -62,8 +63,10 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # Links to PRs, Jira issues.
 extlinks = {
-     "merge": ("https://re-git.lanl.gov/aea/models-and-simulations/9501-model-studies/-/merge_requests/%s", "MERGE-%s"),
-     "issue": ("https://re-git.lanl.gov/aea/models-and-simulations/9501-model-studies/-/issues/%s", "ISSUE-%s"),
+     "merge": ("https://re-git.lanl.gov/aea/models-and-simulations/tardigrade-examples/-/merge_requests/%s", "MERGE-%s"),
+     "issue": ("https://re-git.lanl.gov/aea/models-and-simulations/tardigrade-examples/-/issues/%s", "ISSUE-%s"),
+     "old-merge": ("https://re-git.lanl.gov/aea/models-and-simulations/tardigrade-examples-archive/-/merge_requests/%s", "ARCHIVED-MERGE-%s"),
+     "old-issue": ("https://re-git.lanl.gov/aea/models-and-simulations/tardigrade-examples-archive/-/issues/%s", "ARCHIVED-ISSUE-%s"),
      "repo": ("https://re-git.lanl.gov/aea/models-and-simulations/tardigrade-examples/-/blob/dev/%s", "%s"),
 }
 
