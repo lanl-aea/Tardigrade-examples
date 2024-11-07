@@ -48,7 +48,7 @@ Brazilian_disk = {
     'fraction': 0.1,
     # macro_BC
     'macro_BC': 'brazil',
-    'macro_disp': 1.0,
+    'macro_disp': 0.5,
     'macro_duration': 1.0,
 }
 
