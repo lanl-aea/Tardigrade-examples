@@ -9,7 +9,7 @@ import numpy
 import calibration_tools
 
 
-def ignored_elements_calibration_map(output_file, calibrated_elements, calibrated_files, ignore_boundary_yml, ignore_boundary_summary_file)
+def ignored_elements_calibration_map(output_file, calibrated_elements, calibrated_files, ignore_boundary_yml, ignore_boundary_summary_file):
     '''Create a yaml file to map calibration results for interior and boundary elements
 
     :params list calibrated_elements: A list of elements with associated calibration files
@@ -56,8 +56,8 @@ def full_csv_calibration_map(output_file, calibrated_elements, calibrated_files,
             out_params = numpy.vstack([out_params, numpy.hstack([float(element), parameters])])
 
     # DataFrame and output
-    df = pandas.DataFrame(output_parameters, columns=header)
-    df['element'] = df['element']astype(int)
+    df = pandas.DataFrame(out_params, columns=header)
+    df['element'] = df['element'].astype(int)
     df.to_csv(output_file, header=True, sep=',', index=False)
 
     return 0
@@ -82,12 +82,13 @@ def build_calibration_map(output_file, calibrated_elements, calibrated_files, ma
     '''
 
     if map_type == 'full_csv':
-        assert len(calibrated_elements) = len(calibrated_files), "Length of calibrated_elements must equal calibrated_files!"
+        assert len(calibrated_elements) == len(calibrated_files), "Length of calibrated_elements must equal calibrated_files!"
         assert material_type != None, "material_type must be specified!"
+        full_csv_calibration_map(output_file, calibrated_elements, calibrated_files, material_type)
     elif map_type == 'ignore_boundary_yaml':
         assert ignore_boundary_yml != None, "ignore_boundary_yml must be provided!"
         assert ignore_boundary_summary_file != None, "ignore_boundary_yml must be provided!"
-        assert len(calibrated_elements) = len(calibrated_files), "Length of calibrated_elements must equal calibrated_files!"
+        assert len(calibrated_elements) == len(calibrated_files), "Length of calibrated_elements must equal calibrated_files!"
         ignored_elements_calibration_map(output_file, calibrated_elements, calibrated_files,
                                          ignore_boundary_yml, ignore_boundary_summary_file)
     else:
