@@ -1,0 +1,52 @@
+**
+*HEADING
+Brazilian disk eighth symmetry
+**
+*************************************************************
+** P A R T S 
+*************************************************************
+**
+*PART, NAME=bottom_platen
+*INCLUDE, INPUT=@platen_mesh_file@
+*SOLID SECTION, ELSET=bottom_platen, MATERIAL=steel
+*END PART
+**
+*PART, NAME=specimen
+*INCLUDE, INPUT=@specimen_mesh_file@
+*SOLID SECTION, ELSET=specimen, MATERIAL=mock
+*END PART
+**
+*************************************************************
+** A S S E M B L Y
+*************************************************************
+*ASSEMBLY,NAME=A
+**
+*INSTANCE, NAME=bottom_platen-1, PART=bottom_platen
+ 0.0, 0.0, 0.0
+*END INSTANCE
+**
+*INSTANCE, NAME=specimen-1, PART=specimen
+ 0.0, 0.0, 0.0
+*END INSTANCE
+**
+*END ASSEMBLY
+**
+*************************************************************
+** M A T E R I A L S
+*************************************************************
+**
+*MATERIAL, NAME=steel
+*DENSITY
+2.8E-9
+*ELASTIC
+200000.0, 0.33
+*MATERIAL, NAME=mock
+*DENSITY
+2.0E-9
+*ELASTIC
+@material_E@, @material_nu@
+**
+*************************************************************
+** I N T E R A C T I O N S
+*************************************************************
+**
