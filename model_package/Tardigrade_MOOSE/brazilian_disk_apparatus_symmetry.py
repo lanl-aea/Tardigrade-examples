@@ -80,6 +80,18 @@ def brazilian_disk_apparatus(output_file, seed_size, height, width, chord, app_r
     cubit.cmd('sideset 5 name "platen_contact"')
     cubit.cmd('sideset 6 add surface 83')
     cubit.cmd('sideset 6 name "specimen_contact"')
+    cubit.cmd('nodeset 1 add surface 53')
+    cubit.cmd('nodeset 1 name "bottom"')
+    cubit.cmd('nodeset 2 add surface 82')
+    cubit.cmd('nodeset 2 name "top_sym"')
+    cubit.cmd('nodeset 3 add surface 51 84')
+    cubit.cmd('nodeset 3 name "back_sym"')
+    cubit.cmd('nodeset 4 add surface 54 85')
+    cubit.cmd('nodeset 4 name "side_sym"')
+    cubit.cmd('nodeset 5 add surface 56')
+    cubit.cmd('nodeset 5 name "platen_contact"')
+    cubit.cmd('nodeset 6 add surface 83')
+    cubit.cmd('nodeset 6 name "specimen_contact"')
 
     # Mesh
     cubit.cmd('imprint volume all')
@@ -89,8 +101,9 @@ def brazilian_disk_apparatus(output_file, seed_size, height, width, chord, app_r
     # Output
     cubit.cmd(f'save as "{output_file}.cub" overwrite')
     cubit.cmd(f'export mesh "{output_file}.e"  overwrite')
-    cubit.cmd(f'export abaqus "{output_file}_bottom_platen.inp" instance block 1 source_csys 0 target_csys 0 partial dimension 3 overwrite  everything')
-    cubit.cmd(f'export abaqus "{output_file}_specimen.inp" instance block 2 source_csys 0 target_csys 0 partial dimension 3 overwrite  everything')
+    cubit.cmd(f'export abaqus "{output_file}_bottom_platen.inp" block 1 source_csys 0 target_csys 0 partial dimension 3 overwrite')
+    cubit.cmd(f'export abaqus "{output_file}_specimen.inp" block 2 source_csys 0 target_csys 0 partial dimension 3 overwrite')
+    #cubit.cmd(f'export abaqus "{output_file}.inp" instance_per_block source_csys 0 target_csys 0 partial dimension 3 overwrite  everything')
     return
 
 
