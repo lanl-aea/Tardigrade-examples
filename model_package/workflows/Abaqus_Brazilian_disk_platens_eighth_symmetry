@@ -63,7 +63,16 @@ workflow.extend(waves.scons_extensions.copy_substfile(env,
     abaqus_source_list,
     substitution_dictionary=waves.scons_extensions.substitution_syntax(params)))
 
-
+# Abaqus Solve
+solve_source_list = [source_file.name.rstrip('.in') for source_file in abaqus_source_list]
+job_name = pathlib.Path(solve_source_list[0]).stem
+abaqus_options = '-double both'
+workflow.extend(env.AbaqusSolver(
+    target = [f"{job_name}.sta"],
+    source = solve_source_list,
+    job_name = job_name,
+    abaqus_options = abaqus_options
+))
 
 # # Write material card
 # material_script = 'write_plastic_material_card.py'
