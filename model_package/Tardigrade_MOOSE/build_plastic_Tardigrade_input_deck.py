@@ -695,7 +695,7 @@ def build_input(output_file, mesh_file, parameter_sets, BCs, disp, duration):
                 mat_line_11 = UI['line 11']
                 mat_line_12 = UI['line 12']
                 mat_line_13 = UI['line 13']
-                mat_line_14 = UI['line 14']
+                mat_line_14 = '0.5 0.5 0.5 1e-9 1e-9'
                 # Write in material info
                 f.write(f'  [./linear_elastic_{i}]\n')
                 f.write('    type = MicromorphicMaterial\n')
@@ -815,7 +815,7 @@ def build_input(output_file, mesh_file, parameter_sets, BCs, disp, duration):
         f.write('    optimal_iterations = 4\n')
         f.write('    iteration_window = 3\n')
         f.write('    linear_iteration_ratio = 1000\n')
-        f.write('    growth_factor=1.1\n')
+        f.write('    growth_factor=1.2\n')
         f.write('    cutback_factor=0.5\n')
         f.write(f'    dt = {dt}\n')
         f.write('  []\n')
