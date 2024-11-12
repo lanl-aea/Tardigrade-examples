@@ -63,11 +63,32 @@ def full_csv_calibration_map(output_file, calibrated_elements, calibrated_files,
     return 0
 
 
-def build_calibration_map(output_file, calibrated_elements, calibrated_files, map_type='full_csv',
-                          material_type=None,ignore_boundary_yml=None, ignore_boundary_summary_file=None, ):
+def trim_csv_file_for_tardigrade(output_file, input_file):
+    '''Remove 'element' and 'obj_func_value' columns from a csv file containing calibration results
+
+    :params str output_file: The name of the output csv file
+    :params str input_csv: An input, previously generated csv file to be trimmed for Tardigrade
+
+    :returns: Write ``output_file``
+    '''
+
+    df = pandas.read_csv(input_file)
+    headers = list(df.columns)
+    if 'element' in headers:
+        df = df.drop('element', axis=1)
+    if 'obj_func_value' in headers:
+        df = df.drop('obj_func_value', axis=1)
+    df.to_csv(output_file, header=False, sep=',', index=False)
+
+    return 0
+
+
+def build_calibration_map(output_file, calibrated_elements=None, calibrated_files=None, map_type='full_csv',
+                          material_type=None,ignore_boundary_yml=None, ignore_boundary_summary_file=None, 
+                          input_csv=None):
     '''Create a file mapping calibration results for each macroscale element
 
-    :params str output_file: The name of the output file
+    :params str output_file: The name of the output csv file
     :params list calibrated_elements: A list of elements with associated calibration files
     :params list calibrated_files: A list of files containing calibration results
     :params str map_type: The type of calibration map to generate. 'full_csv' (default) to create a csv
@@ -77,20 +98,28 @@ def build_calibration_map(output_file, calibrated_elements, calibrated_files, ma
     :param str material_type: The material type: 'elastic', 'plastic', or 'full_plastic'
     :params str ignore_boundary_yml: A yaml file containing the 'best' calibration using the kernel density estimate
     :params str ignore_boundary_summary_file: A csv file containing a summary of calibrated parameters for each element
+    :params str input_csv: An input, previously generated csv file using 'map_type=full_csv' to be trimmed for Tardigrade
 
-    :returns: Call full_csv_calibration_map function if map_type='full_csv', or call ignored_elements_calibration_map function if map_type='ignore_boundary_yaml'
+    :returns: Call full_csv_calibration_map function if map_type='full_csv', call ignored_elements_calibration_map function if map_type='ignore_boundary_yaml', or call trim_csv_file_for_tardigrade if map_type='trim_for_tardigrade'
     '''
 
     if map_type == 'full_csv':
+        assert calibrated_elements != None, "List of calibrated elements must be provided!"
+        assert calibrated_files != None, "List of calibration files must be provided!"
         assert len(calibrated_elements) == len(calibrated_files), "Length of calibrated_elements must equal calibrated_files!"
         assert material_type != None, "material_type must be specified!"
         full_csv_calibration_map(output_file, calibrated_elements, calibrated_files, material_type)
     elif map_type == 'ignore_boundary_yaml':
+        assert calibrated_elements != None, "List of calibrated elements must be provided!"
+        assert calibrated_files != None, "List of calibration files must be provided!"
+        assert len(calibrated_elements) == len(calibrated_files), "Length of calibrated_elements must equal calibrated_files!"
         assert ignore_boundary_yml != None, "ignore_boundary_yml must be provided!"
         assert ignore_boundary_summary_file != None, "ignore_boundary_yml must be provided!"
-        assert len(calibrated_elements) == len(calibrated_files), "Length of calibrated_elements must equal calibrated_files!"
         ignored_elements_calibration_map(output_file, calibrated_elements, calibrated_files,
                                          ignore_boundary_yml, ignore_boundary_summary_file)
+    elif map_type == 'trim_for_tardigrade':
+        assert input_csv != None, "input_csv must be specified!"
+        trim_csv_file_for_tardigrade(output_file, input_csv)
     else:
         raise NameError('Specify a valid map_type!')
 
@@ -104,23 +133,25 @@ def get_parser():
     parser=argparse.ArgumentParser(description=cli_description, prog=prog)
 
     parser.add_argument('--output-file', type=str, required=True,
-        help="The name of the output yaml file")
-    parser.add_argument('--calibrated-elements', nargs="+", required=True,
+        help="The name of the output csv file")
+    parser.add_argument('--calibrated-elements', nargs="+", required=False,
         help="A list of elements with associated calibration files")
-    parser.add_argument('--calibrated-files', nargs="+", required=True,
+    parser.add_argument('--calibrated-files', nargs="+", required=False,
         help="A list of files containing calibration results")
     parser.add_argument('--map-type', type=str, required=False, default="full_csv",
         help="The type of calibration map to generate. 'full_csv' (default) to create a csv\
               file containing material parameters mapped for every element.\
               'ignore_boundary_yaml' to create a yaml file containing names of yaml files\
-              containing material parameters for every element.")
+              containing material parameters for every element.\
+              'trim_for_tardigrade' to modify a previously generated csv file for Tardigrade")
     parser.add_argument('--material-type', type=str, required=False, default=None,
         help="The material type: 'elastic', 'plastic', or 'full_plastic'")
     parser.add_argument('--ignore-boundary-yml', type=str, required=False, default=None,
         help="A yaml file containing the 'best' calibration using the kernel density estimate")
     parser.add_argument('--ignore-boundary-summary-file', type=str, required=False, default=None,
         help="A csv file containing a summary of calibrated parameters for each element")
-
+    parser.add_argument('--input-csv', type=str, required=False, default=None,
+        help="An input, previously generated csv file using 'map_type=full_csv' to be trimmed for Tardigrade")
 
     return parser
 
@@ -135,4 +166,5 @@ if __name__ == '__main__':
                                    material_type=args.material_type,
                                    ignore_boundary_yml=args.ignore_boundary_yml,
                                    ignore_boundary_summary_file=args.ignore_boundary_summary_file,
+                                   input_csv=args.input_csv,
                                    ))
