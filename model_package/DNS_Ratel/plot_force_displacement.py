@@ -1,5 +1,6 @@
-import pathlib
+#!python
 import argparse
+import pathlib
 import sys
 
 import pandas
@@ -60,12 +61,12 @@ def plot_force_displacement(csv_file, output_file, output_csv, face_id=None, fin
 
 
 def get_parser():
+
     script_name = pathlib.Path(__file__)
+
     prog = f"python {script_name.name} "
     cli_description = "Process force-displacement from Ratel DNS results"
     parser=argparse.ArgumentParser(description=cli_description, prog=prog)
-
-    # TODO: handle multiple faces to sum forces if needed
     parser.add_argument('--csv-file', type=str, required=True,
         help="The csv file containing force results")
     parser.add_argument('--output-file', type=str, required=True,
