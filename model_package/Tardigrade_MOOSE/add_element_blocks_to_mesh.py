@@ -74,6 +74,8 @@ def add_element_blocks_to_mesh(input_mesh, output_mesh, elements, number_existin
     :param str input_mesh: The input exodus mesh file to modify
     :param str output_mesh: The output exodus mesh file with block names defined
     :param int elements: The number of elements in the mesh for which to define a block name
+    :param int number_of_existing_blocks: The number of existing mesh blocks to keep in final mesh
+    :params str exodus_mesh_map: An existing macroscale to optionally map centroids for element block numbering
 
     :returns: Write ``output_mesh``
     '''
@@ -83,7 +85,7 @@ def add_element_blocks_to_mesh(input_mesh, output_mesh, elements, number_existin
     cubit.cmd('reset')
     cubit.cmd(f'import mesh geometry "{input_mesh}"')
 
-    # Delete any existing blocks
+    # Delete any existing blocks for cylinder specimen
     if number_existing_blocks == 0:
         cubit.cmd('reset block')
         j = 1
