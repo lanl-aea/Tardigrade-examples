@@ -1,7 +1,8 @@
+#!python
 import yaml
 
-import numpy
 import matplotlib.pyplot
+import numpy
 
 import micromorphic
 import linear_elastic_parameter_constraint_equations as constraints
@@ -152,6 +153,8 @@ def plot_stresses(strain, stress, stress_sim, output_name, element, nqp, x_label
     :param str output_name: The output plot name
     :param int element: The macro (filter) element considered for calibration
     :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
+    :param str x_label_base: A string to include in the plot x-label
+    :param str y_label_base: A string to include in the plot y-label
     :param list increment: An optional list of one or more increments to plot restults
     :param bool find_bounds: Boolean specifying whether or not to identify common y-axis bounds for all subplots
 
@@ -469,7 +472,7 @@ def evaluate_constraints(parameters, svals=None):
 
 
 def parse_input_parameters(input_parameters):
-    ''' Parse materials from a YAML file contained calibration results
+    ''' Parse material parameters from a YAML file
 
     :param str input_parameters: YAML file containing calibration results
 
@@ -498,7 +501,7 @@ def parse_input_parameters(input_parameters):
 
 
 def parse_fparams_file(parameter_file, material_type='elastic'):
-    '''Parse calibration results from a YAML file into an array with parameter names listed
+    '''Parse material parameters from a YAML file into an array with parameter names listed
 
     :param str input_parameters: YAML file containing calibration results
     :param str material_type: The material type: 'elastic', 'plastic', or 'full_plastic'
