@@ -1,7 +1,7 @@
-import sys
-import os
+#!python
 import argparse
 import pathlib
+import sys
 
 import numpy
 
@@ -80,8 +80,7 @@ def get_parser():
 
     prog = f"python {script_name.name} "
     cli_description = "Solution for uniaxial stress of a cylinder for finite deformation using the St. Venant-Kirchhoff elasticity model"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=prog)
+    parser=argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('--diameter', type=float, required=False, default=5.0,
         help='The diameter of the cylinder in millimeters')
     parser.add_argument('--material-E', type=float, required=False, default=250.,
