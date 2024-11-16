@@ -1,12 +1,10 @@
-import subprocess as sp
-import numpy as np
-import os
-import sys
+#!python
 import argparse
-import time
-import glob
+import os
+import pathlib
+import sys
 import yaml
-import inspect
+
 
 def build_input(output_file, mesh_file, parameter_sets, BCs, disp, duration):
     '''Write a Tardigrade-MOOSE input file
@@ -14,14 +12,14 @@ def build_input(output_file, mesh_file, parameter_sets, BCs, disp, duration):
     :param str output_file: The name of Tardigrade-MOOSE file to write
     :param str mesh_file: The name of the mesh file
     :param list parameter_sets: The list of yaml files containing calibration results
-    :param str BCs: The type of boundary conditions, either "slip" or "clamp"
+    :param str BCs: The type of boundary conditions, either "slip", "clamp", or "brazil"
     :param float disp: The compressive displacement to be applied
     :param float duration: The duration of the simulation
 
     :returns: ``output_file``
     '''
 
-    # TODO: Write test to make sure the mesh_file exists
+    assert os.path.exists(mesh_file), f"Mesh file not found: {mesh_file}"
 
     # Write input file
     with open(output_file, 'w') as f:
@@ -835,12 +833,11 @@ def build_input(output_file, mesh_file, parameter_sets, BCs, disp, duration):
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
-    cli_description = "Write Tardigrade-MOOSE input file"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
+    cli_description = "Write Tardigrade-MOOSE input file for a plastic simulation"
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-o', '--output-file', type=str, required=True,
         help="Specify the name of Tardigrade-MOOSE file to write")
     parser.add_argument('--mesh', type=str, required=True,
@@ -848,7 +845,7 @@ def get_parser():
     parser.add_argument('--parameter-sets', nargs="+", required=True,
         help='Specify the list of yaml files containing calibration results')
     parser.add_argument('--BCs', type=str, required=True,
-        help='Specify the type of boundary conditions, either "slip" or "clamp"')
+        help='Specify the type of boundary conditions, either "slip", "clamp", or "brazil"')
     parser.add_argument('--disp', type=float, required=True,
         help='Specify the compressive displacement to be applied')
     parser.add_argument('--duration', type=float, required=True,
