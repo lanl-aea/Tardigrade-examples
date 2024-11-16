@@ -1,8 +1,9 @@
-import os
-import sys
+#!python
 import argparse
+import os
+import pathlib
+import sys
 import yaml
-import inspect
 
 
 def write_plastic_material_card(output_file,
@@ -36,12 +37,11 @@ def write_plastic_material_card(output_file,
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Write elastoplastic Tardigrade-MOOSE input card (.yml)"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-o', '--output-file', type=str, required=True,
         help="Specify the name of Tardigrade-MOOSE file to write")
     parser.add_argument('--lamb', type=float, required=True,
