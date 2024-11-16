@@ -1,7 +1,8 @@
-import sys
-import os
+#!python
 import argparse
-import inspect
+import os
+import pathlib
+import sys
 import yaml
 
 import numpy
@@ -51,6 +52,20 @@ Xstore = []
 Lstore = []
 
 def objective(x0, Y, inputs, cal_norm, case, element, nqp, increment=None, stresses_to_include=['S','SIGMA','M']):
+    '''Primary objective function for calibrating micromorphic elastoplasticity constitutive model against homogenized DNS data
+
+    :param array-like x0: Array of micromorphic linear elasticity parameters
+    :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
+    :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
+    :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
+    :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
+    :param int increment: An optional list of one or more increments to perform calibration
+    :param list stresses_to_include: Which reference configuration stresses to calculate an error for the objective function, default=['S', 'SIGMA', 'M']
+
+    :returns: the objective function evaluation
+    '''
 
     model_name=r'LinearElasticityDruckerPragerPlasticity'
     # stack parameters
@@ -137,11 +152,12 @@ def objective(x0, Y, inputs, cal_norm, case, element, nqp, increment=None, stres
 
 
 def opti_options_1(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
-    '''Calibrate macro-plasticity initial cohesion parameter
+    '''Calibrate macro-plasticity initial cohesion parameter. For case 1.
 
     :param array-like X: Array of micromorphic plasticity parameters to calibrate
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
     :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param array e_params: The elastic fparams
     :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
     :param int case: The calibration "case".
     :param int element: The macro (filter) element to calibration
@@ -164,11 +180,13 @@ def opti_options_1(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibra
 
 
 def opti_options_2(X, cohesion, Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
-    '''Calibrate macro plasticity hardening using an initial estimate/calibration for cohesion
+    '''Calibrate macro plasticity hardening using an initial estimate/calibration for cohesion. For case 2.
 
     :param array-like X: Array of micromorphic plasticity parameters to calibrate
+    :param float cohesion: The value of the macro-scale initial cohesion parameter
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
     :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param array e_params: The elastic fparams
     :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
     :param int case: The calibration "case".
     :param int element: The macro (filter) element to calibration
@@ -191,11 +209,12 @@ def opti_options_2(X, cohesion, Y, inputs, e_params, cal_norm, case, element, nq
 
 
 def opti_options_3(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
-    '''Calibrate micro-plasticity initial cohesion parameter
+    '''Calibrate micro-plasticity initial cohesion parameter. For case 3.
 
     :param array-like X: Array of micromorphic plasticity parameters to calibrate
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
     :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param array e_params: The elastic fparams
     :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
     :param int case: The calibration "case".
     :param int element: The macro (filter) element to calibration
@@ -215,11 +234,12 @@ def opti_options_3(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibra
 
 
 def opti_options_4(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
-    '''Calibrate macro-plasticity initial cohesion and hardening parameters
+    '''Calibrate macro-plasticity initial cohesion and hardening parameters. For case 4.
 
     :param array-like X: Array of micromorphic plasticity parameters to calibrate
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
     :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param array e_params: The elastic fparams
     :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
     :param int case: The calibration "case".
     :param int element: The macro (filter) element to calibration
@@ -239,11 +259,12 @@ def opti_options_4(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibra
 
 
 def opti_options_5(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
-    '''Calibrate micro-plasticity initial cohesion and hardening parameters
+    '''Calibrate micro-plasticity initial cohesion and hardening parameters. For case 5.
 
     :param array-like X: Array of micromorphic plasticity parameters to calibrate
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
     :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param array e_params: The elastic fparams
     :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
     :param int case: The calibration "case".
     :param int element: The macro (filter) element to calibration
@@ -263,11 +284,12 @@ def opti_options_5(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibra
 
 
 def opti_options_6(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
-    '''Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters
+    '''Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters. For case 6.
 
     :param array-like X: Array of micromorphic plasticity parameters to calibrate
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
     :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param array e_params: The elastic fparams
     :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
     :param int case: The calibration "case".
     :param int element: The macro (filter) element to calibration
@@ -286,8 +308,22 @@ def opti_options_6(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibra
         return XX
 
 
-def calibrate_plasticity(input_file, output_file, case, input_parameters, element=0, increment=None, plot_file=None, average=False, UQ_file=None):
+def calibrate_plasticity(input_file, output_file, case, input_parameters, element=0, increment=None, plot_file=None, average=False, UQ_file=None, cal_norm='L1'):
+    ''' Unpack DNS data and run plasticity calibration routine
 
+    :param str input_file: The homogenized XDMF file output by the Micromorphic Filter
+    :param str output_file:  The resulting list of parameters stored in a yaml file
+    :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
+    :param str input_parameters: Yaml file containing previously calibrated elastic parameter
+    :param int element: The macro (filter) element to calibration, default is zero
+    :param int increment: An optional list of one or more increments to perform calibration
+    :param str plot_file: Optional root filename to for plotting results
+    :param bool average: Boolean whether or not homogenized DNS results will be averaged
+    :param str UQ_file: Optional csv filename to store function evaluations and parameter sets for UQ
+    :param str cal_norm: The type of norm to use for calibration ("L1", "L2", or "L1-L2")
+
+    :returns: calibrated parameters by minimizing a specified objective function
+    '''
 
     PK2_sdstore = []
     SIGMA_sdstore = []
@@ -421,7 +457,7 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         params = opti_options_5(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
     elif case == 6:
         # Case 6 - Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters
-        parameter_bounds = [[1.0, 10.], [1.e-8, 500.], [1.0, 100.], [1.e-8, 500.]]
+        parameter_bounds = [[1.0, 20.], [1.e-8, 500.], [1.0, 20.], [1.e-8, 500.]]
         param_est = [3.0, 1.e-4, 3.0, 1.e-4]
         res = scipy.optimize.differential_evolution(func=opti_options_6,
                                                     bounds=parameter_bounds,
@@ -490,12 +526,11 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Calibrate micromorphic elastoplasticity on a single filter domain (i.e. macroscale element)"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-i', '--input-file', type=str,
         help="The homogenized XDMF file output by the Micromorphic Filter")
     parser.add_argument('-o', '--output-file', type=str,
@@ -510,8 +545,7 @@ def get_parser():
     parser.add_argument('--input-parameters', type=str, required=True,
         help="A yaml file containing previously calibrated parameters")
     parser.add_argument('--plot-file', type=str, required=False, default=None,
-        help="Optional root filename to plot Cauchy and symmetric micro stress\
-              comparison between DNS and calibration results")
+        help="Optional root filename to for plotting results")
     parser.add_argument('--average', type=str, required=False, default=False,
         help='Boolean whether or not homogenized DNS results will be averaged')
     parser.add_argument('--UQ-file', type=str, required=False,
