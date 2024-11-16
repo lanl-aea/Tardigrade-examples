@@ -1,7 +1,8 @@
-import sys
-import os
+#!python
 import argparse
-import inspect
+import os
+import pathlib
+import sys
 import yaml
 
 import numpy
@@ -80,13 +81,7 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=No
 
     model_name=r'LinearElasticity'
     XX = x0
-    # #consts = evaluate_constraints(XX, parameter_names)
-    # try:
-        # consts = evaluate_constraints(XX)
-        # cvals = numpy.array([c[0] for c in consts])
-    # except:
-        # #return numpy.inf
-        # return 1.e16
+
     consts = calibration_tools.evaluate_constraints(XX)
     cvals = numpy.array([c[0] for c in consts])
 
@@ -206,7 +201,7 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=No
 
 
 def opti_options_1(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None):
-    '''Objective function number 1 used for calibrating first 2 parameters of micromorphic linear elasticity
+    '''Objective function number 1 used for calibrating first 2 parameters of micromorphic linear elasticity. For case 1.
 
     :param array-like X: Array of micromorphic linear elasticity parameters
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
@@ -235,7 +230,7 @@ def opti_options_1(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
 
 
 def opti_options_2(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None, dev_norm_errors=False):
-    '''Objective function number 2 used for calibrating 7 parameters of micromorphic linear elasticity
+    '''Objective function number 2 used for calibrating 7 parameters of micromorphic linear elasticity. For case 2.
 
     :param array-like X: Array of micromorphic linear elasticity parameters
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
@@ -261,7 +256,7 @@ def opti_options_2(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
 
 
 def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None, dev_norm_errors=False):
-    '''Objective function number 3 used for calibrating 8 parameters of micromorphic linear elasticity
+    '''Objective function number 3 used for calibrating 8 parameters of micromorphic linear elasticity. For cases 3 and 5.
 
     :param array-like X: Array of micromorphic linear elasticity parameters
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
@@ -289,7 +284,7 @@ def opti_options_3(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
 
 
 def opti_options_4(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=True, increment=None, dev_norm_errors=False):
-    '''Objective function number 4 used for calibrating all 18 parameters of micromorphic linear elasticity
+    '''Objective function number 4 used for calibrating all 18 parameters of micromorphic linear elasticity. For cases 4 and 8.
 
     :param array-like X: Array of micromorphic linear elasticity parameters
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
@@ -314,7 +309,7 @@ def opti_options_4(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrat
 
 
 def opti_options_6(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, second_order_params, calibrate=True, increment=None, dev_norm_errors=False):
-    '''Objective function number 6 used for calibrating 11 higher order "tau" parameters of micromorphci linear elasticity
+    '''Objective function number 6 used for calibrating 11 higher order "tau" parameters of micromorphci linear elasticity. For case 6.
 
     :param array-like X: Array of micromorphic linear elasticity parameters
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
@@ -323,6 +318,7 @@ def opti_options_6(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, second_o
     :param float nu_targ: The targeted Poisson ratio if calibrating 2 parameter elasticity
     :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
     :param int element: The macro (filter) element to calibration
+    :param array second_order_params: Initial guess values for 7 second order parameters
     :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
     :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
     :param int increment: An optional list of one or more increments to perform calibration
@@ -339,7 +335,7 @@ def opti_options_6(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, second_o
 
 
 def opti_options_7(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, third_order_parameters, calibrate=True, increment=None, dev_norm_errors=False):
-    '''Objective function number 3 used for calibrating 8 parameters of micromorphic linear elasticity
+    '''Objective function number 7 used for calibrating 7 parameters of micromorphic linear elasticity with fixed higher order parameters. For case 7.
 
     :param array-like X: Array of micromorphic linear elasticity parameters
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
@@ -349,6 +345,7 @@ def opti_options_7(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, third_or
     :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
     :param int element: The macro (filter) element to calibration
     :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
+    :param array third_order_parameters: Previously calibrated values for 11 higher order parameters
     :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
     :param int increment: An optional list of one or more increments to perform calibration
 
@@ -364,6 +361,9 @@ def opti_options_7(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, third_or
 
 
 def handle_output_for_UQ(Xstore, Lstore, case):
+    '''TODO: not currently used
+
+    '''0
 
     UQ_dict = {
         'obj':[],
@@ -415,14 +415,19 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
 
     :param str input_file: The homogenized XDMF file output by the Micromorphic Filter
     :param str output_file:  The resulting list of parameters stored in a yaml file
-    :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7, 4: all 18 parameters
+    :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7 without error for M, 4: all 18 parameters, 5: 7 parameter plus tau7 with error for M, 6: 11 higher order parameters, 7: 7 parameters using fixed higher order parameters determined from case 6, 8: 7 parameters using initial guess and tighter bounds for higher order parameters determined from case 6
     :param float Emod: Estimate of a homogenized elastic modulus, used for initial parameter estimation
     :param float nu: Estimate of a homogenized Poisson ratio, used for initial parameter estimation
     :param float L: DNS max dimension (width, height, depth, etc.), used for initial parameter estimation
     :param int element: The macro (filter) element to calibration, default is zero
     :param int increment: An optional list of one or more increments to perform calibration
+    :param str plot_file: Optional root filename to for plotting results
+    :param bool average: Boolean whether or not homogenized DNS results will be averaged
+    :param str UQ_file: Optional csv filename to store function evaluations and parameter sets for UQ
     :param str cal_norm: The type of norm to use for calibration ("L1", "L2", or "L1-L2")
     :param float bound_half_width: The uniform parameter bound "half-width" to apply for all parameters to be calibrated. Bounds for lambda will be [0., bound_half_width]. All other parameter bounds will be [-1*bound_half_width, bound_half_width]
+    :param bool dev_norm_errors: Boolean whether to inclue deviatoric stress norms during calibration
+    :param str input_elastic_parameters: Yaml file containing previously calibrated elastic parameters
 
     :returns: calibrated parameters by minimizing a specified objective function
     '''
@@ -736,12 +741,11 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Calibrate micromorphic linear elasticity on a single filter domain (i.e. macroscale element)"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-i', '--input-file', type=str,
         help="The homogenized XDMF file output by the Micromorphic Filter")
     parser.add_argument('-o', '--output-file', type=str,
@@ -757,11 +761,16 @@ def get_parser():
     parser.add_argument('--increment', nargs="+", required=False, default=None,
         help="An optional list of one or more increments to perform calibration")
     parser.add_argument('--case', type=int, required=True,
-        help="Specify the calibration 'case'. 1: two parameter, 2: 7 parameter,\
-              3: 7 parameter plus tau7, 4: all 18 parameters")
+        help="1: two parameter,\
+              2: 7 parameter,\
+              3: 7 parameter plus tau7 without error for M,\
+              4: all 18 parameters,\
+              5: 7 parameter plus tau7 with error for M,\
+              6: 11 higher order parameters,\
+              7: 7 parameters using fixed higher order parameters determined from case 6,\
+              8: 7 parameters using initial guess and tighter bounds for higher order parameters determined from case 6")
     parser.add_argument('--plot-file', type=str, required=False, default=None,
-        help="Optional root filename to plot Cauchy and symmetric micro stress\
-              comparison between DNS and calibration results")
+        help="Optional root filename to for plotting results")
     parser.add_argument('--average', type=str, required=False, default=False,
         help='Boolean whether or not homogenized DNS results will be averaged')
     parser.add_argument('--UQ-file', type=str, required=False,
@@ -773,7 +782,7 @@ def get_parser():
               Bounds for lambda will be [0., bound_half_width].\
               All other parameter bounds will be [-1*bound_half_width, bound_half_width]')
     parser.add_argument('--dev-norm-errors', type=str, required=False, default=False,
-        help='Boolean whether to inclue deviatoric stress norms during calibraiton')
+        help='Boolean whether to inclue deviatoric stress norms during calibration')
     parser.add_argument('--input-elastic-parameters', type=str, required=False, default=None,
         help='Yaml file containing previously calibrated elastic parameters')
 
@@ -788,20 +797,19 @@ if __name__ == '__main__':
     Lstore = []
 
     args, unknown = parser.parse_known_args()
-    sys.exit(calibrate(
-                    input_file=args.input_file,
-                    output_file=args.output_file,
-                    Emod=args.Emod,
-                    nu=args.nu,
-                    L=args.L,
-                    element=args.element,
-                    increment=args.increment,
-                    case=args.case,
-                    plot_file=args.plot_file,
-                    average=str2bool(args.average),
-                    UQ_file=args.UQ_file,
-                    cal_norm=args.cal_norm,
-                    bound_half_width=args.bound_half_width,
-                    dev_norm_errors=str2bool(args.dev_norm_errors),
-                    input_elastic_parameters=args.input_elastic_parameters,
-                    ))
+    sys.exit(calibrate(input_file=args.input_file,
+                       output_file=args.output_file,
+                       Emod=args.Emod,
+                       nu=args.nu,
+                       L=args.L,
+                       element=args.element,
+                       increment=args.increment,
+                       case=args.case,
+                       plot_file=args.plot_file,
+                       average=str2bool(args.average),
+                       UQ_file=args.UQ_file,
+                       cal_norm=args.cal_norm,
+                       bound_half_width=args.bound_half_width,
+                       dev_norm_errors=str2bool(args.dev_norm_errors),
+                       input_elastic_parameters=args.input_elastic_parameters,
+                       ))
