@@ -1,17 +1,15 @@
-import subprocess as sp
-import numpy as np
-import os
-import sys
+#!python
 import argparse
-import time
-import glob
+import os
+import pathlib
+import sys
 import yaml
-import inspect
+
 
 def build_input(output_file, mesh_file, parameter_sets, disp, duration,
                 specimen_top_surface, specimen_bottom_surface, top_platen_contact, bottom_platen_contact,
                 top_platen_fixture, bottom_platen_fixture, contact_type='frictionless'):
-    '''Write a Tardigrade-MOOSE input file
+    '''Write Tardigrade-MOOSE input file for a plastic simulation with platens
     
     :param str output_file: The name of Tardigrade-MOOSE file to write
     :param str mesh_file: The name of the mesh file
@@ -19,11 +17,19 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
     :param str BCs: The type of boundary conditions, either "slip" or "clamp"
     :param float disp: The compressive displacement to be applied
     :param float duration: The duration of the simulation
+    :param str specimen_top_surface: Specify the name of the specimen top contact surface
+    :param str specimen_bottom_surface: Specify the name of the specimen bottom contact surface
+    :param str top_platen_contact: Specify the name of the top platen contact surface
+    :param str bottom_platen_contact: Specify the name of the bottom platen contact surface
+    :param str top_platen_fixture: Specify the name of the top platen fixture surface
+    :param str bottom_platen_fixture: Specify the name of the bottom platen fixture surface
+    :param str contact_type: The option for specifying contact, either "frictionless" or "friction"
+
 
     :returns: ``output_file``
     '''
 
-    # TODO: Write test to make sure the mesh_file exists
+    assert os.path.exists(mesh_file), f"Mesh file not found: {mesh_file}"
 
     # Write input file
     with open(output_file, 'w') as f:
@@ -829,6 +835,8 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
             f.write('  [../]\n')
             f.write('[]\n')
             f.write('\n')
+        else:
+            print('Specify a valid contact_type!')
         f.write('[Materials]\n')
         # Load in parameter data for each filter domain / element
         if len(parameter_sets) > 1:
@@ -1035,12 +1043,11 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
-    cli_description = "Write Tardigrade-MOOSE input file"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
+    cli_description = "Write Tardigrade-MOOSE input file for a plastic simulation with platens"
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-o', '--output-file', type=str, required=True,
         help="Specify the name of Tardigrade-MOOSE file to write")
     parser.add_argument('--mesh', type=str, required=True,
@@ -1063,6 +1070,8 @@ def get_parser():
         help='Specify the name of the top platen fixture surface')
     parser.add_argument('--bottom-platen-fixture', type=str, required=True,
         help='Specify the name of the bottom platen fixture surface')
+    parser.add_argument('--contact-type', type=str, required=False, default='frictionless',
+        help='The option for specifying contact, either "frictionless" or "friction"')
 
     return parser
 
@@ -1082,5 +1091,6 @@ if __name__ == '__main__':
                          bottom_platen_contact=args.bottom_platen_contact,
                          top_platen_fixture=args.top_platen_fixture,
                          bottom_platen_fixture=args.bottom_platen_fixture,
+                         contact_type=args.contact_type,
                          ))
 
