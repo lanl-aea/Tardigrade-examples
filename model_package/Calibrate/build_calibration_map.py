@@ -1,10 +1,11 @@
-import sys
-import pathlib
+#!python
 import argparse
-
+import pathlib
+import sys
 import yaml
-import pandas
+
 import numpy
+import pandas
 
 import calibration_tools
 
@@ -12,11 +13,11 @@ import calibration_tools
 def ignored_elements_calibration_map(output_file, calibrated_elements, calibrated_files, ignore_boundary_yml, ignore_boundary_summary_file):
     '''Create a yaml file to map calibration results for interior and boundary elements
 
+    :params str output_file: The name of the output yaml file
     :params list calibrated_elements: A list of elements with associated calibration files
     :params list calibrated_files: A list of files containing calibration results
     :params str ignore_boundary_yml: A yaml file containing the 'best' calibration using the kernel density estimate
     :params str ignore_boundary_summary_file: A csv file containing a summary of calibrated parameters for each element
-    :params str output_file: The name of the output yaml file
 
     :returns: Write ``output_file``
     '''
@@ -38,6 +39,7 @@ def full_csv_calibration_map(output_file, calibrated_elements, calibrated_files,
     :params str output_file: The name of the output file
     :params list calibrated_elements: A list of elements with associated calibration files
     :params list calibrated_files: A list of files containing calibration results
+    :param str material_type: The material type: 'elastic', 'plastic', or 'full_plastic'
 
     :returns: Write ``output_file``
     '''
@@ -127,11 +129,12 @@ def build_calibration_map(output_file, calibrated_elements=None, calibrated_file
 
 
 def get_parser():
+
     script_name = pathlib.Path(__file__)
+
     prog = f"python {script_name.name} "
     cli_description = "Create a yaml file to map calibration results"
     parser=argparse.ArgumentParser(description=cli_description, prog=prog)
-
     parser.add_argument('--output-file', type=str, required=True,
         help="The name of the output csv file")
     parser.add_argument('--calibrated-elements', nargs="+", required=False,
