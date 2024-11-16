@@ -1,30 +1,34 @@
-import subprocess as sp
-import numpy as np
-import os
-import sys
+#!python
 import argparse
-import time
-import glob
-import yaml
 import inspect
+import os
+import pathlib
+import sys
+import yaml
+
 
 def build_input(output_file, mesh_file, parameter_sets, disp, duration,
                 specimen_bottom_surface, bottom_platen_contact,
                 top_symmetry, back_symmetry, side_symmetry,
                 bottom_platen_fixture):
-    '''Write a Tardigrade-MOOSE input file
+    '''Write Tardigrade-MOOSE input file for eighth symmetry Brazilian disk simulation with platens
     
     :param str output_file: The name of Tardigrade-MOOSE file to write
     :param str mesh_file: The name of the mesh file
     :param list parameter_sets: The list of yaml files containing calibration results
-    :param str BCs: The type of boundary conditions, either "slip" or "clamp"
     :param float disp: The compressive displacement to be applied
     :param float duration: The duration of the simulation
+    :param str specimen_bottom_surface: The name of the specimen bottom contact surface
+    :param str bottom_platen_contact: The name of the bottom platen contact surface
+    :param str top_symmetry: The name of the top symmetry surface(s)
+    :param str back_symmetry: The name of the back symmetry surface(s)
+    :param str side_symmetry: The name of the side symmetry surface(s)
+    :param str bottom_platen_fixture: The name of the bottom platen fixture surface
 
     :returns: ``output_file``
     '''
 
-    # TODO: Write test to make sure the mesh_file exists
+    assert os.path.exists(mesh_file), f"Mesh file not found: {mesh_file}"
 
     # Write input file
     with open(output_file, 'w') as f:
@@ -886,12 +890,11 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
-    cli_description = "Write Tardigrade-MOOSE input file for eighth symmetry Brazilian Disk Simulation with Platens"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
+    cli_description = "Write Tardigrade-MOOSE input file for eighth symmetry Brazilian disk simulation with platens"
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-o', '--output-file', type=str, required=True,
         help="Specify the name of Tardigrade-MOOSE file to write")
     parser.add_argument('--mesh', type=str, required=True,
