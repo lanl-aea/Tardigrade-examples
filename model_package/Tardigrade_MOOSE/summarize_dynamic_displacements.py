@@ -1,11 +1,12 @@
-import pathlib
+#!python
 import argparse
-import sys
 import math
+import pathlib
+import sys
 
-import pandas
-import numpy
 import matplotlib.pyplot
+import numpy
+import pandas
 
 from model_package.DNS_Abaqus.dynamic_analytical_comparison import meirovitch
 from model_package.Tardigrade_MOOSE import simulation_variables_nominal
@@ -22,8 +23,6 @@ def summarize_dynamic_displacements(csv_files, plot_labels, output_file, output_
 
     :returns: Write ``output_file`` and ``output_csv``, optionally write ``convergence_plot``
     '''
-
-    
 
     # Meirovitch solution
     params = simulation_variables_nominal.dynamic_elastic_cylinder
@@ -69,11 +68,12 @@ def summarize_dynamic_displacements(csv_files, plot_labels, output_file, output_
 
 
 def get_parser():
+
     script_name = pathlib.Path(__file__)
+
     prog = f"python {script_name.name} "
     cli_description = "Plot mutliple dynamic displacement plots against each other"
     parser=argparse.ArgumentParser(description=cli_description, prog=prog)
-
     parser.add_argument('--csv-files', nargs="+", required=True,
         help="The csv files containing force results")
     parser.add_argument('--plot-labels', nargs="+", required=True,
