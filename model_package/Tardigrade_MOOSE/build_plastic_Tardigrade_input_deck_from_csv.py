@@ -1,5 +1,4 @@
-import subprocess as sp
-import numpy as np
+
 import os
 import sys
 import argparse
@@ -10,7 +9,7 @@ import inspect
 
 
 def build_input(output_file, mesh_file, parameter_csv, BCs, disp, duration):
-    '''Write a Tardigrade-MOOSE input file
+    '''Write Tardigrade-MOOSE input file for a gradient-enhanced damage plasticity simulation
     
     :param str output_file: The name of Tardigrade-MOOSE file to write
     :param str mesh_file: The name of the mesh file
@@ -22,7 +21,7 @@ def build_input(output_file, mesh_file, parameter_csv, BCs, disp, duration):
     :returns: ``output_file``
     '''
 
-    # TODO: Write test to make sure the mesh_file exists
+    assert os.path.exists(mesh_file), f"Mesh file not found: {mesh_file}"
 
     # Write input file
     with open(output_file, 'w') as f:
@@ -806,12 +805,11 @@ def build_input(output_file, mesh_file, parameter_csv, BCs, disp, duration):
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
-    cli_description = "Write Tardigrade-MOOSE input file"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
+    cli_description = "Write Tardigrade-MOOSE input file for a gradient-enhanced damage plasticity simulation"
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-o', '--output-file', type=str, required=True,
         help="Specify the name of Tardigrade-MOOSE file to write")
     parser.add_argument('--mesh', type=str, required=True,
