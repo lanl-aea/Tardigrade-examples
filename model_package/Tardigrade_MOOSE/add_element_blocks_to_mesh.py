@@ -1,8 +1,8 @@
 #!python
-import sys
-import os
 import argparse
+import os
 import pathlib
+import sys
 
 import cubit
 import numpy
@@ -12,6 +12,13 @@ import scipy
 
 
 def adjust_centroids(centroids, method='absolute'):
+    '''Adjust the location of an array of centroids
+
+    :params array centroids: Array of centroid locations
+    :params str method: The method to adjust all centroids. Specify 'origin' to find the centroid closest to the origin. Specify 'absolute' to adjust based on the minimum x-, y-, and z-coordinates
+
+    :returns: Dataframe ``centroids`` of adjusted centroids
+    '''
 
     if method == 'origin':
         # findest closest point to (0,0,0)
@@ -21,6 +28,8 @@ def adjust_centroids(centroids, method='absolute'):
         minx = numpy.min(centroids[:,0])
         miny = numpy.min(centroids[:,1])
         minz = numpy.min(centroids[:,2])
+    else:
+        print('Specify a valid method!')
 
     print(f'(minx, miny, minz) = ({minx}, {miny}, {minz})')
 
@@ -33,6 +42,12 @@ def adjust_centroids(centroids, method='absolute'):
 
 
 def get_element_centroids_from_exouds_mesh(exodus_mesh_map):
+    '''Extract and adjust the centroids from an exodus mesh used for mapping element IDs
+
+    :params str exodus_mesh_map: An existing macroscale to optionally map centroids for element block numbering
+
+    :returns: Dataframe ``centroids`` of adjusted centroids from exodus_mesh_map
+    '''
 
     mesh=meshio.read(exodus_mesh_map)
     node_points = mesh.points
