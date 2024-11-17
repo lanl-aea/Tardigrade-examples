@@ -107,6 +107,22 @@ AddOption(
     action="store_true",
     help="Boolean to submit jobs with SBATCH. (default: '%default')"
 )
+AddOption(
+    "--selected-parameter-sets",
+    dest="selected_parameter_sets",
+    default="All",
+    nargs=1,
+    type="str",
+    action="store",
+    help="Optional string of space separated integers specifying which parameters sets should be considered for filtering, calibrating, and performing macroscale simulations. (default: '%default')"
+)
+AddOption(
+    "--parse-filter-errors",
+    dest="parse_filter_errors",
+    default=False,
+    action="store_true",
+    help="Boolean to parse errors from Micromorphic Filter standard output. (default: '%default')"
+)
 # Inherit user's full environment and set project options
 env = Environment(ENV=os.environ.copy(),
                   variant_dir_base=GetOption("variant_dir_base"),
@@ -121,6 +137,8 @@ env = Environment(ENV=os.environ.copy(),
                   peta_data_copy=GetOption("peta_data_copy"),
                   config_software=GetOption("config_software"),
                   use_sbatch=GetOption("use_sbatch"),
+                  selected_parameter_sets=GetOption("selected_parameter_sets"),
+                  parse_filter_errors=GetOption("parse_filter_errors"),
                   TARFLAGS="-c -j",
                   TARSUFFIX=".tar.bz2"
 )
