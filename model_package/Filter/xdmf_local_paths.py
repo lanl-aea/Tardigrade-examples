@@ -1,7 +1,8 @@
+#!python
+import argparse
+import pathlib
 import os
 import sys
-import argparse
-import inspect
 
 
 def replace_paths(input_file, output_file, oldpath, newpath):
@@ -48,12 +49,11 @@ def replace_paths(input_file, output_file, oldpath, newpath):
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Create a copy of an XDMF file with absolute H5 paths replaced with relative paths"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-i', '--input-file', type=str, required=True,
                         help="The XDMF file output by the Micromorphic Filter with absolute H5 paths")
     parser.add_argument('-o', '--output-file', type=str, required=True,
