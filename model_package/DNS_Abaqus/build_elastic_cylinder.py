@@ -1,8 +1,10 @@
-import sys
-import os
+#!python
 import argparse
 import inspect
-import numpy as np
+import os
+import sys
+
+import numpy
 
 from part import *
 from material import *
@@ -16,7 +18,6 @@ from optimization import *
 from job import *
 from sketch import *
 from visualization import *
-import inspect
 
 
 def main(model_name, diam, height, seed, material_E, material_nu, material_rho, disp_fact, num_steps, BCs):
@@ -335,9 +336,9 @@ def get_centroids(part, nodes):
             c_x.append(nodes[c][0])
             c_y.append(nodes[c][1])
             c_z.append(nodes[c][2])
-        g_x = np.mean(c_x)
-        g_y = np.mean(c_y)
-        g_z = np.mean(c_z)
+        g_x = numpy.mean(c_x)
+        g_y = numpy.mean(c_y)
+        g_z = numpy.mean(c_z)
         dict[label]=[g_x,g_y,g_z]
 
     return(dict)
