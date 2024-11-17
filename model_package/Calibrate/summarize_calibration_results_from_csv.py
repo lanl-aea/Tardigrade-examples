@@ -1,16 +1,13 @@
-import subprocess as sp
-import numpy
-import os
-import sys
+#!python
 import argparse
-import time
-import glob
-import yaml
-import inspect
+import os
+import pathlib
+import sys
 
-import seaborn
 import matplotlib.pyplot
+import numpy
 import pandas
+import seaborn
 
 
 def write_plastic_material_card(output_file, input_dict):
@@ -177,12 +174,11 @@ def summarize_calibration_results(parameter_csv,
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Summarize results of parameter calibration from a calibration map csv"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('--parameter-csv', nargs="+", required=True,
         help='Specify the list of yaml files containing calibration results')
     parser.add_argument('--summary-csv', type=str, required=False,
