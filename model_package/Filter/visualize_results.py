@@ -1,19 +1,14 @@
-import sys
-import inspect
-import os
+#!python
 import argparse
+import pathlib
+import sys
 
+import h5py
+import matplotlib.pyplot
 import numpy
-import scipy.stats
-import scipy.optimize
-import h5py
-import xml.etree.ElementTree as ET
-import matplotlib.pyplot as plt
-import h5py
 import pandas
 from scipy.linalg import norm
 from scipy.linalg import polar
-import argparse
 
 import xdmf_reader_tools as XRT
 
@@ -48,11 +43,11 @@ def plot_reference_stresses(E, stress, average, output_name):
     '''
 
     name = output_name.replace('.PNG','')
-    fig1 = plt.figure(name, figsize=(11,9))
+    fig1 = matplotlib.pyplot.figure(name, figsize=(11,9))
     axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
     ybounds = [-1, 1]
 
-    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
 
     for i in range(3):
         for j in range(3):
@@ -67,20 +62,20 @@ def plot_reference_stresses(E, stress, average, output_name):
                 for qp in stress.keys():
                     ax1.plot(E[qp][:,0,i,j], stress[qp][:,0,i,j], '-o', color=colors[qp], label=f'qp #{qp+1}')
             if (i == 2) and (j == 2):
-                plt.xticks(rotation=45)
+                matplotlib.pyplot.xticks(rotation=45)
                         
             ax1.set_xlabel(r"$E_{" + str(i+1) + str(j+1) + "}$", fontsize=14)
             ax1.set_ylabel(plot_label, fontsize=14)
-            plt.ticklabel_format(style='sci', axis='x')
-            plt.ticklabel_format(style='sci', axis='y')
+            matplotlib.pyplot.ticklabel_format(style='sci', axis='x')
+            matplotlib.pyplot.ticklabel_format(style='sci', axis='y')
             ax1.tick_params('x', labelrotation=45)
 
     ax1 = axes1[1][2]
     if average == False:
         ax1.legend(bbox_to_anchor=(1.2, 0.9))
-    plt.figure(name)
-    plt.tight_layout()
-    plt.savefig(f'{output_name}')
+    matplotlib.pyplot.figure(name)
+    matplotlib.pyplot.tight_layout()
+    matplotlib.pyplot.savefig(f'{output_name}')
 
     return 0
 
@@ -97,11 +92,11 @@ def plot_current_stresses(e, stress, average, output_name):
     '''
 
     name = output_name.replace('.PNG','')
-    fig1 = plt.figure(name, figsize=(11,9))
+    fig1 = matplotlib.pyplot.figure(name, figsize=(11,9))
     axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
     ybounds = [-1, 1]
 
-    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
 
     for i in range(3):
         for j in range(3):
@@ -116,21 +111,21 @@ def plot_current_stresses(e, stress, average, output_name):
                 for qp in stress.keys():
                     ax1.plot(e[qp][:,0,i,j], stress[qp][:,0,i,j], '-o', color=colors[qp], label=f'qp #{qp+1}')
             if (i == 2) and (j ==2):
-                plt.xticks(rotation=45)
+                matplotlib.pyplot.xticks(rotation=45)
 
             ax1.set_xlabel(r"$e_{" + str(i+1) + str(j+1) + "}$", fontsize=14)
             ax1.set_ylabel(plot_label, fontsize=14)
-            plt.ticklabel_format(style='sci', axis='x')
-            plt.ticklabel_format(style='sci', axis='y')
+            matplotlib.pyplot.ticklabel_format(style='sci', axis='x')
+            matplotlib.pyplot.ticklabel_format(style='sci', axis='y')
             ax1.tick_params('x', labelrotation=45)
 
     ax1 = axes1[1][2]
     if average == False:
         ax1.legend(bbox_to_anchor=(1.2, 0.9))
-    plt.figure(name)
-    plt.tight_layout()
+    matplotlib.pyplot.figure(name)
+    matplotlib.pyplot.tight_layout()
 
-    plt.savefig(f'{output_name}')
+    matplotlib.pyplot.savefig(f'{output_name}')
 
     return 0
 
@@ -148,7 +143,7 @@ def plot_axial_vector_mag(cauchy, times, average, output_name):
 
     colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
     
-    fig1 = plt.figure('axial', figsize=(3,5),dpi=300)
+    fig1 = matplotlib.pyplot.figure('axial', figsize=(3,5),dpi=300)
     
     for qp in cauchy.keys():
         axial = []
@@ -166,17 +161,17 @@ def plot_axial_vector_mag(cauchy, times, average, output_name):
 
         # Plot magnitude of axial vector
         if average:
-            plt.plot(times, axial, '-o')
+            matplotlib.pyplot.plot(times, axial, '-o')
         else:
-            plt.plot(times, axial, '-o', color=colors[qp], label=f'qp #{qp+1}')
+            matplotlib.pyplot.plot(times, axial, '-o', color=colors[qp], label=f'qp #{qp+1}')
         
-    plt.figure('axial')
-    plt.xlabel('Simulation time (s)', fontsize=14)
-    plt.ylabel('|$\omega^{\sigma}$| (MPa)', fontsize=14)
+    matplotlib.pyplot.figure('axial')
+    matplotlib.pyplot.xlabel('Simulation time (s)', fontsize=14)
+    matplotlib.pyplot.ylabel('|$\omega^{\sigma}$| (MPa)', fontsize=14)
     if average == False:
-        plt.legend()
-    plt.tight_layout()
-    plt.savefig(f'{output_name}')
+        matplotlib.pyplot.legend()
+    matplotlib.pyplot.tight_layout()
+    matplotlib.pyplot.savefig(f'{output_name}')
 
     return 0 
 
@@ -193,7 +188,7 @@ def plot_stress_diffs(cauchy, symm, times, average, output_name):
     :returns: ``output_name``
     '''
 
-    fig1 = plt.figure('stress_diff', figsize=(11,9),dpi=300)
+    fig1 = matplotlib.pyplot.figure('stress_diff', figsize=(11,9),dpi=300)
     axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
 
     colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
@@ -216,9 +211,9 @@ def plot_stress_diffs(cauchy, symm, times, average, output_name):
     ax1 = axes1[1][2]
     if average == False:
         ax1.legend(bbox_to_anchor=(1.2, 0.9))
-    plt.figure('stress_diff')
-    plt.tight_layout()
-    plt.savefig(f'{output_name}')
+    matplotlib.pyplot.figure('stress_diff')
+    matplotlib.pyplot.tight_layout()
+    matplotlib.pyplot.savefig(f'{output_name}')
 
     return 0
 
@@ -276,7 +271,7 @@ def plot_rot_diffs(PK2, times, R, Rchi, average, output_name):
     :returns: ``output_name``
     '''
 
-    fig1 = plt.figure('Rot_diff', figsize=(12,9))
+    fig1 = matplotlib.pyplot.figure('Rot_diff', figsize=(12,9))
     axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
 
     colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
@@ -302,10 +297,10 @@ def plot_rot_diffs(PK2, times, R, Rchi, average, output_name):
     ax1 = axes1[1][2]
     if average == False:
         ax1.legend(bbox_to_anchor=(1.2, 0.9))
-    plt.ticklabel_format(axis='y',style='sci')
-    plt.figure('Rot_diff')
-    plt.tight_layout()
-    plt.savefig(f'{output_name}')
+    matplotlib.pyplot.ticklabel_format(axis='y',style='sci')
+    matplotlib.pyplot.figure('Rot_diff')
+    matplotlib.pyplot.tight_layout()
+    matplotlib.pyplot.savefig(f'{output_name}')
     
     return 0 
 
@@ -323,7 +318,7 @@ def plot_stretch_diffs(PK2, times, U, Uchi, average, output_name):
     :returns: ``output_name``
     '''
 
-    fig1 = plt.figure('U', figsize=(11,9))
+    fig1 = matplotlib.pyplot.figure('U', figsize=(11,9))
     axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
 
     colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
@@ -349,9 +344,9 @@ def plot_stretch_diffs(PK2, times, U, Uchi, average, output_name):
     ax1 = axes1[1][2]
     if average == False:
         ax1.legend(bbox_to_anchor=(1.2, 0.9))
-    plt.figure('U')
-    plt.tight_layout()
-    plt.savefig(f'{output_name}')
+    matplotlib.pyplot.figure('U')
+    matplotlib.pyplot.tight_layout()
+    matplotlib.pyplot.savefig(f'{output_name}')
     
     return 0 
 
@@ -373,14 +368,14 @@ def plot_first_moment_of_momentum_measures(coup, spins, times, average, plot_bod
     name1 = 'body_couples'
     name2 = 'micro_spin_inertias'
     name3 = 'couple_spin_diff'
-    fig1 = plt.figure(name1, figsize=(11,9))
+    fig1 = matplotlib.pyplot.figure(name1, figsize=(11,9))
     axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
-    fig2 = plt.figure(name2, figsize=(11,9))
+    fig2 = matplotlib.pyplot.figure(name2, figsize=(11,9))
     axes2 = [[fig2.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
-    fig3 = plt.figure(name3, figsize=(11,9))
+    fig3 = matplotlib.pyplot.figure(name3, figsize=(11,9))
     axes3 = [[fig3.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
     
-    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
     
     for i in range(3):
         for j in range(3):
@@ -410,12 +405,12 @@ def plot_first_moment_of_momentum_measures(coup, spins, times, average, plot_bod
         ax2.legend(bbox_to_anchor=(1.2,0.9))
         ax3.legend(bbox_to_anchor=(1.2,0.9))
         
-    plt.figure(name1)
-    plt.tight_layout()
-    plt.figure(name2)
-    plt.tight_layout()
-    plt.figure(name3)
-    plt.tight_layout()
+    matplotlib.pyplot.figure(name1)
+    matplotlib.pyplot.tight_layout()
+    matplotlib.pyplot.figure(name2)
+    matplotlib.pyplot.tight_layout()
+    matplotlib.pyplot.figure(name3)
+    matplotlib.pyplot.tight_layout()
 
     if plot_body_couples:
         fig1.savefig(plot_body_couples)
@@ -446,13 +441,14 @@ def plot_stress_norm(cauchy, symm, m, nqp, nel, ninc, times, output_name):
     :param dict m: THe quantities dict storing higher order stress
     :param int nqp: The number of quadrature points
     :param int nel: The number of elements
+    :param int ninc: The number of time increments
     :param array-like times: The time increments
     :param str output_name: Output filename
 
     :returns: ``output_name`` plot
     '''
 
-    fig = plt.figure('stress_norms', figsize=(9,9), dpi=300)
+    fig = matplotlib.pyplot.figure('stress_norms', figsize=(9,9), dpi=300)
     ax1 = fig.add_subplot(2,2,1)
     ax2 = fig.add_subplot(2,2,2)
     ax3 = fig.add_subplot(2,2,3)
@@ -514,22 +510,21 @@ def triple_deviatoric(stress):
 def plot_better_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_name):
     '''Plot the infinity norms of deviatoric Cauchy, symmetric micro, and higher stresses
 
-    :param dict cauchy: The quantities dict storing Cauchy stress
-    :param dict symm: The quantities dict storing symmetric micro stress
-    :param dict m: THe quantities dict storing higher order stress
+    :param dict PK2: The quantities dict storing second Piola-Kirchhoff stress
+    :param dict SIGMA: The quantities dict storing symmetric micro stress
+    :param dict M: THe quantities dict storing higher order stress
+    :param dict E: The quantities dict storing Green-Lagrange strain
+    :param dict Ecal: The quantities dict storing micro-strain
+    :param dict Gamma: The quantities dict storing micro deformation gradient
     :param int nqp: The number of quadrature points
     :param int nel: The number of elements
-    :param array-like times: The time increments
+    :param int ninc: The number of time increments
     :param str output_name: Output filename
 
     :returns: ``output_name`` plot
     '''
 
-    #fig = plt.figure('stress_norms', figsize=(16,12), dpi=300)
-    #axes = fig.add_subplot(4, 3, 12)
-    #axes = [[fig.add_subplot(4,3,3 * i + j + 1) for j in range(3)] for i in range(4)]
-    #axes = [[fig.add_subplot(4,3,12) for j in range(3)] for i in range(4)]
-    fig, axes = plt.subplots(4, 3)
+    fig, axes = matplotlib.pyplot.subplots(4, 3)
 
     for el in range(nel):
         for qp in range(nqp):
@@ -588,7 +583,7 @@ def plot_better_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, outpu
 
 
 def plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_name, transparency=None):
-    '''Plot the infinity norms of deviatoric Cauchy, symmetric micro, and higher stresses
+    '''Plot the infinity norms of deviatoric second Piola-Kirchhoff, symmetric micro, and higher order stresses versus relevant deformation measures
 
     :param dict cauchy: The quantities dict storing Cauchy stress
     :param dict symm: The quantities dict storing symmetric micro stress
@@ -601,11 +596,7 @@ def plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_
     :returns: ``output_name`` plot
     '''
 
-    #fig = plt.figure('stress_norms', figsize=(16,12), dpi=300)
-    #axes = fig.add_subplot(4, 3, 12)
-    #axes = [[fig.add_subplot(4,3,3 * i + j + 1) for j in range(3)] for i in range(4)]
-    #axes = [[fig.add_subplot(4,3,12) for j in range(3)] for i in range(4)]
-    fig, axes = plt.subplots(1, 3)
+    fig, axes = matplotlib.pyplot.subplots(1, 3)
 
     for el in range(nel):
         for qp in range(nqp):
@@ -657,24 +648,24 @@ def plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_
 
 
 def plot_norm_history(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, times, output_name):
-    '''Plot the infinity norms of deviatoric Cauchy, symmetric micro, and higher stresses
+    '''Plot the infinity norms of deviatoric second Piola-Kirchhoff, symmetric micro, and higher order stresses versus time
 
-    :param dict cauchy: The quantities dict storing Cauchy stress
-    :param dict symm: The quantities dict storing symmetric micro stress
-    :param dict m: THe quantities dict storing higher order stress
+    :param dict PK2: The quantities dict storing second Piola-Kirchhoff stress
+    :param dict SIGMA: The quantities dict storing symmetric micro stress
+    :param dict M: THe quantities dict storing higher order stress
+    :param dict E: The quantities dict storing Green-Lagrange strain
+    :param dict Ecal: The quantities dict storing micro-strain
+    :param dict Gamma: The quantities dict storing micro deformation gradient
     :param int nqp: The number of quadrature points
     :param int nel: The number of elements
+    :param int ninc: The number of time increments
     :param array-like times: The time increments
     :param str output_name: Output filename
 
     :returns: ``output_name`` plot
     '''
 
-    #fig = plt.figure('stress_norms', figsize=(16,12), dpi=300)
-    #axes = fig.add_subplot(4, 3, 12)
-    #axes = [[fig.add_subplot(4,3,3 * i + j + 1) for j in range(3)] for i in range(4)]
-    #axes = [[fig.add_subplot(4,3,12) for j in range(3)] for i in range(4)]
-    fig, axes = plt.subplots(3, 3)
+    fig, axes = matplotlib.pyplot.subplots(3, 3)
 
     for el in range(nel):
         for qp in range(nqp):
@@ -743,8 +734,22 @@ def plot_norm_history(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, times, outp
 
 
 def p_q_plot(PK2, SIGMA, M, E, nqp, nel, ninc, output_name):
+    '''Plot the pressure versus deviatoric norm (P-Q) plot for second Piola-Kirchhoff, symmetric micro, and higher order stresses
 
-    fig = plt.figure('p_q', figsize=(9,9), dpi=300)
+    :param dict PK2: The quantities dict storing second Piola-Kirchhoff stress
+    :param dict SIGMA: The quantities dict storing symmetric micro stress
+    :param dict M: THe quantities dict storing higher order stress
+    :param dict E: The quantities dict storing Green-Lagrange strain
+    :param dict Ecal: The quantities dict storing micro-strain
+    :param dict Gamma: The quantities dict storing micro deformation gradient
+    :param int nqp: The number of quadrature points
+    :param int nel: The number of elements
+    :param int ninc: The number of time increments
+    :param str output_name: Output filename
+
+    :returns: ``output_name`` plot
+    '''
+    fig = matplotlib.pyplot.figure('p_q', figsize=(9,9), dpi=300)
     ax1 = fig.add_subplot(2,2,1)
     ax2 = fig.add_subplot(2,2,2)
     ax3 = fig.add_subplot(2,2,3)
@@ -1185,12 +1190,11 @@ def visualize_results(input_file, average, num_domains,
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Post-process Micromorphic Filter Output"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-i', '--input-file', type=str, required=True,
         help="The XDMF Micromorphic Filter results file")
     parser.add_argument('--average', type=str, required=False, default=False,
