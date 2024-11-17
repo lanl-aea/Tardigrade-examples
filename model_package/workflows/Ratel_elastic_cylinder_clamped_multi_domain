@@ -90,8 +90,20 @@ elif params['cut'] == True:
 else:
     print('Specify valid option!')
 
+parameter_flag = False
+if env['selected_parameter_sets'] != "All":
+    parameter_flag = True
+    selected_parameter_sets = [int(i) for i in env['selected_parameter_sets'].split(' ')]
+
 parameter_generator = waves.parameter_generators.CustomStudy(parameter_schema)
 for set_name, parameters in parameter_generator.parameter_study_to_dict().items():
+
+    # Optionally skip certain parameter sets
+    if parameter_flag == True:
+        set = int(str(set_name).split('parameter_set')[-1])
+        if set not in selected_parameter_sets:
+            pass
+
     set_name = pathlib.Path(set_name)
 
     domain_number = parameters['num_domains']
