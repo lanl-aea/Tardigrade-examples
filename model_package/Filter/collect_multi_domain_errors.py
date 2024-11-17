@@ -1,10 +1,10 @@
-import pathlib
+#!python
 import argparse
+import pathlib
 import sys
 
-import pandas
-import numpy as np
 import matplotlib.pyplot
+import pandas
 
 
 def collect_errors(csv_files, num_domains, output_file):
@@ -58,11 +58,12 @@ def collect_errors(csv_files, num_domains, output_file):
 
 
 def get_parser():
+
     script_name = pathlib.Path(__file__)
+
     prog = f"python {script_name.name} "
     cli_description = "Collect balance equation errors across filter domain studies"
     parser=argparse.ArgumentParser(description=cli_description, prog=prog)
-
     parser.add_argument('--csv-files', nargs="+", required=True,
         help="A list of csv files containing balance equation errors")
     parser.add_argument('--num-domains', nargs="+", required=True,
