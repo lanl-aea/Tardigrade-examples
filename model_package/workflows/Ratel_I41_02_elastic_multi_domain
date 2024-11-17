@@ -162,7 +162,6 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     if parameter_flag == True:
         set = int(str(set_name).split('parameter_set')[-1])
         if set not in selected_parameter_sets:
-            print(f'Skipping parameter_set{set}!')
             pass
 
     set_name = pathlib.Path(set_name)
