@@ -2,7 +2,6 @@
 import argparse
 import pathlib
 import sys
-import yaml
 
 import micromorphic_filter.filter_dns
 
