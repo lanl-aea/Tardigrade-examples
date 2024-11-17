@@ -1,11 +1,11 @@
-import inspect
-import sys
-import os
+#!python
 import argparse
+import pathlib
+import sys
 
-import numpy as np
+import matplotlib.pyplot
+import numpy
 import pandas
-import matplotlib.pyplot as plt
 
 
 def plot_errors(df, output_plot):
@@ -18,7 +18,7 @@ def plot_errors(df, output_plot):
     '''
 
     # Create new figure
-    fig = plt.figure(figsize=(6,6))
+    fig = matplotlib.pyplot.figure(figsize=(6,6))
 
     # Create axes
     ax1 = fig.add_subplot(221)   #top left
@@ -44,8 +44,8 @@ def plot_errors(df, output_plot):
 
     # Export figure
     fig.suptitle('Balance Equation Errors')
-    plt.tight_layout()
-    plt.savefig(output_plot, dpi=300)
+    matplotlib.pyplot.tight_layout()
+    matplotlib.pyplot.savefig(output_plot, dpi=300)
 
     return 0
 
@@ -62,7 +62,7 @@ def parse_errors(input_file, output_csv, output_plot=None):
 
     # Read in specified file as array
     with open(input_file, 'r') as f:
-        input_contents = np.asarray(f.read().splitlines())
+        input_contents = numpy.asarray(f.read().splitlines())
 
     # parse contents into dictionary
     results = {}
@@ -100,13 +100,12 @@ def parse_errors(input_file, output_csv, output_plot=None):
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Parse balance equation errors from Micromorphic Filter\
                       standard output"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-i', '--input-file', type=str,
                         help="The standard out file produced when running the Micromorphic Filter")
     parser.add_argument('--output-csv', type=str, required=True,
