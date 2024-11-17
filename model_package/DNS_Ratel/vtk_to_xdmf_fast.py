@@ -1,14 +1,11 @@
-# Imports
-import sys
-import os
-import inspect
+#!python
 import argparse
+import pathlib
+import sys
 
 import meshio
-import numpy as np
+import numpy
 import pandas
-
-sys.path.append(r'/projects/tea/PSAAP/tardigrade_filter/src/python')
 
 import file_io.xdmf
 
@@ -52,7 +49,7 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
 
     # assume times are even spaced pseudo-timesteps
     num_times = len(input_files)
-    times = np.linspace(0, 1, num_times)
+    times = numpy.linspace(0, 1, num_times)
     step_names = [f'timestep_{i}' for i in range(0, num_times)]
 
     #for step_name in step_names:
@@ -72,32 +69,32 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
         grid = xdmf.addGrid(xdmf.output_timegrid, {})
         xdmf.addTime(grid, t)
         xdmf.addPoints(grid, reference_positions, duplicate=point_name)
-        xdmf.addConnectivity(grid, "POLYVERTEX", np.array([v for v in range(ndata)]).reshape((-1,1)), duplicate=conn_name)
+        xdmf.addConnectivity(grid, "POLYVERTEX", numpy.array([v for v in range(ndata)]).reshape((-1,1)), duplicate=conn_name)
 
         # get the unique displacements
-        unique_displacements = dist_factor*np.array([mesh.point_data[disp_x].flatten(),
+        unique_displacements = dist_factor*numpy.array([mesh.point_data[disp_x].flatten(),
                                                      mesh.point_data[disp_y].flatten(),
                                                      mesh.point_data[disp_z].flatten()])
-        print(f"shape of unique displacements = {np.shape(unique_displacements)}")
+        print(f"shape of unique displacements = {numpy.shape(unique_displacements)}")
         xdmf.addData(grid, "disp", unique_displacements, "Node", dtype='d')
 
         # get the unique positions
         unique_positions = unique_displacements + reference_positions
-        print(f"shape of unique positions = {np.shape(unique_positions)}")
+        print(f"shape of unique positions = {numpy.shape(unique_positions)}")
         xdmf.addData(grid, "coord", unique_positions, "Node", dtype='d')
 
         # get the velocity <-- fix for dynamic DNS!
-        unique_velocities = np.zeros(np.shape(unique_positions))
-        print(f"shape of unique velocities = {np.shape(unique_velocities)}")
+        unique_velocities = numpy.zeros(numpy.shape(unique_positions))
+        print(f"shape of unique velocities = {numpy.shape(unique_velocities)}")
         xdmf.addData(grid, "vel", unique_velocities, "Node", dtype='d')
 
         # get the acceleration <-- fix for dynamic DNS!
-        unique_accelerations = np.zeros(np.shape(unique_positions))
-        print(f"shape of unique accelerations = {np.shape(unique_accelerations)}")
+        unique_accelerations = numpy.zeros(numpy.shape(unique_positions))
+        print(f"shape of unique accelerations = {numpy.shape(unique_accelerations)}")
         xdmf.addData(grid, "acc", unique_accelerations, "Node", dtype='d')
 
         # get the stresses
-        unique_stresses = stress_factor*np.array([mesh.point_data[sig_xx].flatten(),
+        unique_stresses = stress_factor*numpy.array([mesh.point_data[sig_xx].flatten(),
                                                   mesh.point_data[sig_xy].flatten(),
                                                   mesh.point_data[sig_xz].flatten(),
                                                   mesh.point_data[sig_xy].flatten(),
@@ -106,22 +103,22 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
                                                   mesh.point_data[sig_xz].flatten(),
                                                   mesh.point_data[sig_yz].flatten(),
                                                   mesh.point_data[sig_zz].flatten()])
-        print(f"shape of stresses = {np.shape(unique_stresses)}")
+        print(f"shape of stresses = {numpy.shape(unique_stresses)}")
         xdmf.addData(grid, "stress", unique_stresses, "Node", dtype='d')
 
         # Get the volumes
         vol_factor = dist_factor*dist_factor*dist_factor
         unique_volumes = vol_factor*mesh.point_data[n_vol].flatten().reshape((-1,1))
-        print(f"shape of vol = {np.shape(unique_volumes)}")
-        print(f"total volume = {np.sum(unique_volumes)}")
+        print(f"shape of vol = {numpy.shape(unique_volumes)}")
+        print(f"total volume = {numpy.sum(unique_volumes)}")
         xdmf.addData(grid, "volume", unique_volumes, "Node", dtype='d')
 
         # Get the densities
         if n_dens in mesh.point_data.keys():
             unique_densities = density_factor*mesh.point_data[n_dens].flatten().reshape((-1,1))
         else:
-            unique_densities = ref_density*np.reciprocal(mesh.point_data[Jdef].flatten().reshape((-1,1)))
-        print(f"shape of density = {np.shape(unique_densities)}")
+            unique_densities = ref_density*numpy.reciprocal(mesh.point_data[Jdef].flatten().reshape((-1,1)))
+        print(f"shape of density = {numpy.shape(unique_densities)}")
         xdmf.addData(grid, "density", unique_densities, "Node", dtype='d')
 
     xdmf.write()
@@ -158,12 +155,11 @@ def convert_VTK_to_XDMF(input_files, output_file, dist_factor=1, stress_factor=1
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Convert Ratel DNS results to XDMF format"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-i', '--input-files', nargs="+",
         help='Specify the input VTK files containing Ratel DNS results')
     parser.add_argument('-o', '--output-file', type=str,
