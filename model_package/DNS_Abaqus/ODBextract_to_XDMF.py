@@ -1,16 +1,13 @@
-# Imports
-import sys
-import os
-import inspect
+#!python
 import argparse
+import pathlib
+import sys
 
 import h5py
-import numpy as np
+import numpy
 import pandas
 
 import file_io.xdmf
-
-file_path = os.path.dirname(os.path.abspath(__file__))
 
 
 def str2bool(v):
@@ -41,18 +38,18 @@ def interpolate_to_ip_c3d8(node_array, mesh):
     '''
 
     numips = 8
-    numelem = np.shape(mesh)[0]
-    results = np.zeros([numelem, numips, 3])
+    numelem = numpy.shape(mesh)[0]
+    results = numpy.zeros([numelem, numips, 3])
     # set Gauss point coordinates in xi,eta,zeta space
-    const=1/(np.sqrt(3))
-    xi_vect=np.array([[-const, -const, -const],
-                      [ const, -const, -const],
-                      [ const,  const, -const],
-                      [-const,  const, -const],
-                      [-const, -const,  const],
-                      [ const, -const,  const],
-                      [ const,  const,  const],
-                      [-const,  const,  const]])
+    const=1/(numpy.sqrt(3))
+    xi_vect=numpy.array([[-const, -const, -const],
+                         [ const, -const, -const],
+                         [ const,  const, -const],
+                         [-const,  const, -const],
+                         [-const, -const,  const],
+                         [ const, -const,  const],
+                         [ const,  const,  const],
+                         [-const,  const,  const]])
 
     # loop over all elements in mesh
     for e, n in enumerate(mesh):
@@ -62,7 +59,7 @@ def interpolate_to_ip_c3d8(node_array, mesh):
             # get the field values for that node
             node_field.append(node_array[node-1])
 
-        node_field = np.array(node_field).flatten(order='C')
+        node_field = numpy.array(node_field).flatten(order='C')
 
         # interpolate from nodes to integration points
         for ip in range(0,numips):
@@ -76,15 +73,15 @@ def interpolate_to_ip_c3d8(node_array, mesh):
             N7 = (1+xi)*(1+eta)*(1+zeta)/8
             N8 = (1-xi)*(1+eta)*(1+zeta)/8
 
-            Nu = np.array([
-                [ N1, 0, 0, N2, 0, 0, N3, 0, 0, N4, 0, 0, N5, 0, 0, N6, 0, 0, N7, 0, 0, N8, 0, 0],
-                [ 0, N1, 0, 0, N2, 0, 0, N3, 0, 0, N4, 0, 0, N5, 0, 0, N6, 0, 0, N7, 0, 0, N8, 0],
-                [ 0, 0, N1, 0, 0, N2, 0, 0, N3, 0, 0, N4, 0, 0, N5, 0, 0, N6, 0, 0, N7, 0, 0, N8]])
-            solve = np.matmul(Nu, node_field)
+            Nu = numpy.array([
+                    [ N1, 0, 0, N2, 0, 0, N3, 0, 0, N4, 0, 0, N5, 0, 0, N6, 0, 0, N7, 0, 0, N8, 0, 0],
+                    [ 0, N1, 0, 0, N2, 0, 0, N3, 0, 0, N4, 0, 0, N5, 0, 0, N6, 0, 0, N7, 0, 0, N8, 0],
+                    [ 0, 0, N1, 0, 0, N2, 0, 0, N3, 0, 0, N4, 0, 0, N5, 0, 0, N6, 0, 0, N7, 0, 0, N8]])
+            solve = numpy.matmul(Nu, node_field)
 
             results[e, ip, :] = solve
 
-    print(f'nodal_field shape = {np.shape(results)}')
+    print(f'nodal_field shape = {numpy.shape(results)}')
     return(results)
 
 
@@ -98,8 +95,8 @@ def interpolate_to_center_c3d8(node_array, mesh):
     '''
 
     numpts = 1
-    numelem = np.shape(mesh)[0]
-    results = np.zeros([numelem, numpts, 3])
+    numelem = numpy.shape(mesh)[0]
+    results = numpy.zeros([numelem, numpts, 3])
 
     for e, n in enumerate(mesh):
         node_field = []
@@ -107,14 +104,14 @@ def interpolate_to_center_c3d8(node_array, mesh):
             # get the field values for that node
             node_field.append(node_array[node-1])
 
-        #node_field = np.array(node_field).flatten(order='C')
-        node_field = np.array(node_field)
+        #node_field = numpy.array(node_field).flatten(order='C')
+        node_field = numpy.array(node_field)
 
         # average over node_field
-        solve = np.mean(node_field, axis=0)
+        solve = numpy.mean(node_field, axis=0)
         results[e, 0, :] = solve
 
-    print(f'nodal_field shape = {np.shape(results)}')
+    print(f'nodal_field shape = {numpy.shape(results)}')
     return(results)
 
 
@@ -137,7 +134,7 @@ def parse_input(input_file, elem_path, node_path, mesh_path, collocation_option,
     with h5py.File(input_file, 'r') as file:
         elem_fields = file[elem_path]
         node_fields = file[node_path]
-        times = np.array(elem_fields['time'])
+        times = numpy.array(elem_fields['time'])
 
         # frames
         if specific_frames:
@@ -148,19 +145,19 @@ def parse_input(input_file, elem_path, node_path, mesh_path, collocation_option,
             frames = [i for i in range(0, num_frames)]
 
         # get nodal locations
-        node = np.array(file[mesh_path]['node'])
-        node_location = np.array(file[mesh_path]['node_location'])
-        c3d8_mesh = np.array(file[mesh_path]['C3D8_mesh']) # (1640 elem) x (8 nodes / elem)
+        node = numpy.array(file[mesh_path]['node'])
+        node_location = numpy.array(file[mesh_path]['node_location'])
+        c3d8_mesh = numpy.array(file[mesh_path]['C3D8_mesh']) # (1640 elem) x (8 nodes / elem)
 
         # loop over frames and get indices for each field
         results = {}
         for f in frames:
 
             # unpack element field results
-            IVOL_elem   = np.array(elem_fields['IVOL'][0][f])    # (1) x (frames) x (elem) x (8 ips) --> (elem) x (8 ips)
-            EVOL_elem   = np.array(elem_fields['EVOL'][0][f])    # (1) x (frames) x (elem) x (8 ips) --> (elem) x (8 ips), most of ips are nan
-            S_elem      = np.array(elem_fields['S'][0][f])       # (1) x (frames) x (elem) x (8 ips) x (6 comp) --> (elem) x (8 ips) x (6 comp)
-            COORD_elem  = np.array(elem_fields['COORD'][0][f])   # (1) x (frames) x (elem) x (8 ips) x (3 comp) --> (elem) x (8 ips) x (3 comp)
+            IVOL_elem   = numpy.array(elem_fields['IVOL'][0][f])    # (1) x (frames) x (elem) x (8 ips) --> (elem) x (8 ips)
+            EVOL_elem   = numpy.array(elem_fields['EVOL'][0][f])    # (1) x (frames) x (elem) x (8 ips) --> (elem) x (8 ips), most of ips are nan
+            S_elem      = numpy.array(elem_fields['S'][0][f])       # (1) x (frames) x (elem) x (8 ips) x (6 comp) --> (elem) x (8 ips) x (6 comp)
+            COORD_elem  = numpy.array(elem_fields['COORD'][0][f])   # (1) x (frames) x (elem) x (8 ips) x (3 comp) --> (elem) x (8 ips) x (3 comp)
             if collocation_option == 'ip':
                 EVOL = EVOL_elem.flatten(order='C')
                 IVOL = IVOL_elem.flatten(order='C')
@@ -173,13 +170,13 @@ def parse_input(input_file, elem_path, node_path, mesh_path, collocation_option,
                 S12 = S_elem[:,:,3].flatten(order='C')
                 S13 = S_elem[:,:,4].flatten(order='C')
                 S23 = S_elem[:,:,5].flatten(order='C')
-                null = np.zeros_like(S11)
+                null = numpy.zeros_like(S11)
             elif collocation_option == 'center':
-                EVOL = np.nansum(EVOL_elem,axis=1)
-                IVOL = np.sum(IVOL_elem, axis=1)
-                COORD_elem = np.mean(COORD_elem, axis=1)
-                S_elem = np.mean(S_elem, axis=1)
-                IVOL_elem = np.sum(IVOL_elem, axis=1)
+                EVOL = numpy.nansum(EVOL_elem,axis=1)
+                IVOL = numpy.sum(IVOL_elem, axis=1)
+                COORD_elem = numpy.mean(COORD_elem, axis=1)
+                S_elem = numpy.mean(S_elem, axis=1)
+                IVOL_elem = numpy.sum(IVOL_elem, axis=1)
                 COORDSx = COORD_elem[:,0]
                 COORDSy = COORD_elem[:,1]
                 COORDSz = COORD_elem[:,2]
@@ -189,17 +186,17 @@ def parse_input(input_file, elem_path, node_path, mesh_path, collocation_option,
                 S12 = S_elem[:,3]
                 S13 = S_elem[:,4]
                 S23 = S_elem[:,5]
-                null = np.zeros_like(S11)
+                null = numpy.zeros_like(S11)
             else:
                 print('Specify valid collocation options')
 
             # unpack nodal fields
             ## 1. grab relevant nodal fields
-            u_nodes = np.array(node_fields['U'][0][f])
+            u_nodes = numpy.array(node_fields['U'][0][f])
             if velocities == True:
-                v_nodes = np.array(node_fields['V'][0][f])
+                v_nodes = numpy.array(node_fields['V'][0][f])
             if accelerations == True:
-                a_nodes = np.array(node_fields['A'][0][f])
+                a_nodes = numpy.array(node_fields['A'][0][f])
             ## 2. collocate fields
             if collocation_option == 'ip':
                 u_elem = interpolate_to_ip_c3d8(u_nodes, c3d8_mesh)
@@ -258,7 +255,6 @@ def new_XDMF_writer(results, output_file, times, ref_density):
     :returns: ``{output_file}.xdmf`` and ``{outptu_file}.h5``
     '''
 
-    #data_filename = os.path.join(file_path, output_file)
     data_filename=output_file
     xdmf = file_io.xdmf.XDMF(output_filename=data_filename)
 
@@ -268,11 +264,11 @@ def new_XDMF_writer(results, output_file, times, ref_density):
         y = results[0]['COORDy'][i]
         z = results[0]['COORDz'][i]
         reference_positions.append([x,y,z])
-    reference_positions = np.array(reference_positions)
+    reference_positions = numpy.array(reference_positions)
     ndata = reference_positions.shape[0]
 
     # get reference volumes
-    reference_volumes = np.array([vol for vol in results[0]['IVOL']])
+    reference_volumes = numpy.array([vol for vol in results[0]['IVOL']])
     reference_volumes = reference_volumes.reshape((-1,1))
 
     point_name = 'points'
@@ -289,7 +285,7 @@ def new_XDMF_writer(results, output_file, times, ref_density):
         grid = xdmf.addGrid(xdmf.output_timegrid, {})
         xdmf.addTime(grid, t)
         xdmf.addPoints(grid, reference_positions, duplicate=point_name)
-        xdmf.addConnectivity(grid, "POLYVERTEX", np.array([v for v in range(ndata)]).reshape((-1,1)), duplicate=conn_name)
+        xdmf.addConnectivity(grid, "POLYVERTEX", numpy.array([v for v in range(ndata)]).reshape((-1,1)), duplicate=conn_name)
 
         # Get the unique positions
         unique_positions = []
@@ -297,8 +293,8 @@ def new_XDMF_writer(results, output_file, times, ref_density):
             y = results[step_name]['COORDy'][i]
             z = results[step_name]['COORDz'][i]
             unique_positions.append([x, y, z])
-        unique_positions = np.array(unique_positions)
-        print('unique positions', np.shape(unique_positions))
+        unique_positions = numpy.array(unique_positions)
+        print('unique positions', numpy.shape(unique_positions))
         xdmf.addData(grid, "coord", unique_positions, "Node", dtype='d')
 
         # get the displacement
@@ -308,9 +304,9 @@ def new_XDMF_writer(results, output_file, times, ref_density):
             y = results[step_name]['U2'][i]
             z = results[step_name]['U3'][i]
             unique_displacements.append([x, y, z])
-        unique_displacements = np.array(unique_displacements)
-        print(f'interpolation error = {np.mean(abs(unique_displacements - other_displacements),axis=0)}')
-        print('unique displacements', np.shape(unique_displacements))
+        unique_displacements = numpy.array(unique_displacements)
+        print(f'interpolation error = {numpy.mean(abs(unique_displacements - other_displacements),axis=0)}')
+        print('unique displacements', numpy.shape(unique_displacements))
         xdmf.addData(grid, "disp", unique_displacements, "Node", dtype='d')
 
         # get the velocity
@@ -319,8 +315,8 @@ def new_XDMF_writer(results, output_file, times, ref_density):
             y = results[step_name]['V2'][i]
             z = results[step_name]['V3'][i]
             unique_velocities.append([x, y, z])
-        unique_velocities = np.array(unique_velocities)
-        print(f"shape of unique velocities = {np.shape(unique_velocities)}")
+        unique_velocities = numpy.array(unique_velocities)
+        print(f"shape of unique velocities = {numpy.shape(unique_velocities)}")
         xdmf.addData(grid, "vel", unique_velocities, "Node", dtype='d')
 
         # get the acceleration
@@ -329,8 +325,8 @@ def new_XDMF_writer(results, output_file, times, ref_density):
             y = results[step_name]['A2'][i]
             z = results[step_name]['A3'][i]
             unique_accelerations.append([x, y, z])
-        unique_accelerations = np.array(unique_accelerations)
-        print(f"shape of unique accelerations = {np.shape(unique_accelerations)}")
+        unique_accelerations = numpy.array(unique_accelerations)
+        print(f"shape of unique accelerations = {numpy.shape(unique_accelerations)}")
         xdmf.addData(grid, "acc", unique_accelerations, "Node", dtype='d')
 
         # Stresses
@@ -347,15 +343,15 @@ def new_XDMF_writer(results, output_file, times, ref_density):
             data.append([Sxx, Sxy, Sxz,
                          Sxy, Syy, Syz,
                          Sxz, Syz, Szz])
-        unique_stresses = np.array(data)
-        print(f"shape of stresses = {np.shape(unique_stresses)}")
+        unique_stresses = numpy.array(data)
+        print(f"shape of stresses = {numpy.shape(unique_stresses)}")
         xdmf.addData(grid, "stress", unique_stresses, "Node", dtype='d')
 
         # Volumes
-        unique_volumes = np.array([vol for vol in results[step_name]['IVOL']])
+        unique_volumes = numpy.array([vol for vol in results[step_name]['IVOL']])
         unique_volumes = unique_volumes.reshape((-1,1))
-        print(f"shape of vol = {np.shape(unique_volumes)}")
-        print(f"total volume = {np.sum(unique_volumes)}")
+        print(f"shape of vol = {numpy.shape(unique_volumes)}")
+        print(f"total volume = {numpy.sum(unique_volumes)}")
         xdmf.addData(grid, "volume", unique_volumes, "Node", dtype='d')
 
         # Density
@@ -364,9 +360,9 @@ def new_XDMF_writer(results, output_file, times, ref_density):
         for ref, cur in zip(reference_volumes, unique_volumes):
             J = cur / ref
             unique_densities.append(reference_density / J)
-        unique_densities = np.array(unique_densities)
+        unique_densities = numpy.array(unique_densities)
         unique_densities = unique_densities.reshape((-1,1))
-        print(f"shape of density = {np.shape(unique_densities)}")
+        print(f"shape of density = {numpy.shape(unique_densities)}")
         xdmf.addData(grid, "density", unique_densities, "Node", dtype='d')
 
     xdmf.write()
@@ -420,12 +416,11 @@ def ODBextract_to_XDMF(input_file, output_file, elem_path, node_path, mesh_path,
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Convert Abaqus DNS results to XDMF format"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-i', '--input-file', type=str,
         help='Specify the input hdf5 file generated from odb_extract')
     parser.add_argument('-o', '--output-file', type=str,
