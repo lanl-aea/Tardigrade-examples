@@ -1,15 +1,14 @@
 #!python
 import argparse
-import os
 import pathlib
 import sys
 import yaml
 
+from itertools import compress
 import numpy
 import matplotlib.pyplot
-import scipy
 import pandas
-from itertools import compress
+import scipy
 
 sys.path.append(r'/projects/tea/tardigrade_plastic/tardigrade_micromorphic_element/src/python')
 sys.path.append(r'/projects/tea/tardigrade-examples/model_package')
