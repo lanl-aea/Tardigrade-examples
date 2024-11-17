@@ -1,14 +1,12 @@
-import sys
-import os
-import inspect
+#!python
 import argparse
+import pathlib
+import sys
 
 import numpy
 import meshio
 
 import file_io.xdmf
-
-file_path = os.path.dirname(os.path.abspath(__file__))
 
 
 def XDMF_tomfoolery(input_file, output_file):
@@ -48,12 +46,11 @@ def XDMF_tomfoolery(input_file, output_file):
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Modify an XDMF file by combining elements from separate 'blocks'"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-o', '--output-file', type=str, required=True,
         help='Specify the output filename for the h5 + XDMF file pair')
     parser.add_argument('--input-file', type=str, required=True,
