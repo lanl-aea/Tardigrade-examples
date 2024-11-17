@@ -114,10 +114,6 @@ if domain_number == 1:
 else:
     element_array = numpy.array(list(range(0,int(domain_number)))).reshape((-1,1))
     calibration_schema = dict(parameter_samples=element_array, parameter_names=numpy.array(['elements']))
-    # calibration_generator = waves.parameter_generators.CustomStudy(
-        # calibration_schema,
-        # output_file= build_directory / f"calibration_study_{domain_number}_case_{case}.h5")
-    # calibration_generator.write()
     calibration_generator = waves.parameter_generators.CustomStudy(calibration_schema)
 
     # calibration loop
@@ -160,8 +156,6 @@ else:
             script_options = script_options + common_options
         ))
         # Calibrate all 18 parameters
-        #higher_order_parameters = f'{calib_set}/{calibration_targs[0]}'
-        #higher_order_parameters = calibration_targs[0]
         higher_order_parameters = str(build_directory / calib_set / calibration_targs[0])
         case = 8
         calibration_targs = [f'calibrated_elastic_parameters_case_{case}_elem_{elem}.yml',
@@ -180,8 +174,6 @@ else:
         ))
         calibrated_elastic_files.append(f'{calib_set}/{calibration_targs[0]}')
         # Calibrate plasticity
-        #elastic_parameters = f'{calib_set}/{calibration_targs[0]}'
-        #elastic_parameters = calibration_targs[0]
         elastic_parameters = str(build_directory / calib_set / calibration_targs[0])
         case = params['plastic_calibration_case']
         plastic_plot_root = f'{plot_root}_plastic'
