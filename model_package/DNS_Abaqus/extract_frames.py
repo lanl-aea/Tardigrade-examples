@@ -1,3 +1,10 @@
+#!python
+import argparse
+import inspect
+import os
+import re
+import sys
+
 from part import *
 from material import *
 from section import *
@@ -9,18 +16,10 @@ from mesh import *
 from optimization import *
 from job import *
 from sketch import *
-#from visualization import *
 import visualization
-#from connectorBehavior import *
-import numpy as np
-import argparse
-#import visualization
 from abaqus import session
 from odbAccess import *
-#session.viewports
-import inspect
-import re
-import os
+
 
 
 def extract_frames(input_file, output_file, field, viewVec, camVec, fram=None, refine_seq=None):
