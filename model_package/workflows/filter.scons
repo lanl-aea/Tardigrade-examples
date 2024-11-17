@@ -117,18 +117,19 @@ workflow.extend(env.PythonScript(
 ))
 
 ## Parse balance equation errors
-balance_script = "parse_balance_errors.py"
-balance_file = f"{filter_results}.xdmf.stdout"
-output_csv = f"{filter_results}_errors.csv"
-output_plot = f"{filter_results}_errors.png"
-script_options = f" --input-file {balance_file}"
-script_options += f" --output-csv {output_csv}"
-script_options += f" --output-plot {output_plot}"
-workflow.extend(env.PythonScript(
-    target = [output_csv, output_plot],
-    source = [f"{filter_source_abspath / balance_script}", balance_file] + filter_targs,
-    script_options = script_options
-))
+if env["parse_filter_errors"]:
+    balance_script = "parse_balance_errors.py"
+    balance_file = f"{filter_results}.xdmf.stdout"
+    output_csv = f"{filter_results}_errors.csv"
+    output_plot = f"{filter_results}_errors.png"
+    script_options = f" --input-file {balance_file}"
+    script_options += f" --output-csv {output_csv}"
+    script_options += f" --output-plot {output_plot}"
+    workflow.extend(env.PythonScript(
+        target = [output_csv, output_plot],
+        source = [f"{filter_source_abspath / balance_script}", balance_file] + filter_targs,
+        script_options = script_options
+    ))
 
 ## Visualize, make some plots and populate documentation
 viz_script = "visualize_results.py"
