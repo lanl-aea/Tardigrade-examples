@@ -1,15 +1,14 @@
 #!python
 import argparse
-import os
 import pathlib
 import sys
 import yaml
 
+from itertools import compress
 import numpy
 import matplotlib.pyplot
-import scipy
 import pandas
-from itertools import compress
+import scipy
 
 sys.path.append(r'/projects/tea/tardigrade_plastic/tardigrade_micromorphic_element/src/python')
 sys.path.append(r'/projects/tea/tardigrade-examples/model_package')
@@ -415,7 +414,15 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
 
     :param str input_file: The homogenized XDMF file output by the Micromorphic Filter
     :param str output_file:  The resulting list of parameters stored in a yaml file
-    :param int case: The calibration "case". 1: two parameter, 2: 7 parameter, 3: 7 parameter plus tau7 without error for M, 4: all 18 parameters, 5: 7 parameter plus tau7 with error for M, 6: 11 higher order parameters, 7: 7 parameters using fixed higher order parameters determined from case 6, 8: 7 parameters using initial guess and tighter bounds for higher order parameters determined from case 6
+    :param int case: The calibration "case".
+                     1: two parameter,
+                     2: 7 parameter,
+                     3: 7 parameter plus tau7 without error for M,
+                     4: all 18 parameters,
+                     5: 7 parameter plus tau7 with error for M,
+                     6: 11 higher order parameters,
+                     7: 7 parameters using fixed higher order parameters determined from case 6,
+                     8: 7 parameters using initial guess and tighter bounds for higher order parameters determined from case 6
     :param float Emod: Estimate of a homogenized elastic modulus, used for initial parameter estimation
     :param float nu: Estimate of a homogenized Poisson ratio, used for initial parameter estimation
     :param float L: DNS max dimension (width, height, depth, etc.), used for initial parameter estimation
@@ -761,7 +768,8 @@ def get_parser():
     parser.add_argument('--increment', nargs="+", required=False, default=None,
         help="An optional list of one or more increments to perform calibration")
     parser.add_argument('--case', type=int, required=True,
-        help="1: two parameter,\
+        help="The calibration 'case'.\
+              1: two parameter,\
               2: 7 parameter,\
               3: 7 parameter plus tau7 without error for M,\
               4: all 18 parameters,\
