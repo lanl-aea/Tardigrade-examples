@@ -1,14 +1,13 @@
-import sys
+#!python
 import argparse
-import pathlib
-import yaml
 import math
+import pathlib
+import sys
 
-import xarray
-import pandas
-import matplotlib.pyplot
 import h5py
+import matplotlib.pyplot
 import numpy
+import pandas
 
 
 def meirovitch(x, t, c, nmax, L):
@@ -134,13 +133,12 @@ def plot_series_convergence(x, t, speed, L, output_name):
 
 
 def get_parser():
+
     script_name = pathlib.Path(__file__)
-    default_output_file = f"{script_name.stem}.png"
 
     prog = f"python {script_name.name} "
     cli_description = "Plot dynamic Abaqus results against an analytical solution"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=prog)
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     required_named = parser.add_argument_group('required named arguments')
     required_named.add_argument("-i", "--input-file", nargs="+", required=True,
         help="The HDF5 dataset file containing Abaqus results")
