@@ -3,9 +3,9 @@ import argparse
 import pathlib
 import sys
 
-import pandas
-import numpy
 import matplotlib.pyplot
+import numpy
+import pandas
 
 
 def plot_force_displacement(csv_file, output_file, output_csv, face_id=None, final_disp=None, force_col='force_z', header_row=0, force_factor=1, filter_markers=None):
