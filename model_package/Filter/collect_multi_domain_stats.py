@@ -1,10 +1,10 @@
-import pathlib
+#!python
 import argparse
+import pathlib
 import sys
 
 import pandas
-import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib.pyplot
 
 
 def collect_results(csv_files, num_domains, output_file=None, box_plot=None, narrow=False):
@@ -31,9 +31,9 @@ def collect_results(csv_files, num_domains, output_file=None, box_plot=None, nar
 
     if box_plot:
         if narrow == False:
-            fig, ax = plt.subplots(nrows=1,ncols=1, figsize=(6,6))
+            fig, ax = matplotlib.pyplot.subplots(nrows=1,ncols=1, figsize=(6,6))
         else:
-            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(3,9))
+            fig, ax = matplotlib.pyplot.subplots(nrows=1, ncols=1, figsize=(3,9))
         data = []
         for df in dfs:
             data.append(df['quantity'])
@@ -48,11 +48,12 @@ def collect_results(csv_files, num_domains, output_file=None, box_plot=None, nar
 
 
 def get_parser():
+
     script_name = pathlib.Path(__file__)
+
     prog = f"python {script_name.name} "
     cli_description = "Collect statistics of a homogenized micromorphic quantity across filter domain studies"
     parser=argparse.ArgumentParser(description=cli_description, prog=prog)
-
     parser.add_argument('--csv-files', nargs="+", required=True,
         help="A list of csv files containing information to collect")
     parser.add_argument('--num-domains', nargs="+", required=True,
