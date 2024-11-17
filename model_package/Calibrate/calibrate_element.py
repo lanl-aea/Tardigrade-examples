@@ -362,7 +362,7 @@ def opti_options_7(X, Y, inputs, cal_norm, nu_targ, case, element, nqp, third_or
 def handle_output_for_UQ(Xstore, Lstore, case):
     '''TODO: not currently used
 
-    '''0
+    '''
 
     UQ_dict = {
         'obj':[],
