@@ -210,7 +210,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
             SConscript("tardigrade_moose_plastic.scons", variant_dir=variant_dir,
                        exports=["env", "parameters", "workflow_name", "model", "params"],
                        duplicate=False))
-    if env['macro_platens']:
+    if env['macro_platen']:
         variant_dir = build_directory / set_name
         workflow.extend(
             SConscript("tardigrade_moose_plastic_platens.scons", variant_dir=variant_dir,
