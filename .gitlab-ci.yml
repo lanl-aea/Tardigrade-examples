@@ -60,6 +60,8 @@ test_docs:
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   script:
+    - waves --version
+    - scons -h
     - scons html
   tags:
     - shell-aea
