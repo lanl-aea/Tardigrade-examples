@@ -215,7 +215,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
             SConscript("tardigrade_moose_ignore_BCs.scons", variant_dir=variant_dir,
                        exports=["env", "parameters", "workflow_name", "model", "params", "calibration_map"],
                        duplicate=False))
-    if env['macro_plastic'] and (domain_number > 24):
+    if env['macro_ignore_BCs'] and (domain_number > 24) and env['macro']:
         variant_dir = build_directory / set_name
         workflow.extend(
             SConscript("tardigrade_moose_ignore_BCs_plastic.scons", variant_dir=variant_dir,
