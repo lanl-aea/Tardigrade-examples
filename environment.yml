@@ -3,9 +3,8 @@ channels:
   - https://conda.software.inl.gov/public
 
 dependencies:
-  - python==3.10.8
-  - waves
   - moose-dev
+  - waves
   - scons>=4
   - boost>=1.59,<=1.80
   - breathe>=4.30.0
