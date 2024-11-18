@@ -1,11 +1,8 @@
-
-import os
-import sys
+#!python
 import argparse
-import time
-import glob
-import yaml
-import inspect
+import os
+import pathlib
+import sys
 
 
 def build_input(output_file, mesh_file, parameter_csv, BCs, disp, duration):
