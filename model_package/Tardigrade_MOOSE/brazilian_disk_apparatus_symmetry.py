@@ -113,7 +113,7 @@ def get_parser():
     script_name = pathlib.Path(__file__)
 
     prog = f"python {script_name.name} "
-    cli_description = "Create a Brazilian Disk specimen and loading apparatus"
+    cli_description = "Create a Brazilian Disk specimen and loading apparatus using 1/8th symmetry"
     parser = argparse.ArgumentParser(description=cli_description,
                                      prog=prog)
     parser.add_argument('--output-file', type=str, required=True,
