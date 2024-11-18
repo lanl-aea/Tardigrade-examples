@@ -57,7 +57,11 @@ elastic_parameter_ordering = ['lambda', 'mu', 'eta', 'tau', 'kappa', 'nu', 'sigm
                               'tau8', 'tau9', 'tau10', 'tau11']
 
 elasticity_parameters = CT.Isbuga_micrormorphic_elasticity_parameters(Brazilian_disk['material_E'], Brazilian_disk['material_nu'], 0.5)
-for key, param in zip(elastic_parameter_ordering, elasticity_parameters):
-    Brazilian_disk[key] = param
+# Use a try/except because unittest.mock.Mock() has been problematic for calibration_tools.py
+try:
+    for key, param in zip(elastic_parameter_ordering, elasticity_parameters):
+        Brazilian_disk[key] = param
+except:
+    pass
 
 Brazilian_disk_platens = copy.deepcopy(Brazilian_disk)
