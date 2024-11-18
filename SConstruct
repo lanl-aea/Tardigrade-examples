@@ -63,11 +63,11 @@ AddOption(
          " (default: '%default')"
 )
 AddOption(
-    "--macro-plastic",
-    dest="macro_plastic",
+    "--macro-platen",
+    dest="macro_platen",
     default=False,
     action="store_true",
-    help="Boolean speciyfing whether or not to run heterogeneous, plastic macro simulation in Tardigrade-MOOSE. TEMPORARY! TO be replaced with dedicated Workflow in the future"\
+    help="Boolean speciyfing whether or not to run macro simulation in Tardigrade-MOOSE with loading platens."\
          " (default: '%default')"
 )
 AddOption(
@@ -131,7 +131,7 @@ env = Environment(ENV=os.environ.copy(),
                   filter=GetOption("filter"),
                   calibrate=GetOption("calibrate"),
                   macro=GetOption("macro"),
-                  macro_plastic=GetOption("macro_plastic"),
+                  macro_platen=GetOption("macro_platen"),
                   macro_ignore_BCs=GetOption("macro_ignore_BCs"),
                   summary=GetOption("summary"),
                   peta_data_copy=GetOption("peta_data_copy"),
@@ -403,10 +403,7 @@ workflow_configurations = [
     "Ratel_I41_02_elastic_multi_domain",
     #"Ratel_I41_02_elastic_single_domains",
     # Ratel I43_09 workflow
-    "Ratel_I43_09_multi_domain",
-    "Ratel_I43_09_multi_domain_coarse",
     "Ratel_I43_09_multi_domain_coarse_finetime",
-    "Ratel_I43_09_test_new_filter",
     # Tardigrade solo studies
     "Tardigrade_convergence",
     "Tardigrade_dynamic_convergence",
