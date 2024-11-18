@@ -389,6 +389,9 @@ workflow_configurations = [
     # Abaqus dynamic implicit elastic cylinder
     "Abaqus_elastic_cylinder_dynamic_imp",
     "Abaqus_elastic_cylinder_dynamic_imp_multi_domain",
+    # GEOS elastic cylinder
+    "GEOS_elastic_cylinder",
+    "GEOS_elastic_cylinder_multi_domain",
     # Ratel quasistatic elastic cylinder
     "Ratel_elastic_cylinder",
     "Ratel_elastic_cylinder_multi_domain",
