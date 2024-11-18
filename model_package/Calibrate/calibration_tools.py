@@ -97,12 +97,12 @@ def isolate_element(quantities, type, elem):
     return(output)
 
 
-def Isbuga_micrormorphic_elasticity_parameters(Emod, nu, L):
+def Isbuga_micrormorphic_elasticity_parameters(Emod, nu, Lc):
     '''Calculate initial estimate of 18 parameter micromorphic linear elasticity model parameters using method defined in https://doi.org/10.1016/j.ijengsci.2011.04.006
 
     :param float Emod: An estimate of homogenized elastic modulus
     :param float nu: An estimate of the homogenized Poisson ratio
-    :param float L: An estimate of the length scale parameter
+    :param float Lc: An estimate of the length scale parameter
 
     :returns: array of estimated micromorphic linear elasticity parameters
     '''
@@ -110,9 +110,6 @@ def Isbuga_micrormorphic_elasticity_parameters(Emod, nu, L):
     # calculate "classic" lame parameters
     lame_lambda = Emod*nu/((1.+nu)*(1.-2*nu))
     lame_mu     = Emod/(2*(1.+nu)) #shear modulus, K
-
-    # estimate characteristic length
-    Lc = numpy.sqrt(3*(L**2))
 
     # estimate micromorphic parameters
     lamb = 0.7435*lame_lambda
