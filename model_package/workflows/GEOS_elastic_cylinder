@@ -74,7 +74,7 @@ script_options += " --dist-factor 0.001"
 script_options += " --stress-factor 1."
 script_options += " --density-factor 1.e-12"
 workflow.extend(env.PythonScript(
-    target=filter_inputs + [cauchy_stresses],
+    target=filter_inputs,
     source=[str(DNS_GEOS_abspath / XDMF_script), f'{DNS_fileroot}/{results_file}'],
     script_options=script_options))
 
