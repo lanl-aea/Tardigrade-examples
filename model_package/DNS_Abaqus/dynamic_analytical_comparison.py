@@ -135,6 +135,7 @@ def plot_series_convergence(x, t, speed, L, output_name):
 def get_parser():
 
     script_name = pathlib.Path(__file__)
+    default_output_file = f"{script_name.stem}.png"
 
     prog = f"python {script_name.name} "
     cli_description = "Plot dynamic Abaqus results against an analytical solution"
