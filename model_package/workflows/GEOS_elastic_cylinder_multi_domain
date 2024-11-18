@@ -74,7 +74,7 @@ script_options += " --dist-factor 0.001"
 script_options += " --stress-factor 1."
 script_options += " --density-factor 1.e-12"
 workflow.extend(env.PythonScript(
-    target=filter_inputs + [cauchy_stresses],
+    target=filter_inputs,
     source=[str(DNS_GEOS_abspath / XDMF_script), f'{DNS_fileroot}/{results_file}'],
     script_options=script_options))
 
@@ -93,7 +93,7 @@ rad = 0.5*params['diam']
 bounding_csv = f"{model}_forced_bounds.csv"
 bounding_script = "force_bounds.py"
 script_options = f"--output-file {bounding_csv}"
-script_options += f" --xmin {-1*rad} --xmax {rad} --ymin {-1*rad} --ymax {rad} --zmin 0 --zmax{params['height']}"
+script_options += f" --xmin {-1*rad} --xmax {rad} --ymin {-1*rad} --ymax {rad} --zmin 0 --zmax {params['height']}"
 workflow.extend(env.PythonScript(
     target=bounding_csv,
     source=[str(filter_source_abspath / bounding_script)],
