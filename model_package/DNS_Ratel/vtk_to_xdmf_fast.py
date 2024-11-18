@@ -73,8 +73,8 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
 
         # get the unique displacements
         unique_displacements = dist_factor*numpy.array([mesh.point_data[disp_x].flatten(),
-                                                     mesh.point_data[disp_y].flatten(),
-                                                     mesh.point_data[disp_z].flatten()])
+                                                        mesh.point_data[disp_y].flatten(),
+                                                        mesh.point_data[disp_z].flatten()])
         print(f"shape of unique displacements = {numpy.shape(unique_displacements)}")
         xdmf.addData(grid, "disp", unique_displacements, "Node", dtype='d')
 
@@ -95,14 +95,14 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
 
         # get the stresses
         unique_stresses = stress_factor*numpy.array([mesh.point_data[sig_xx].flatten(),
-                                                  mesh.point_data[sig_xy].flatten(),
-                                                  mesh.point_data[sig_xz].flatten(),
-                                                  mesh.point_data[sig_xy].flatten(),
-                                                  mesh.point_data[sig_yy].flatten(),
-                                                  mesh.point_data[sig_yz].flatten(),
-                                                  mesh.point_data[sig_xz].flatten(),
-                                                  mesh.point_data[sig_yz].flatten(),
-                                                  mesh.point_data[sig_zz].flatten()])
+                                                     mesh.point_data[sig_xy].flatten(),
+                                                     mesh.point_data[sig_xz].flatten(),
+                                                     mesh.point_data[sig_xy].flatten(),
+                                                     mesh.point_data[sig_yy].flatten(),
+                                                     mesh.point_data[sig_yz].flatten(),
+                                                     mesh.point_data[sig_xz].flatten(),
+                                                     mesh.point_data[sig_yz].flatten(),
+                                                     mesh.point_data[sig_zz].flatten()])
         print(f"shape of stresses = {numpy.shape(unique_stresses)}")
         xdmf.addData(grid, "stress", unique_stresses, "Node", dtype='d')
 
