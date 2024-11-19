@@ -160,7 +160,7 @@ def get_parser():
         help='The approximate mesh size')
     parser.add_argument('--platen-rad-factor', type=float, required=False, default=1.5,
         help='The factor to multiply the specimen radius by to determine the specimen radius')
-    parser.add_argument('--platen-depth', type=float, required=False,
+    parser.add_argument('--platen-depth', type=float, required=False, default=1.0,
         help='The thickness of the platens')
     parser.add_argument('--xdmf', type=str, required=False,
         help='The option to convert default exodus mesh to XDMF (binary)')
