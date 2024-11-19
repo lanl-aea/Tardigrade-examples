@@ -252,9 +252,9 @@ I43_damage_coarse_finetime = {
     'velocity': False,
     'filter_parallel': 8,
     # parameters for elastic calibration
-    'plastic_calibration_case': 6,
+    'plastic_calibration_case': 7,
     'calibration_increment_elastic': [0, 1, 2, 3, 4],
-    'calibration_increment_plastic': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    'calibration_increment_plastic': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
     # parameters for plastic calibration
     'cohesion_case': 1,
     'cohesion_increment': [3, 4, 5],
