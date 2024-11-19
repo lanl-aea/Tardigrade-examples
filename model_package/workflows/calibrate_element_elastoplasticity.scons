@@ -18,6 +18,7 @@ Import("params")
 
 # Set project-wide paths
 calibrate_source_abspath = pathlib.Path(env["calibrate_source_abspath"])
+filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
 
 # workflow variables
 build_directory = pathlib.Path(Dir(".").abspath)
@@ -214,13 +215,13 @@ else:
     xdmf_script = 'xdmf_3d_calculations.py'
     output_fileroot = f'CALIBRATION_RESULTS_{model}_plastic_parameters_case_{case}_domain_number'
     xdmf_targets = [f"{output_fileroot}.{suffix}" for suffix in ['xdmf', 'h5']]
-    script_options = f"--input-file {filter_file}"
+    script_options = f"--input-file {filter_file.split('.xdmf')[0]}"
     script_options += f" --output-file {output_fileroot}"
     script_options += " --write-type calibration"
     script_options += f" --calibration-map-file {calibration_map_file}"
     workflow.extend(env.PythonScript(
         target = xdmf_targets,
-        source = [f"{calibrate_source_abspath / calibration_map_script}", calibration_map_file],
+        source = [f"{filter_source_abspath / xdmf_script}", calibration_map_file],
         script_options = script_options,
     ))
 
@@ -241,7 +242,7 @@ else:
     summary_script = 'summarize_calibration_results_from_csv.py'
     hist_plot_root = f'kde_plastic_case_{case}'
     summary_targs = [f'Calibration_summary_{int(domain_number)}_domains_plastic_case_{case}.csv',
-                     f'{hist_plot_root}_lamb_hist.PNG']
+                     f'{hist_plot_root}_lambda_hist.PNG']
     script_options = f'--parameter-csv {calibration_map_file}'
     script_options += f' --case {case}'
     script_options += f' --summary-csv {summary_targs[0]}'
