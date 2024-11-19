@@ -222,7 +222,10 @@ micromorphic_location = program_paths['micromorphic'][-1]
 constraints_location = program_paths['constraints'][-1]
 
 # LD_LIBRARY_PATH
-env['LD_PATH'] = program_paths['LD_PATH']
+if len(program_paths['LD_PATH']) > 1:
+    env['LD_PATH'] = f'{":".join(program_paths["LD_PATH"])}'
+else:
+    env['LD_PATH'] = program_paths['LD_PATH']
 
 # Tardigrade-MOOSE
 tardigrade_location = program_paths['Tardigrade']
