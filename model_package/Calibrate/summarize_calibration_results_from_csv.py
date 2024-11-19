@@ -3,6 +3,7 @@ import argparse
 import os
 import pathlib
 import sys
+import yaml
 
 import matplotlib.pyplot
 import numpy
@@ -179,7 +180,7 @@ def get_parser():
     prog = f"python {script_name.name} "
     cli_description = "Summarize results of parameter calibration from a calibration map csv"
     parser = argparse.ArgumentParser(description=cli_description, prog=prog)
-    parser.add_argument('--parameter-csv', nargs="+", required=True,
+    parser.add_argument('--parameter-csv', type=str, required=True,
         help='Specify the list of yaml files containing calibration results')
     parser.add_argument('--summary-csv', type=str, required=False,
         help='Optional filename to store summary statistics of calibrated parameters')
