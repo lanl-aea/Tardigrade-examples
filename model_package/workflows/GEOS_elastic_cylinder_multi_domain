@@ -59,7 +59,7 @@ viz_targs =  (
 params['viz_targs'] = viz_targs
 
 # ---------- Process existing DNS ----------------------------------------------
-DNS_fileroot = params['DNS_fileroot']
+DNS_fileroot = f"{peta_data_copy_abspath}/{params['DNS_fileroot']}/"
 results_file = params['DNS_file']
 
 # Filter prep - Extract results to XDMF
@@ -70,9 +70,9 @@ XDMF_script = "vtk_to_xdmf.py"
 script_options = f"--input-file {results_file}"
 script_options += f" --file-root {DNS_fileroot}"
 script_options += f" --output-file {str(build_directory / main_XDMF_name)}"
-script_options += " --dist-factor 0.001"
-script_options += " --stress-factor 1."
-script_options += " --density-factor 1.e-12"
+script_options += " --dist-factor 1"
+script_options += " --stress-factor 1000."
+script_options += " --density-factor 1.e-9"
 workflow.extend(env.PythonScript(
     target=filter_inputs,
     source=[str(DNS_GEOS_abspath / XDMF_script), f'{DNS_fileroot}/{results_file}'],
@@ -102,21 +102,24 @@ workflow.extend(env.PythonScript(
 params['bounding_csv'] = str(build_directory / bounding_csv)
 filter_inputs = [f"{str(build_directory / main_XDMF_name)}.{ext}" for ext in ['xdmf', 'h5']]
 
-# # Post-processing step - force vs. displacement
-# plot_script = "plot_force_displacement.py"
-# force_results = f"{peta_data_copy_abspath}/{params['DNS_forces']}"
-# force_plot_targets = [f"{model}_force_displacement.png", f"{model}_force_displacement.csv"]
-# script_options = f"--csv-file {force_results}"
-# script_options += f" --output-file {force_plot_targets[0]}"
-# script_options += f" --output-csv {force_plot_targets[1]}"
-# script_options += " --force-col 'Force (N)'"
-# script_options += " --header-row 0"
-# script_options += " --filter-markers 0 10 15 20 25 30 35 40 45 50 55 60 70 80"
-# workflow.extend(env.PythonScript(
-    # target=[force_plot_targets],
-    # source=[str(DNS_Ratel_abspath / plot_script)],
-    # script_options=script_options,
-    # ))
+# Post-processing step - force vs. displacement
+plot_script = "plot_force_displacement.py"
+force_results = f"{DNS_fileroot}/{params['DNS_forces']}"
+force_plot_targets = [f"{model}_force_displacement.png", f"{model}_force_displacement.csv"]
+script_options = f"--csv-file {force_results}"
+script_options += f" --output-file {force_plot_targets[0]}"
+script_options += f" --output-csv {force_plot_targets[1]}"
+script_options += " --force-col ' Rz+'"
+script_options += " --length-col ' length_z'"
+script_options += " --header-row 0"
+script_options += " --header-row 0"
+script_options += " --force-factor -1000 --disp-factor -1"
+script_options += " --filter-markers 0 23 45 67 89 111 133 155 177 199 221 243"
+workflow.extend(env.PythonScript(
+    target=[force_plot_targets],
+    source=[str(DNS_GEOS_abspath / plot_script)],
+    script_options=script_options,
+    ))
 
 # # # Get image of DNS results
 # # paraview_script= "get_paraview_image.py"
