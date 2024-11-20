@@ -142,19 +142,19 @@ if params['cut'] == False:
         raise NotImplementedError("Without access to Cubit, this workflow can not be completed!")
     parameter_schema = dict(
         parameter_samples = numpy.array([
-            [2.0, 1],
-            [1.0, 4],
-            [0.75, 36],
-            [0.4, 160]], dtype=object),
+            [5.0, 1],
+            [2.5, 4],
+            [2.0, 36],
+            [1.0, 160]], dtype=object),
         parameter_names = numpy.array(["seed_size", "num_domains"])
     )
 elif params['cut'] == True:
     parameter_schema = dict(
         parameter_samples = numpy.array([
-            [2.0, 1],
-            [1.0, 24],
-            [0.6, 48],
-            [0.4, 192]], dtype=object),
+            [5.0, 1],
+            [2.5, 24],
+            [1.5, 48],
+            [1.0, 192]], dtype=object),
         parameter_names = numpy.array(["seed_size", "num_domains"])
     )
 else:
