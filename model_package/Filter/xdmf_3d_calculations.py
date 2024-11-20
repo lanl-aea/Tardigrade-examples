@@ -93,6 +93,12 @@ def three_tensor_p_q(xdmf_file, qp_field_name, inc, num_elements):
 
 def filter_stress_measures(xdmf_file_in, xdmf_file_out, incs, times, num_elements, reference_positions, connectivity):
 
+    fields = (('p', 'cauchy_stress'),
+              ('q', 'cauchy_stress'),
+              ('p', 'symmetric_micro_stress'),
+              ('q', 'symmetric_micro_stress'),
+    
+
     # calculate p and q
     for i in incs:
         grid = xdmf_file_out.addGrid(xdmf_file_out.output_timegrid, {})
@@ -101,7 +107,8 @@ def filter_stress_measures(xdmf_file_in, xdmf_file_out, incs, times, num_element
                                 duplicate='filter_reference_positions')
         xdmf_file_out.addConnectivity(grid, "HEXAHEDRON", connectivity,
                                 duplicate='filter_connectivity')
-
+        # Calculate quantities
+        for type, field in fields:
         p_sig, q_sig = average_over_quadrature(
             xdmf_file_in, f'cauchy_stress', i, num_elements)
         xdmf_file_out.addData(grid, f"test_p_sig", p_sig, center='Cell')
@@ -115,6 +122,15 @@ def filter_stress_measures(xdmf_file_in, xdmf_file_out, incs, times, num_element
 
 
 def assign_calibration_results(xdmf_file_out, calibration_map_file, reference_positions, connectivity):
+    '''Write calibrated results onto unique elements of an XDMF file
+
+    :params object xdmf_file_out: The XDMF file to write to
+    :params str calibration_map_file: A csv file containing previously calibrated parameters.
+    :params array-like reference_positions: The reference positions of nodes in an existing XDMF file
+    :params array-like connectivity: The element to node connectivity in an existing XDMF file
+
+    :returns: Write data to ``xdmf_file_out``
+    '''
 
     # setup XDMF output
     grid = xdmf_file_out.addGrid(xdmf_file_out.output_timegrid, {})
@@ -135,7 +151,19 @@ def assign_calibration_results(xdmf_file_out, calibration_map_file, reference_po
 
 
 def xdmf_3d_calculations(input_file, output_file, write_type, num_elements=None, calibration_map_file=None):
+    '''Create an XDMF file containing a variety of derived quantities
 
+    :params str input_file: Specify the input filename for the h5 + XDMF file pair
+    :params str output_file: Specify the output filenmae for the h5 + XDMF file pair
+    :params str write_type: The type of quantities to write to XDMF. Choose "filter_stress_measures"
+                            to calculate stress invariants directly on filter results.
+                            Choose "calibration" results to display calibrations on static mesh.
+    :params int num_elements: The number of macroscale elements
+    :param str calibration_map_file: A csv file containing previously calibrated parameters.
+                                     Required if "--write-type calibration"
+
+    :returns: Call either filter_stress_measures or assign_calibration_results depending on "write_type"
+    '''
 
     xdmf_file_in = file_io.xdmf.XDMF(input_file)
     xdmf_file_in.open()
@@ -170,7 +198,7 @@ def get_parser():
     filename = inspect.getfile(lambda: None)
     basename = os.path.basename(filename)
     basename_without_extension, extension = os.path.splitext(basename)
-    cli_description = "Convert Ratel DNS results to XDMF format"
+    cli_description = "Create an XDMF file containing a variety of derived quantities"
     parser = argparse.ArgumentParser(description=cli_description,
                                      prog=os.path.basename(filename))
     parser.add_argument('-i', '--input-file', type=str,
