@@ -406,7 +406,7 @@ workflow_configurations = [
     "Ratel_I41_02_elastic_multi_domain",
     #"Ratel_I41_02_elastic_single_domains",
     # Ratel I43_09 workflow
-    "Ratel_I43_09_multi_domain_coarse_finetime",
+    "Ratel_I43_09_multi_domain",
     # Tardigrade solo studies
     "Tardigrade_convergence",
     "Tardigrade_dynamic_convergence",
