@@ -12,92 +12,141 @@ sys.path.append(r'/projects/tea/PSAAP/tardigrade_filter/src/python')
 import file_io.xdmf
 
 
-def two_tensor_p_q(xdmf_file, qp_field_name, inc, num_elements):
+def two_pressure(xdmf_file_in, qp_field_name, inc, num_elements):
+    '''Calculate the pressure of a second order tensor
 
+    :params object xdmf_file_in: The XDMF file to calculate quantities from
+    :params str qp_field_name: The stress field (defined at the quadrature points) to consider
+    :params list inc: The current time increment
+    :params int num_elements: The number of macroscale elements
+    :params int k: The 3rd index of the third order tensor
+    '''
+
+    data = xdmf_file_in.getIncrementData(inc, qp_field_name)
     p_output = numpy.zeros([num_elements, 1])
-    q_output = numpy.zeros([num_elements, 1])
 
-    data = xdmf_file.getIncrementData(inc, qp_field_name)
+    for e in range(num_elements):
+        chunk = data[0][0][e,:].reshape(3,3)
+        p_output[e,:] = (-1/3)*numpy.trace(chunk)
+
+    return p_output
+
+
+def two_devnorm(xdmf_file_in, qp_field_name, inc, num_elements):
+    '''Calculate the norm of the deviatoric part of a second order tensor
+
+    :params object xdmf_file_in: The XDMF file to calculate quantities from
+    :params str qp_field_name: The stress field (defined at the quadrature points) to consider
+    :params list inc: The current time increment
+    :params int num_elements: The number of macroscale elements
+    '''
+
+    data = xdmf_file_in.getIncrementData(inc, qp_field_name)
+    q_output = numpy.zeros([num_elements, 1])
 
     for e in range(num_elements):
         chunk = data[0][0][e,:].reshape(3,3)
         p = (-1/3)*numpy.trace(chunk)
         dev = chunk + p*numpy.eye(3)
-        q = numpy.sqrt(numpy.tensordot(dev, dev))
-        p_output[e,:] = p
-        q_output[e,:] = q
+        q_output[e,:] = numpy.sqrt(numpy.tensordot(dev, dev))
 
-    return p_output, q_output
+    return q_output
 
 
-def average_over_qp_two_tensor(xdmf_file_in, qp_field_name, inc, num_elements):
+def three_pressure(xdmf_file_in, qp_field_name, inc, num_elements, k):
+    '''Calculate the pressure of a third order tensor on 3rd index "k"
 
-    p_all = numpy.zeros([8, num_elements, 1])
-    q_all = numpy.zeros([8, num_elements, 1])
-    for qp in range(8):
-        ps, qs = two_tensor_p_q(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
-        p_all[qp, :, :] = ps
-        q_all[qp, :, :] = qs
+    :params object xdmf_file_in: The XDMF file to calculate quantities from
+    :params str qp_field_name: The stress field (defined at the quadrature points) to consider
+    :params list inc: The current time increment
+    :params int num_elements: The number of macroscale elements
+    :params int k: The 3rd index of the third order tensor
+    '''
 
-    return numpy.mean(p_all, axis=0), numpy.mean(q_all, axis=0)
-
-
-def three_tensor_p_q(xdmf_file, qp_field_name, inc, num_elements):
-
-    p_output_1 = numpy.zeros([num_elements, 1])
-    p_output_2 = numpy.zeros([num_elements, 1])
-    p_output_3 = numpy.zeros([num_elements, 1])
-    q_output_1 = numpy.zeros([num_elements, 1])
-    q_output_2 = numpy.zeros([num_elements, 1])
-    q_output_3 = numpy.zeros([num_elements, 1])
-
-    data = xdmf_file.getIncrementData(inc, qp_field_name)
+    data = xdmf_file_in.getIncrementData(inc, qp_field_name)
+    p_output = numpy.zeros([num_elements, 1])
 
     for e in range(num_elements):
-        chunk = data[0][0][e,:].reshape(3,3)
-        for i, p_out, q_out in zip([0,1,2], [p_output_1, p_output_2, p_output_3], [q_output_1, q_output_2, q_output_3]):
-            p = (-1/3)*numpy.trace(chunk[:,:,i])
-            dev = chunk[:,:,i] + p*numpy.eye(3)
-            q = numpy.sqrt(numpy.tensordot(dev, dev))
-            p_out[e,:] = p
-            q_out[e,:] = q
+        chunk = data[0][0][e,:].reshape(3,3,3)
+        p_output[e,:] = (-1/3)*numpy.trace(chunk[:,:,k])
 
-    return p_output_1, p_output_2, p_output_3, q_output_1, q_output_2, q_output_3
+    return p_output
 
 
-# def average_over_qp_three_tensor(xdmf_file_in, qp_field_name, inc, num_elements):
+def three_devnorm(xdmf_file_in, qp_field_name, inc, num_elements, k):
+    '''Calculate the norm of the deviatoric part of a third order tensor on 3rd index "k"
 
-    # p_all_1 = numpy.zeros([8, num_elements, 1])
-    # p_all_2 = numpy.zeros([8, num_elements, 1])
-    # p_all_3 = numpy.zeros([8, num_elements, 1])
-    # q_all_1 = numpy.zeros([8, num_elements, 1])
-    # q_all_2 = numpy.zeros([8, num_elements, 1])
-    # q_all_3 = numpy.zeros([8, num_elements, 1])
+    :params object xdmf_file_in: The XDMF file to calculate quantities from
+    :params str qp_field_name: The stress field (defined at the quadrature points) to consider
+    :params list inc: The current time increment
+    :params int num_elements: The number of macroscale elements
+    :params int k: The 3rd index of the third order tensor
+    '''
 
-    # for qp in range(8):
-        # ps_1, ps_2, ps_3, qs_1, qs_2, qs_3 = three_tensor_p_q(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
-        # p_all_1[qp, :, :] = ps_1
-        # p_all_2[qp, :, :] = ps_2
-        # p_all_3[qp, :, :] = ps_3
-        # q_all_1[qp, :, :] = qs_1
-        # q_all_2[qp, :, :] = qs_2
-        # q_all_3[qp, :, :] = qs_3
+    data = xdmf_file_in.getIncrementData(inc, qp_field_name)
+    q_output = numpy.zeros([num_elements, 1])
 
-    # return numpy.mean(p_all_1, axis=0),
-           # numpy.mean(p_all_2, axis=0),
-           # numpy.mean(p_all_3, axis=0),
-           # numpy.mean(q_all_1, axis=0),
-           # numpy.mean(q_all_2, axis=0),
-           # numpy.mean(q_all_3, axis=0),
+    for e in range(num_elements):
+        chunk = data[0][0][e,:].reshape(3,3,3)
+        p = (-1/3)*numpy.trace(chunk[:,:,k])
+        dev = chunk[:,:,k] + p*numpy.eye(3)
+        q_output[e,:] = numpy.sqrt(numpy.tensordot(dev, dev))
+
+    return q_output
+
+
+def average_over_quadrature(xdmf_file_in, type, qp_field_name, inc, num_elements, k=0):
+    '''Call relevant stress calculation function for each quadrature point and return average
+
+    :params object xdmf_file_in: The XDMF file to calculate quantities from
+    :params str type: The type of stress quantity to calculate.
+                      Specify "p" for pressure of a second order tensor.
+                      Specify "q" for norm of the deviatoric part of a second order tensor.
+                      Specify "p3" for pressure of a third order tensor on 3rd index "k".
+                      Specify "q3" for norm of the deviatoric part of a third order tensor on 3rd index "k".
+    :params str qp_field_name: The stress field (defined at the quadrature points) to consider
+    :params list inc: The current time increment
+    :params int num_elements: The number of macroscale elements
+    :params int k: The 3rd index of a third order tensor if type is "p3" or "q3"
+    '''
+
+    out_all = numpy.zeros([8, num_elements,1])
+
+    for qp in range(8):
+        if type == 'p':
+            out_all[qp, :, :] = two_pressure(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
+        elif type == 'q':
+            out_all[qp, :, :] = two_devnorm(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
+        elif type == 'p3':
+            out_all[qp, :, :] = three_pressure(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements, k)
+        elif type == 'q3':
+            out_all[qp, :, :] = three_devnorm(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements, k)
+        else:
+            print('Specify a valid field calculation type!')
+
+    return numpy.mean(out_all, axis=0)
 
 
 def filter_stress_measures(xdmf_file_in, xdmf_file_out, incs, times, num_elements, reference_positions, connectivity):
+    '''Calculate a variety of stress norms averaged over the quadrature points of trilinear hexahedral elements and write to an XDMF file
+
+    :params object xdmf_file_in: The XDMF file to calculate quantities from
+    :params object xdmf_file_out: The XDMF file to write to
+    :params list incs: The list containing time increment indices
+    :params list times: The list of unique time stamps
+    :params int num_elements: The number of macroscale elements
+    :params array-like reference_positions: The reference positions of nodes in an existing XDMF file
+    :params array-like connectivity: The element to node connectivity in an existing XDMF file
+
+    :returns: Write data to ``xdmf_file_out``
+    '''
 
     fields = (('p', 'cauchy_stress'),
               ('q', 'cauchy_stress'),
               ('p', 'symmetric_micro_stress'),
               ('q', 'symmetric_micro_stress'),
-    
+              ('p3', 'higher_order_stress'),
+              ('q3', 'higher_order_stress'),)
 
     # calculate p and q
     for i in incs:
@@ -109,14 +158,15 @@ def filter_stress_measures(xdmf_file_in, xdmf_file_out, incs, times, num_element
                                 duplicate='filter_connectivity')
         # Calculate quantities
         for type, field in fields:
-        p_sig, q_sig = average_over_quadrature(
-            xdmf_file_in, f'cauchy_stress', i, num_elements)
-        xdmf_file_out.addData(grid, f"test_p_sig", p_sig, center='Cell')
-        xdmf_file_out.addData(grid, f"test_q_sig", q_sig, center='Cell')
-        p_sym, q_sym = average_over_quadrature(
-            xdmf_file_in, f'symmetric_micro_stress', i, num_elements)
-        xdmf_file_out.addData(grid, f"test_p_sym", p_sym, center='Cell')
-        xdmf_file_out.addData(grid, f"test_q_sym", q_sym, center='Cell')
+            if (type == 'p3') or (type == 'q3'):
+                for k in range(0,3):
+                    average_over_quadrature(xdmf_file_in, type, field, i, num_elements, k)
+                    out_field_name = f'{type}_k={k+1}_{field}'
+                    xdmf_file_out.addData(grid, out_field_name, out_field, center='Cell')
+            else:
+                out_field = average_over_quadrature(xdmf_file_in, type, field, i, num_elements)
+                out_field_name = f'{type}_{field}'
+                xdmf_file_out.addData(grid, out_field_name, out_field, center='Cell')
 
     return 0
 
@@ -202,9 +252,9 @@ def get_parser():
     parser = argparse.ArgumentParser(description=cli_description,
                                      prog=os.path.basename(filename))
     parser.add_argument('-i', '--input-file', type=str,
-        help='Specify the input filename for the h5 + XDMF file pair')
+        help='Specify the input filename for the h5 + XDMF file pair (no suffix)')
     parser.add_argument('-o', '--output-file', type=str,
-        help='Specify the output filenmae for the h5 + XDMF file pair')
+        help='Specify the output filenmae for the h5 + XDMF file pair (no suffix)')
     parser.add_argument('--num-elements', type=int, required=False, default=None,
         help='The number of macroscale elements')
     parser.add_argument('--write-type', type=str, required=True,
