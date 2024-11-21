@@ -84,6 +84,22 @@ DNS_Abaqus.ODBextract_to_XDMF.py
     :show-inheritance:
     :synopsis: Convert Abaqus DNS results to XDMF format
 
+DNS_GEOS.plot_force_displacement.py
+===================================
+
+.. automodule:: model_package.DNS_GEOS.plot_force_displacement
+    :members:
+    :show-inheritance:
+    :synopsis: Process force-displacement from GEOS DNS results
+
+DNS_GEOS.vtk_to_xdmf.py
+=======================
+
+.. automodule:: model_package.DNS_GEOS.vtk_to_xdmf
+    :members:
+    :show-inheritance:
+    :synopsis: Convert GEOS DNS results to XDMF format
+
 DNS_Ratel.build_options_file.py
 ===============================
 
@@ -188,6 +204,14 @@ Filter.visualize_results.py
     :show-inheritance:
     :synopsis: Post-process Micromorphic Filter output
 
+Filter.xdmf_3d_calculations.py
+==============================
+
+.. automodule:: model_package.Filter.xdmf_3d_calculations
+    :members:
+    :show-inheritance:
+    :synopsis: Create an XDMF file containing a variety of derived quantities
+
 Filter.xdmf_local_paths.py
 ==========================
 
@@ -227,6 +251,14 @@ Calibrate.calibrate_element_plastic.py
     :members:
     :show-inheritance:
     :synopsis: Calibrate micromorphic elastoplasticity on a single filter domain (i.e. macroscale element)
+
+Calibrate.calibration_tools.py
+==============================
+
+.. automodule:: model_package.Calibrate.calibration_tools
+    :members:
+    :show-inheritance:
+    :synopsis: Collection of utilities for calibration
 
 Calibrate.joint_probability_distributions.py
 ============================================
