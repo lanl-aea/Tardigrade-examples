@@ -4,7 +4,7 @@ import yaml
 import matplotlib.pyplot
 import numpy
 
-import micromorphic
+#import micromorphic
 import linear_elastic_parameter_constraint_equations as constraints
 
 
