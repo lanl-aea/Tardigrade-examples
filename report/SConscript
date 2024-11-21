@@ -128,7 +128,7 @@ report.extend(waves.scons_extensions.copy_substfile(env,
     substitution_dictionary=waves.scons_extensions.substitution_syntax(project_variables)))
 
 # PDF Report build task
-report_source_list = ["index.rst"] + [source_file.name.rstrip(".in") for source_file in report_copy_list]
+report_source_list = ["index.rst", "README.txt"] + [source_file.name.rstrip(".in") for source_file in report_copy_list]
 report_directory = Dir("latex")
 sphinx_options = "-W"
 report.extend(env.Command(
