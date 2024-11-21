@@ -232,7 +232,7 @@ def convert_to_XDMF(results, reference_positions, output_file, dist_factor, stre
 
 
 def convert_VTK_to_XDMF(input_file, file_root, output_file, dist_factor=1, stress_factor=1, density_factor=1):
-    '''Driving function to call functions for parsing Ratel VTK results and writing XDMF output
+    '''Driving function to call functions for parsing GEOS VTK results and writing XDMF output
 
     :param str input_file: The main VTK PVD file containing GEOS DNS results
     :param str file_root: The root directory containing DNS results
