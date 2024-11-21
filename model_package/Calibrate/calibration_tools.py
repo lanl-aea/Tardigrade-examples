@@ -4,8 +4,15 @@ import yaml
 import matplotlib.pyplot
 import numpy
 
-#import micromorphic
-import linear_elastic_parameter_constraint_equations as constraints
+try:
+    import micromorphic
+except:
+    print('micromorphic library not imported')
+
+try:
+    import linear_elastic_parameter_constraint_equations as constraints
+except:
+    print('linear_elastic_parameter_constraint_equations not imported')
 
 
 def average_quantities(quantities, type, elem):
