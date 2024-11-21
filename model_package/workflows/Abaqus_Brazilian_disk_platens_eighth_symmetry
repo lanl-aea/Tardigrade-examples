@@ -59,10 +59,10 @@ abaqus_source_list = [
     DNS_Abaqus_abspath / "brazil_disk" / "input_symmetry.inp.in",
 ]
 
-workflow.extend(waves.scons_extensions.copy_substfile(env, 
+workflow.extend(env.CopySubstfile(
     abaqus_source_list,
-    substitution_dictionary=waves.scons_extensions.substitution_syntax(params)))
-
+    substitution_dictionary=env.SubstitutionSyntax(params),
+))
 # Abaqus Solve
 solve_source_list = [source_file.name.rstrip('.in') for source_file in abaqus_source_list]
 job_name = pathlib.Path(solve_source_list[0]).stem
