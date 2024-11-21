@@ -55,8 +55,6 @@ environment:
 # test that docs build without publishing
 test_docs:
   stage: test_docs
-  needs:
-    environment
   variables:
     GIT_STRATEGY: clone
   rules:
