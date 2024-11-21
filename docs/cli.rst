@@ -58,6 +58,18 @@ DNS_Abaqus.ODBextract_to_XDMF.py
 .. argparse::
     :ref: model_package.DNS_Abaqus.ODBextract_to_XDMF.get_parser
 
+DNS_GEOS.plot_force_displacement.py
+===================================
+
+.. argparse::
+    :ref: model_package.DNS_GEOS.plot_force_displacement.get_parser
+
+DNS_GEOS.vtk_to_xdmf.py
+=======================
+
+.. argparse::
+    :ref: model_package.DNS_GEOS.vtk_to_xdmf.get_parser
+
 DNS_Ratel.build_options_file.py
 ===============================
 
