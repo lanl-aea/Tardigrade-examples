@@ -1,12 +1,11 @@
 #!python
-import os
-import inspect
+import argparse
+import pathlib
 import sys
 import yaml
-import argparse
 
 
-def write_filter_config(output_file, job_name, dns_file, macro_file, volume, density,  displacement, cauchy_stress, velocity=None, acceleration=None, max_parallel=None):
+def write_filter_config(output_file, job_name, dns_file, macro_file, volume, density, displacement, cauchy_stress, velocity=None, acceleration=None, max_parallel=None):
     '''Write the configuration file for the Micromorphic Filter
 
     :param str output_file: The output filename for filter configuration
@@ -59,12 +58,11 @@ def write_filter_config(output_file, job_name, dns_file, macro_file, volume, den
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Write the configuration file for the Micromorphic Filter"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-o', '--output-file', type=str, required=True,
         help='Specify the output filename for filter configuration')
     parser.add_argument('--job-name', type=str, required=True,

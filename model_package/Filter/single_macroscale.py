@@ -1,14 +1,12 @@
-import sys
-import os
-import inspect
+#!python
 import argparse
+import pathlib
+import sys
 
-import numpy as np
+import numpy
 import pandas
 
 import file_io.xdmf
-
-file_path = os.path.dirname(os.path.abspath(__file__))
 
 
 def single_domain(X1, X2, Y1, Y2, Z1, Z2, output_file):
@@ -25,16 +23,16 @@ def single_domain(X1, X2, Y1, Y2, Z1, Z2, output_file):
     :returns: ``{output_file}.h5`` and ``{output_file}.xdmf``
     '''
 
-    filter_points = np.array([[X1, Y1, Z1],
-                              [X2, Y1, Z1],
-                              [X2, Y2, Z1],
-                              [X1, Y2, Z1],
-                              [X1, Y1, Z2],
-                              [X2, Y1, Z2],
-                              [X2, Y2, Z2],
-                              [X1, Y2, Z2]])
+    filter_points = numpy.array([[X1, Y1, Z1],
+                                 [X2, Y1, Z1],
+                                 [X2, Y2, Z1],
+                                 [X1, Y2, Z1],
+                                 [X1, Y1, Z2],
+                                 [X2, Y1, Z2],
+                                 [X2, Y2, Z2],
+                                 [X1, Y2, Z2]])
 
-    filter_connectivity = np.array([0, 1, 2, 3, 4, 5, 6, 7,])
+    filter_connectivity = numpy.array([0, 1, 2, 3, 4, 5, 6, 7,])
     filter_connectivity = filter_connectivity.reshape((1,-1)).astype(int)
 
     # Write the filter to a file
@@ -80,13 +78,12 @@ def write_filter_domain(output_file, single_points=None, csv_file=None):
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Write a single macroscale domain file for the\
                        Micromorphic Filter"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-o', '--output-file', type=str, required=True,
         help='Specify the output filename for the h5 + XDMF file pair')
     parser.add_argument('--single-points', nargs=6,

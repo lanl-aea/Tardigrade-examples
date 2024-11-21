@@ -35,14 +35,18 @@
    :caption: Quasi-static Verification
 
    Quasi_static_verification
-   Abaqus_elastic_cylinder
    Ratel_elastic_cylinder
+   Abaqus_elastic_cylinder
+   Clamped_elastic_cylinder
+   Tardigrade_MOOSE_convergence
 
 .. toctree::
    :maxdepth: 2
    :caption: Dynamic Verification
    
+   Dynamic_verification
    Abaqus_elastic_cylinder_dynamic_imp
+   Tardigrade_MOOSE_dynamic_convergence
 
 .. toctree::
    :maxdepth: 2
@@ -55,7 +59,7 @@
    \part{Model Repository}
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Model Repository
 
    user
@@ -69,6 +73,10 @@
 
 .. toctree::
    :maxdepth: 2
-   :caption: Appendix
+   :caption: Appendix - Detailed Theory
 
    micromorphic_theory
+   micromorphic_theory_kinematics
+   micromorphic_theory_balance
+   micromorphic_theory_constitutive
+   micromorphic_theory_filter

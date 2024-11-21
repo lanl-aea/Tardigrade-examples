@@ -1,11 +1,10 @@
-# Imports
-import sys
-import os
-import inspect
+#!python
 import argparse
+import pathlib
+import sys
 
 import meshio
-import numpy as np
+import numpy
 import pandas
 
 import file_io.xdmf
@@ -14,7 +13,7 @@ import file_io.xdmf
 def collect_VTK_output(input_files):
     '''Parse the Ratel DNS VTK output into a results dictionary
 
-    :param list input_file: The input VTK files containing Ratel DNS results
+    :param list input_files: The input VTK files containing Ratel DNS results
 
     :returns: dictionary of results, dictionary of nodal coordinates
     '''
@@ -24,7 +23,7 @@ def collect_VTK_output(input_files):
 
     # get time
     num_times = len(input_files)
-    times = np.linspace(0, 1, num_times)
+    times = numpy.linspace(0, 1, num_times)
 
     # setup node_dict
     node_dict = {}
@@ -91,11 +90,11 @@ def convert_to_XDMF(results, node_dict, output_file, dist_factor, stress_factor,
         y = node_dict['CoordinateY'][i]
         z = node_dict['CoordinateZ'][i]
         reference_positions.append([dist_factor*x,dist_factor*y,dist_factor*z])
-    reference_positions = np.array(reference_positions)
+    reference_positions = numpy.array(reference_positions)
     ndata = reference_positions.shape[0]
 
     # # get reference volumes
-    # reference_volumes = np.array([vol for vol in results['timestep_0']['nodal_volume']
+    # reference_volumes = numpy.array([vol for vol in results['timestep_0']['nodal_volume']
     # reference_volumes = reference_volumes.reshape((-1,1))
 
     point_name = 'points'
@@ -114,7 +113,7 @@ def convert_to_XDMF(results, node_dict, output_file, dist_factor, stress_factor,
         grid = xdmf.addGrid(xdmf.output_timegrid, {})
         xdmf.addTime(grid, t)
         xdmf.addPoints(grid, reference_positions, duplicate=point_name)
-        xdmf.addConnectivity(grid, "POLYVERTEX", np.array([v for v in range(ndata)]).reshape((-1,1)), duplicate=conn_name)
+        xdmf.addConnectivity(grid, "POLYVERTEX", numpy.array([v for v in range(ndata)]).reshape((-1,1)), duplicate=conn_name)
 
         # get the unique displacements
         unique_displacements = []
@@ -122,23 +121,23 @@ def convert_to_XDMF(results, node_dict, output_file, dist_factor, stress_factor,
             y = results[step_name]['displacement_y'][i]
             z = results[step_name]['displacement_z'][i]
             unique_displacements.append([dist_factor*x,dist_factor*y,dist_factor*z])
-        unique_displacements = np.array(unique_displacements)
-        print(f"shape of unique displacements = {np.shape(unique_displacements)}")
+        unique_displacements = numpy.array(unique_displacements)
+        print(f"shape of unique displacements = {numpy.shape(unique_displacements)}")
         xdmf.addData(grid, "disp", unique_displacements, "Node", dtype='d')
 
         # get the unique positions
         unique_positions = unique_displacements + reference_positions
-        print(f"shape of unique positions = {np.shape(unique_positions)}")
+        print(f"shape of unique positions = {numpy.shape(unique_positions)}")
         xdmf.addData(grid, "coord", unique_positions, "Node", dtype='d')
 
         # get the velocity <-- fix for dynamic DNS!
-        unique_velocities = np.zeros(np.shape(unique_positions))
-        print(f"shape of unique velocities = {np.shape(unique_velocities)}")
+        unique_velocities = numpy.zeros(numpy.shape(unique_positions))
+        print(f"shape of unique velocities = {numpy.shape(unique_velocities)}")
         xdmf.addData(grid, "vel", unique_velocities, "Node", dtype='d')
 
         # get the acceleration <-- fix for dynamic DNS!
-        unique_accelerations = np.zeros(np.shape(unique_positions))
-        print(f"shape of unique accelerations = {np.shape(unique_accelerations)}")
+        unique_accelerations = numpy.zeros(numpy.shape(unique_positions))
+        print(f"shape of unique accelerations = {numpy.shape(unique_accelerations)}")
         xdmf.addData(grid, "acc", unique_accelerations, "Node", dtype='d')
 
         # get the stresses
@@ -153,24 +152,24 @@ def convert_to_XDMF(results, node_dict, output_file, dist_factor, stress_factor,
             data.append([Sxx, Sxy, Sxz,
                          Sxy, Syy, Syz,
                          Sxz, Syz, Szz])
-        unique_stresses = np.array(data)
-        print(f"shape of stresses = {np.shape(unique_stresses)}")
+        unique_stresses = numpy.array(data)
+        print(f"shape of stresses = {numpy.shape(unique_stresses)}")
         xdmf.addData(grid, "stress", unique_stresses, "Node", dtype='d')
 
         # Get the volumes
-        unique_volumes = np.array([vol for vol in results[step_name]['nodal_volume']])
+        unique_volumes = numpy.array([vol for vol in results[step_name]['nodal_volume']])
         unique_volumes = unique_volumes.reshape((-1,1))
-        print(f"shape of vol = {np.shape(unique_volumes)}")
-        print(f"total volume = {np.sum(unique_volumes)}")
+        print(f"shape of vol = {numpy.shape(unique_volumes)}")
+        print(f"total volume = {numpy.sum(unique_volumes)}")
         xdmf.addData(grid, "volume", unique_volumes, "Node", dtype='d')
 
         # Get the densities
         if 'mass_density' in results[step_name].keys():
-            unique_densities = np.array([den*density_factor for den in results[step_name]['mass_density']])
+            unique_densities = numpy.array([den*density_factor for den in results[step_name]['mass_density']])
         else:
-            unique_densities = np.array([(ref_density/J) for J in results[step_name]['J']])
+            unique_densities = numpy.array([(ref_density/J) for J in results[step_name]['J']])
         unique_densities = unique_densities.reshape((-1,1))
-        print(f"shape of density = {np.shape(unique_densities)}")
+        print(f"shape of density = {numpy.shape(unique_densities)}")
         xdmf.addData(grid, "density", unique_densities, "Node", dtype='d')
 
     xdmf.write()
@@ -211,12 +210,11 @@ def convert_VTK_to_XDMF(input_files, output_file, dist_factor=1, stress_factor=1
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Convert Ratel DNS results to XDMF format"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-i', '--input-files', nargs="+",
         help='Specify the input VTK files containing Ratel DNS results')
     parser.add_argument('-o', '--output-file', type=str,

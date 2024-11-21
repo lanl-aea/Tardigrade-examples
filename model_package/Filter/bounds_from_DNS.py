@@ -1,8 +1,7 @@
-import sys
-import os
+#!python
 import argparse
-import inspect
 import pathlib
+import sys
 
 import numpy
 import pandas
@@ -45,10 +44,11 @@ def bounds_from_DNS(DNS_file, output_file, coord='coord'):
 
 def get_parser():
 
-    basename = pathlib.Path(__file__).name
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Create a csv containing the extents of a DNS file"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=basename)
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-d', '--dns-file', type=str, required=True,
         help='The name of the input XDMF file containing DNS results')
     parser.add_argument('-o', '--output-file', type=str, required=True,

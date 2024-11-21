@@ -1,7 +1,8 @@
-import sys
-import os
+#!python
 import argparse
+import os
 import pathlib
+import sys
 
 import cubit
 import pandas
@@ -9,7 +10,7 @@ import numpy
 import subprocess
 
 
-def mesh(rad, height, x0, y0, z0, seed_size, output_file, cut=False):
+def mesh(rad, height, x0, y0, z0, seed_size, output_file, cut=False, brazil_lines=False):
     ''' Mesh a cylinder using Cubit
 
     :param float rad: Cylinder radius
@@ -51,6 +52,12 @@ def mesh(rad, height, x0, y0, z0, seed_size, output_file, cut=False):
         # Make a new block for all elements to export
         cubit.cmd('block 9 add hex all')
         cubit.cmd('block 9 name "all"')
+        # Load lines for Brazilian Disk
+        if brazil_lines == True:
+            cubit.cmd('nodeset 5 add curve 75 81')
+            cubit.cmd('nodeset 5 name "brazil_load"')
+            cubit.cmd('nodeset 6 add curve 51 57')
+            cubit.cmd('nodeset 6 name "brazil_fix"')
         # Export
         cubit.cmd(f'export mesh "{output_file}.e" block 9 overwrite')
     else:
@@ -69,7 +76,7 @@ def mesh(rad, height, x0, y0, z0, seed_size, output_file, cut=False):
     return 0
 
 
-def cylinder_from_bounds(output_file, bounds_file, seed_size, cut=False, xdmf=True, ascii=False):
+def cylinder_from_bounds(output_file, bounds_file, seed_size, cut=False, brazil_lines=False, xdmf=True, ascii=False):
     '''Create a cylinder mesh from the bounds of a DNS file
 
     :param str output_file: The output filename
@@ -103,7 +110,7 @@ def cylinder_from_bounds(output_file, bounds_file, seed_size, cut=False, xdmf=Tr
     z0 = zmin + (height / 2)
 
     # create mesh
-    mesh(rad, height, x0, y0, z0, seed_size, output_file, cut)
+    mesh(rad, height, x0, y0, z0, seed_size, output_file, cut, brazil_lines)
 
     # convert to XDMF with subprocess
     if xdmf:
@@ -130,9 +137,11 @@ def get_parser():
         help='The approximate mesh size')
     parser.add_argument('--cut', type=str, required=False,
         help='The option to cut geometry into octants, pass string "True" if desired')
+    parser.add_argument('--brazil-lines', type=str, required=False,
+        help='The option to define load lines for a brazilina disk simulation')
     parser.add_argument('--xdmf', type=str, required=False,
         help='The option to convert default exodus mesh to XDMF (binary)')
-    parser.add_argument('--ascii', type=str, required=False,
+    parser.add_argument('--ascii', type=str, required=False, default=False,
         help='The option to convert binary XDMF mesh to ascii')
     return parser
 
@@ -144,6 +153,7 @@ if __name__ == '__main__':
                                   bounds_file=args.bounds_file,
                                   seed_size=args.seed_size,
                                   cut=args.cut,
+                                  brazil_lines=bool(args.brazil_lines),
                                   xdmf=bool(args.xdmf),
                                   ascii=bool(args.ascii),
                                   ))

@@ -46,6 +46,8 @@ if domain_number == 1:
     script_options += f" --L 1.0"
     script_options += f" --element 0"
     script_options += f" --plot-file {plot_root}"
+    if 'calibration_increment' in params.keys():
+        script_options += f" --increment {' '.join(str(i) for i in params['calibration_increment'])}"
     if ('UQ_file' in params.keys()) and (params['UQ_file'] == True):
         UQ_output = f"{calibration_targs[0].split('.')[0]}_evals.csv"
         calibration_targs.append(UQ_output)
@@ -109,7 +111,7 @@ else:
         script_options += f" --element {elem}"
         script_options += f" --plot-file {plot_root}"
         if 'calibration_increment' in params.keys():
-            script_options += f" --increment {params['calibration_increment']}"
+            script_options += f" --increment {' '.join(str(i) for i in params['calibration_increment'])}"
         if ('UQ_file' in params.keys()) and (params['UQ_file'] == True):
             UQ_output = f"{calibration_targs[0].split('.')[0]}_evals.csv"
             calibration_targs.append(UQ_output)
@@ -130,8 +132,7 @@ else:
     script_options += f' --results-csv {summary_targs[0]}'
     script_options += f' --summary-csv {summary_targs[1]}'
     script_options += f' --kde-hist-plot {hist_plot_root}'
-    if ('ignore_boundary' in params.keys()) and (params['ignore_boundary'] == True):
-        script_options += f' --kde-best {hist_plot_root}_best'
+    script_options += f' --kde-best {hist_plot_root}_best'
     workflow.extend(env.PythonScript(
         target = summary_targs,
         source = [str(calibrate_source_abspath / summary_script), calibrated_files],

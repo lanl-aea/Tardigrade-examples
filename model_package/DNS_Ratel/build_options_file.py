@@ -1,10 +1,7 @@
-import os
-import sys
+#!python
 import argparse
-import time
-import glob
-import yaml
-import inspect
+import pathlib
+import sys
 
 
 def build_options_file(output_file, material_E, material_nu, material_rho, top_id, bottom_id, num_steps, displacement, BCs):
@@ -66,12 +63,11 @@ def build_options_file(output_file, material_E, material_nu, material_rho, top_i
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Write Ratel options file"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-o', '--output-file', type=str, required=True,
         help="The name of the Ratel options file to output")
     parser.add_argument('--material-E', type=float, required=True,

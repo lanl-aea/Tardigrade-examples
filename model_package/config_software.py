@@ -8,6 +8,7 @@ import yaml
 
 import subprocess
 
+
 def config_software(config_file):
     '''Configure software paths in a YAML file
 

@@ -1,10 +1,11 @@
-import sys
-import pathlib
+#!python
 import argparse
+import pathlib
+import sys
 
+import matplotlib.pyplot
 import numpy
 import pandas
-import matplotlib.pyplot
 
 
 def plot_objective_evaluation(csv_file, output_file):
@@ -47,11 +48,12 @@ def plot_objective_evaluation(csv_file, output_file):
 
 
 def get_parser():
+
     script_name = pathlib.Path(__file__)
+
     prog = f"python {script_name.name} "
     cli_description = "Plot calibrated lambda versus mu with transparency based on objective function evaluation"
     parser=argparse.ArgumentParser(description=cli_description, prog=prog)
-
     parser.add_argument('--csv-file', type=str, required=True,
         help="The csv file containing objective function evaluations and parameter sets")
     parser.add_argument('--output-file', type=str, required=True,

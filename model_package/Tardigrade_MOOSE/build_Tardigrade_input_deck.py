@@ -1,8 +1,9 @@
-import os
-import sys
+#!python
 import argparse
+import os
+import pathlib
+import sys
 import yaml
-import inspect
 
 import pandas
 
@@ -22,7 +23,7 @@ def build_input(output_file, mesh_file, BCs, disp, duration, parameter_sets=None
     :returns: ``output_file``
     '''
 
-    # TODO: Write test to make sure the mesh_file exists
+    assert os.path.exists(mesh_file), f"Mesh file not found: {mesh_file}"
 
     # unpack parameter set files if calibration map is provided
     if calibration_map:
@@ -632,12 +633,11 @@ def build_input(output_file, mesh_file, BCs, disp, duration, parameter_sets=None
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Write Tardigrade-MOOSE input file"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-o', '--output-file', type=str, required=True,
         help="The name of Tardigrade-MOOSE file to write")
     parser.add_argument('--mesh', type=str, required=True,

@@ -1,18 +1,11 @@
-import subprocess as sp
-import numpy as np
-import os
-import sys
+#!python
 import argparse
-import time
-import glob
+import pathlib
+import sys
 import yaml
-import inspect
 
-import seaborn
-import matplotlib.pyplot
-import pandas
-import xarray
 import numpy
+import pandas
 
 import file_io.xdmf
 import summarize_calibration_results
@@ -58,9 +51,15 @@ def collect_parameters_ignore_boundary(parameter_sets, element_sets, good_elemen
     :param list parameter_sets: List of yaml files containing calibration results
     :param list element_sets: List of elements of the macro domain which have been calibrated
     :param list good_elements: List of elements not found on the z-boundary
-    :param str parameter_study_file: H5 file with a WAVES parameter study Xarray Dataset
-    :param int case: The calibration "case". 1: two parameter, 2: 7 parameter,\
-              3: 7 parameter plus tau7, 4: all 18 parameters
+    :param int case: The calibration "case".
+                     1: two parameter,
+                     2: 7 parameter,
+                     3: 7 parameter plus tau7 without error for M,
+                     4: all 18 parameters,
+                     5: 7 parameter plus tau7 with error for M,
+                     6: 11 higher order parameters,
+                     7: 7 parameters using fixed higher order parameters determined from case 6,
+                     8: 7 parameters using initial guess and tighter bounds for higher order parameters determined from case 6
 
     :returns: dictionary containing list of parameter results with each key corresponding to a parameter name
     '''
@@ -112,7 +111,7 @@ def collect_parameters_ignore_boundary(parameter_sets, element_sets, good_elemen
     elif case == 2:
         remove = ['tau1','tau2','tau3','tau4','tau5','tau6','tau7','tau8',
                   'tau9','tau10','tau11']
-    elif case == 3:
+    elif (case == 3) or (case == 5):
         remove = ['tau1','tau2','tau3','tau4','tau5','tau6','tau8','tau9',
                   'tau10','tau11']
     for item in remove:
@@ -136,9 +135,15 @@ def summarize_calibration_results_ignore_boundary(parameter_sets,
     :param list parameter_sets: List of yaml files containing calibration results
     :param list element_sets: List of elements of the macro domain which have been calibrated
     :param str macro_file: The macroscale filter domain XDMF file, less extension
-    :param str parameter_study_file: H5 file with a WAVES parameter study Xarray Dataset
-    :param int case: The calibration "case". 1: two parameter, 2: 7 parameter,\
-              3: 7 parameter plus tau7, 4: all 18 parameters
+    :param int case: The calibration "case".
+                     1: two parameter,
+                     2: 7 parameter,
+                     3: 7 parameter plus tau7 without error for M,
+                     4: all 18 parameters,
+                     5: 7 parameter plus tau7 with error for M,
+                     6: 11 higher order parameters,
+                     7: 7 parameters using fixed higher order parameters determined from case 6,
+                     8: 7 parameters using initial guess and tighter bounds for higher order parameters determined from case 6
     :param str results_csv: Optional filename to store all calibrated parameter values
     :param str summary_csv: Optional filename to store summary statistics of calibrated parameters
     :param str kde_hist_plot: Optional root filename to plot kernel density estimate of each calibrated parameter with histogram
@@ -176,12 +181,11 @@ def summarize_calibration_results_ignore_boundary(parameter_sets,
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Summarize results of parameter calibration while ignoring elements on the z-boundary"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('--parameter-sets', nargs="+", required=True,
         help='Specify the list of yaml files containing calibration results')
     parser.add_argument('--element-sets', nargs="+", required=True,
@@ -189,8 +193,15 @@ def get_parser():
     parser.add_argument('--macro-file', type=str, required=True,
         help='The macroscale filter domain XDMF file, less extension')
     parser.add_argument('--case', type=int, required=True,
-        help='Specify the calibration "case". 1: two parameter, 2: 7 parameter,\
-              3: 7 parameter plus tau7, 4: all 18 parameters')
+        help="The calibration 'case'.\
+              1: two parameter,\
+              2: 7 parameter,\
+              3: 7 parameter plus tau7 without error for M,\
+              4: all 18 parameters,\
+              5: 7 parameter plus tau7 with error for M,\
+              6: 11 higher order parameters,\
+              7: 7 parameters using fixed higher order parameters determined from case 6,\
+              8: 7 parameters using initial guess and tighter bounds for higher order parameters determined from case 6")
     parser.add_argument('--results-csv', type=str, required=False,
         help='Optional filename to store all calibrated parameter values')
     parser.add_argument('--summary-csv', type=str, required=False,

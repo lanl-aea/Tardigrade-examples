@@ -1,13 +1,9 @@
-import sys
-import os
+#!python
 import argparse
-import inspect
 import pathlib
+import sys
 
-import numpy
 import pandas
-
-import xdmf_reader_tools as XRT
 
 
 def force_bounds(output_file, xmin, xmax, ymin, ymax, zmin, zmax):
@@ -37,10 +33,11 @@ def force_bounds(output_file, xmin, xmax, ymin, ymax, zmin, zmax):
 
 def get_parser():
 
-    basename = pathlib.Path(__file__).name
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Create a csv file containing information for a bounding box encompassing all DNS points"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=basename)
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-o', '--output-file', type=str, required=True,
         help='The name of the output csv file of bounding informaiton')
     parser.add_argument('--xmin', type=float, required=True,

@@ -1,13 +1,12 @@
-import sys
+#!python
 import argparse
 import pathlib
-import yaml
+import sys
 
-import xarray
-import pandas
-import matplotlib.pyplot
 import h5py
-import numpy as np
+import matplotlib.pyplot
+import numpy
+import pandas
 
 
 def plot(input_file, output_file, x_path, y_path, x_label, y_label, x_units, y_units, csv_file=None):
@@ -25,8 +24,8 @@ def plot(input_file, output_file, x_path, y_path, x_label, y_label, x_units, y_u
     '''
 
     f = h5py.File(input_file[0])
-    X = np.array(f[x_path]).flatten()
-    Y = np.array(f[y_path]).flatten()
+    X = numpy.array(f[x_path]).flatten()
+    Y = numpy.array(f[y_path]).flatten()
 
     # Plot
     #combined_data.sel(selection_dict).plot.scatter(x=x_var, y=y_var, hue=concat_coord)
@@ -38,19 +37,19 @@ def plot(input_file, output_file, x_path, y_path, x_label, y_label, x_units, y_u
 
     if csv_file:
         headers = ["disp", "force"]
-        output = pandas.DataFrame(np.array([-1*X,-1*Y]).T, columns=headers)
+        output = pandas.DataFrame(numpy.array([-1*X,-1*Y]).T, columns=headers)
         output.to_csv(csv_file, sep=',', index=False)
 
     return 0
 
 
 def get_parser():
+
     script_name = pathlib.Path(__file__)
 
     prog = f"python {script_name.name} "
     cli_description = "Plot Abaqus history output for force versus displacement"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=prog)
+    parser = argparse.ArgumentParser(description=cli_description,prog=prog)
     required_named = parser.add_argument_group('required named arguments')
     required_named.add_argument("-i", "--input-file", nargs="+", required=True,
                                 help="The Xarray Dataset file(s)")

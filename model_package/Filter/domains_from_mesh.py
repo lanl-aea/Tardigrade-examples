@@ -1,21 +1,19 @@
-# read in xdmf mesh, identify nodes and cells
-
-import inspect
-import sys
-import os
+#!python
 import argparse
 import pathlib
+import sys
 
-import meshio
-import numpy
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import h5py
-import shutil
 import lxml.etree
+import matplotlib.pyplot
+import meshio
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import numpy
+import shutil
 import xml.etree.ElementTree as ET
 
 import xdmf_reader_tools as XRT
+
 
 def load_mesh(filename):
     #filename = 'mesh_36_elements.py'
@@ -287,6 +285,7 @@ def find_major_sets(node_dict, major_plane_dict, option):
             
     return major_set_dict
 
+
 def find_minor_sets(node_dict, minor_plane_dict, major_set_dict):
 
     octants = ['a','b','c','d','e','f','g','h']
@@ -392,6 +391,7 @@ def run_test_major(major_plane_dict, macro_node_dict, macro_nodes, macro_elem_di
     
     return test_set_dict
 
+
 def run_test_minor(minor_plane_dict, macro_node_dict, macro_nodes, macro_elem_dict, major_plane_dict, plot=False):
 
     # find the extent of the nodal coordinates
@@ -449,7 +449,7 @@ def plot_outputs(node_dict, macro_node_dict, macro_elem_dict, set_dict, selectio
                      [4, 5, 6, 7]]
             poly3d = [[vertices[faces[ix][iy]] for iy in range(len(faces[0]))] for ix in range(len(faces))]
         
-        fig = plt.figure()
+        fig = matplotlib.pyplot.figure()
         ax = fig.add_subplot(projection='3d', proj_type='ortho')
         for i in node_dict.keys():
             n = node_dict[i]
@@ -471,9 +471,10 @@ def plot_outputs(node_dict, macro_node_dict, macro_elem_dict, set_dict, selectio
         views = [[0, 0, 'x_plane'], [90, 0, 'y_plane'], [0, 90, 'z_plane'], [45, 45, 'iso']]
         for view in views:
             ax.view_init(elev=view[1], azim=view[0])
-            plt.savefig(f'{output_name}_{select}_{view[2]}.png', dpi=300)
+            matplotlib.pyplot.savefig(f'{output_name}_{select}_{view[2]}.png', dpi=300)
 
     return 0
+
 
 def create_DNS_node_dict(DNS_file):
 
@@ -602,10 +603,11 @@ def main(mesh_file, DNS_file=None, output_hdf5=None, output_xdmf=None, test_majo
 
 def get_parser():
 
-    basename = pathlib.Path(__file__).name
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Prep Abaqus DNS for filter"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=basename)
+        parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-m', '--mesh-file', type=str, required=True,
         help='The name of the input mesh xdmf file')
     parser.add_argument('-d', '--dns-file', type=str, required=False,

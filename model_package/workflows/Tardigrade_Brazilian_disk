@@ -1,0 +1,151 @@
+#! /usr/bin/env python
+
+""" TODO
+
+"""
+
+import pathlib
+
+import waves
+import numpy
+import SCons.Defaults
+
+from model_package.Tardigrade_MOOSE import simulation_variables_nominal
+
+# Inherit the parent construction environment
+Import('env')
+
+
+# set project-wide paths with os-agnostic path separators
+filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
+Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
+model_package_abspath = pathlib.Path(env["model_package_abspath"])
+
+# Simulation variables
+build_directory = pathlib.Path(Dir('.').abspath)
+workflow_name = build_directory.name
+workflow_configuration = [env["project_configuration"], workflow_name]
+output_file_type = "h5"
+model = "Brazil_disk"
+params = simulation_variables_nominal.Brazilian_disk
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+
+bounding_csv = f"{model}_bounds.csv"
+bounding_script = "force_bounds.py"
+rad = params['spec_rad']
+script_options = f"--xmin {-rad} --xmax {rad} --ymin {-rad} --ymax {rad} --zmin {-params['spec_dep']/2} --zmax {params['spec_dep']/2}"
+script_options += f" --output-file {bounding_csv}"
+workflow.extend(env.PythonScript(
+    target=bounding_csv,
+    source=[str(filter_source_abspath / bounding_script)],
+    script_options=script_options
+    ))
+
+# Build mesh
+mesh_script = 'cylinder_from_bounds.py'
+tardi_mesh_name = 'brazilian_disk'
+tardi_mesh = f'{tardi_mesh_name}.e'
+script_options = f"--output-file {tardi_mesh_name}"
+script_options += f" --bounds-file {bounding_csv}"
+script_options += f" --seed-size {params['seed_size']}"
+script_options += f" --xdmf False"
+script_options += f" --cut cut"
+script_options += f" --brazil-lines True"
+workflow.extend(env.PythonScript(
+    target=[tardi_mesh],
+    source=[str(Tardigrade_MOOSE_source_abspath / mesh_script), bounding_csv],
+    script_options=script_options,
+    ))
+
+# Write material card
+material_script = 'write_plastic_material_card.py'
+material_card = 'plastic_material_card.yml'
+script_options = f'--output-file {material_card}'
+script_options += f' --lamb {params["lambda"]}'
+script_options += f' --mu {params["mu"]}'
+script_options += f' --eta {params["eta"]}'
+script_options += f' --tau {params["tau"]}'
+script_options += f' --kappa {params["kappa"]}'
+script_options += f' --nu {params["nu"]}'
+script_options += f' --sigma {params["sigma"]}'
+script_options += f' --tau7 {params["tau7"]}'
+script_options += f' --cu0 {params["cu0"]}'
+script_options += f' --fraction {params["fraction"]}'
+workflow.extend(env.PythonScript(
+    target = [material_card],
+    source = [f"{Tardigrade_MOOSE_source_abspath / material_script}"],
+    script_options = script_options
+))
+
+# build input file
+tardigrade_input_script = "build_plastic_Tardigrade_input_deck.py"
+tardi_sim_name = f'TARDIGRADE-MOOSE_{model}'
+tardigrade_build_targs = f"{tardi_sim_name}.i"
+script_options = f"--output-file {tardigrade_build_targs}"
+script_options += f" --parameter-sets {' '.join([material_card])}"
+script_options += f" --mesh {tardi_mesh}"
+script_options += f" --BCs {params['macro_BC']}"
+script_options += f" --disp {params['macro_disp']}"
+script_options += f" --duration {params['macro_duration']}"
+workflow.extend(env.PythonScript(
+    target = [tardigrade_build_targs],
+    source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh, material_card],
+    script_options = script_options
+))
+
+
+# # build input file
+# tardigrade_input_script = "build_Tardigrade_input_deck.py"
+# tardi_sim_name = f'TARDIGRADE-MOOSE_{model}_{elements}'
+# tardigrade_build_targs = f"{tardi_sim_name}.i"
+# tardigrade_build_sources = [str(set_name / source) for source in [tardi_mesh, material_card]]
+# rad = params['diam'] / 2.
+# script_options = f"--output-file {tardigrade_build_targs}"
+# script_options += f" --parameter-sets {material_card}"
+# script_options += f" --mesh {tardi_mesh}"
+# script_options += f" --BCs {params['macro_BC']}"
+# script_options += f" --disp {params['macro_disp']}"
+# script_options += f" --duration {params['macro_duration']}"
+# script_options += f" --disp-point '{rad} 0. 0.'"
+# workflow.extend(env.PythonScript(
+    # target = [str(set_name / tardigrade_build_targs)],
+    # source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", ],
+    # script_options = script_options
+    # ))
+# tardigrade_build_sources.append(str(set_name / tardigrade_build_targs))
+
+# # run Tardigrade-MOOSE
+# if env['mpi']:
+    # mpi_location = env["mpi"]
+# else:
+    # mpi_location = []
+# tardigrade_moose_targs = [str(set_name / targ) for targ in [f'{tardi_sim_name}_out.e', f'{tardi_sim_name}_out.csv']]
+# workflow.extend(env.TardigradeSolver(
+    # target = tardigrade_moose_targs,
+    # source = tardigrade_build_sources,
+    # LD_LIBRARY_PATH = env['LD_PATH'],
+    # tardigrade_program = env['Tardigrade'],
+    # tardigrade_input = tardigrade_build_targs,
+    # tardigrade_cpus =  solve_cpus,
+    # stdout_file = f"{tardi_sim_name}_out.e.stdout",
+    # mpi_location = mpi_location,
+    # ))
+
+# # plot force vs displacement
+# plot_script = "plot_force_displacement.py"
+# plot_targets = [f"{tardi_sim_name}_force_displacement.png", f"{tardi_sim_name}_force_displacement.csv"]
+# script_options = f"--csv-file {tardigrade_moose_targs[1].split('/')[-1]}"
+# script_options += f" --output-file {plot_targets[0]}"
+# script_options += f" --output-csv {plot_targets[1]}"
+# script_options += f" --final-disp {params['macro_disp']}"
+# workflow.extend(env.PythonScript(
+    # target=[str(set_name / targ) for targ in plot_targets],
+    # source=[str(Tardigrade_MOOSE_source_abspath / plot_script), tardigrade_moose_targs[-1]],
+    # script_options=script_options,
+    # ))
+
+# Collector alias based on parent directory name
+env.Alias(workflow_name, workflow)

@@ -1,10 +1,11 @@
-import pathlib
+#!python
 import argparse
+import pathlib
 import sys
 
-import pandas
-import numpy
 import matplotlib.pyplot
+import numpy
+import pandas
 
 
 def plot_force_displacement(csv_file, output_file, output_csv, final_disp, force_factor=1):
@@ -43,11 +44,12 @@ def plot_force_displacement(csv_file, output_file, output_csv, final_disp, force
 
 
 def get_parser():
+
     script_name = pathlib.Path(__file__)
+
     prog = f"python {script_name.name} "
     cli_description = "Process force-displacement from Tardigrade-MOOSE results"
     parser=argparse.ArgumentParser(description=cli_description, prog=prog)
-
     parser.add_argument('--csv-file', type=str, required=True,
         help="The csv file containing force results")
     parser.add_argument('--output-file', type=str, required=True,

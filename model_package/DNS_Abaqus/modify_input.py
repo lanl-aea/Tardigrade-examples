@@ -1,8 +1,7 @@
-import numpy as np
-import os
-import sys
+#!python
 import argparse
-import inspect
+import pathlib
+import sys
 
 
 def modify_input(input_file, output_file):
@@ -36,12 +35,11 @@ def modify_input(input_file, output_file):
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Modify Abaqus input file to output 'COORD' at integration points"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-i', '--input-file', type=str,
                         help="The Abaqus input file created by ``build_model.py``. ")
     parser.add_argument('-o', '--output-file', type=str, 

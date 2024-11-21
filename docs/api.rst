@@ -52,14 +52,6 @@ DNS_Abaqus.dynamic_analytical_comparison.py
     :show-inheritance:
     :synopsis: Plot dynamic Abaqus results against an analytical solution
 
-DNS_Abaqus.extract_history.py
-=============================
-
-.. automodule:: model_package.DNS_Abaqus.extract_history
-    :members:
-    :show-inheritance:
-    :synopsis: Plot Abaqus history output for force versus displacement
-
 DNS_Abaqus.extract_frames.py
 ============================
 
@@ -67,6 +59,14 @@ DNS_Abaqus.extract_frames.py
     :members:
     :show-inheritance:
     :synopsis: Extracts 3D field output from a completed Abaqus simulation to save as 2D image
+
+DNS_Abaqus.extract_history.py
+=============================
+
+.. automodule:: model_package.DNS_Abaqus.extract_history
+    :members:
+    :show-inheritance:
+    :synopsis: Plot Abaqus history output for force versus displacement
 
 DNS_Abaqus.modify_input.py
 ==========================
@@ -83,6 +83,22 @@ DNS_Abaqus.ODBextract_to_XDMF.py
     :members:
     :show-inheritance:
     :synopsis: Convert Abaqus DNS results to XDMF format
+
+DNS_GEOS.plot_force_displacement.py
+===================================
+
+.. automodule:: model_package.DNS_GEOS.plot_force_displacement
+    :members:
+    :show-inheritance:
+    :synopsis: Process force-displacement from GEOS DNS results
+
+DNS_GEOS.vtk_to_xdmf.py
+=======================
+
+.. automodule:: model_package.DNS_GEOS.vtk_to_xdmf
+    :members:
+    :show-inheritance:
+    :synopsis: Convert GEOS DNS results to XDMF format
 
 DNS_Ratel.build_options_file.py
 ===============================
@@ -104,6 +120,14 @@ DNS_Ratel.vtk_to_xdmf.py
 ========================
 
 .. automodule:: model_package.DNS_Ratel.vtk_to_xdmf
+    :members:
+    :show-inheritance:
+    :synopsis: Convert Ratel DNS results to XDMF format
+
+DNS_Ratel.vtk_to_xdmf_fast.py
+=============================
+
+.. automodule:: model_package.DNS_Ratel.vtk_to_xdmf_fast
     :members:
     :show-inheritance:
     :synopsis: Convert Ratel DNS results to XDMF format
@@ -180,6 +204,14 @@ Filter.visualize_results.py
     :show-inheritance:
     :synopsis: Post-process Micromorphic Filter output
 
+Filter.xdmf_3d_calculations.py
+==============================
+
+.. automodule:: model_package.Filter.xdmf_3d_calculations
+    :members:
+    :show-inheritance:
+    :synopsis: Create an XDMF file containing a variety of derived quantities
+
 Filter.xdmf_local_paths.py
 ==========================
 
@@ -210,7 +242,23 @@ Calibrate.calibrate_element.py
 .. automodule:: model_package.Calibrate.calibrate_element
     :members:
     :show-inheritance:
-    :synopsis: Calibrate micromorphic linear elasticity for a single filter element
+    :synopsis: Calibrate micromorphic linear elasticity for a single filter element (i.e. macroscale element)
+
+Calibrate.calibrate_element_plastic.py
+======================================
+
+.. automodule:: model_package.Calibrate.calibrate_element_plastic
+    :members:
+    :show-inheritance:
+    :synopsis: Calibrate micromorphic elastoplasticity on a single filter domain (i.e. macroscale element)
+
+Calibrate.calibration_tools.py
+==============================
+
+.. automodule:: model_package.Calibrate.calibration_tools
+    :members:
+    :show-inheritance:
+    :synopsis: Collection of utilities for calibration
 
 Calibrate.joint_probability_distributions.py
 ============================================
@@ -236,6 +284,14 @@ Calibrate.summarize_calibration_results.py
     :show-inheritance:
     :synopsis: Summarize results of parameter calibration
 
+Calibrate.summarize_calibration_results_from_csv.py
+===================================================
+
+.. automodule:: model_package.Calibrate.summarize_calibration_results_from_csv
+    :members:
+    :show-inheritance:
+    :synopsis: Summarize results of parameter calibration from a calibration map csv
+
 Calibrate.summarize_calibration_results_ignore_boundary.py
 ==========================================================
 
@@ -252,6 +308,22 @@ Tardigrade_MOOSE.add_element_blocks_to_mesh.py
     :show-inheritance:
     :synopsis: Take an existing exodus mesh, add element blocks for each element, save with new name
 
+Tardigrade_MOOSE.brazilian_disk_apparatus.py
+============================================
+
+.. automodule:: model_package.Tardigrade_MOOSE.brazilian_disk_apparatus
+    :members:
+    :show-inheritance:
+    :synopsis: Create a Brazilian Disk specimen and loading apparatus
+
+Tardigrade_MOOSE.brazilian_disk_apparatus_symmetry.py
+=====================================================
+
+.. automodule:: model_package.Tardigrade_MOOSE.brazilian_disk_apparatus_symmetry
+    :members:
+    :show-inheritance:
+    :synopsis: Create a Brazilian Disk specimen and loading apparatus using 1/8th symmetry
+
 Tardigrade_MOOSE.build_dynamic_Tardigrade_input_deck.py
 =======================================================
 
@@ -259,6 +331,46 @@ Tardigrade_MOOSE.build_dynamic_Tardigrade_input_deck.py
     :members:
     :show-inheritance:
     :synopsis: Write a Tardigrade-MOOSE input file for dynamic simulation
+
+Tardigrade_MOOSE.build_GED_Tardigrade_input_deck_from_csv.py
+============================================================
+
+.. automodule:: model_package.Tardigrade_MOOSE.build_GED_Tardigrade_input_deck_from_csv
+    :members:
+    :show-inheritance:
+    :synopsis: Write Tardigrade-MOOSE input file for a gradient-enhanced damage plasticity simulation
+
+Tardigrade_MOOSE.build_plastic_Tardigrade_input_deck.py
+=======================================================
+
+.. automodule:: model_package.Tardigrade_MOOSE.build_plastic_Tardigrade_input_deck
+    :members:
+    :show-inheritance:
+    :synopsis: Write Tardigrade-MOOSE input file for a plastic simulation
+
+Tardigrade_MOOSE.build_plastic_Tardigrade_input_deck_brazil_disk_platens.py
+===========================================================================
+
+.. automodule:: model_package.Tardigrade_MOOSE.build_plastic_Tardigrade_input_deck_brazil_disk_platens
+    :members:
+    :show-inheritance:
+    :synopsis: Write Tardigrade-MOOSE input file for Brazilian disk simulation with platens
+
+Tardigrade_MOOSE.build_plastic_Tardigrade_input_deck_brazil_disk_platens_symmetry.py
+====================================================================================
+
+.. automodule:: model_package.Tardigrade_MOOSE.build_plastic_Tardigrade_input_deck_brazil_disk_platens_symmetry
+    :members:
+    :show-inheritance:
+    :synopsis: Write Tardigrade-MOOSE input file for eighth symmetry Brazilian disk simulation with platens
+
+Tardigrade_MOOSE.build_plastic_Tardigrade_input_deck_platens.py
+===============================================================
+
+.. automodule:: model_package.Tardigrade_MOOSE.build_plastic_Tardigrade_input_deck_platens
+    :members:
+    :show-inheritance:
+    :synopsis: Write Tardigrade-MOOSE input file for a plastic simulation with platens
 
 Tardigrade_MOOSE.build_Tardigrade_input_deck.py
 ===============================================
@@ -275,6 +387,14 @@ Tardigrade_MOOSE.cylinder_from_bounds.py
     :members:
     :show-inheritance:
     :synopsis: Create a cylinder mesh from the bounds of a DNS file
+
+Tardigrade_MOOSE.cylinder_from_bounds_with_platens.py
+=====================================================
+
+.. automodule:: model_package.Tardigrade_MOOSE.cylinder_from_bounds_with_platens
+    :members:
+    :show-inheritance:
+    :synopsis: Create a cylinder mesh from the bounds of a DNS file with platens
 
 Tardigrade_MOOSE.finite_stVK_calculation.py
 ============================================
@@ -300,6 +420,22 @@ Tardigrade_MOOSE.plot_force_displacement.py
     :show-inheritance:
     :synopsis: Process force-displacement from Tardigrade-MOOSE results
 
+Tardigrade_MOOSE.plot_lateral_displacement.py
+=============================================
+
+.. automodule:: model_package.Tardigrade_MOOSE.plot_lateral_displacement
+    :members:
+    :show-inheritance:
+    :synopsis: Process lateral displacement from Tardigrade-MOOSE results
+
+Tardigrade_MOOSE.summarize_dynamic_displacements.py
+===================================================
+
+.. automodule:: model_package.Tardigrade_MOOSE.summarize_dynamic_displacements
+    :members:
+    :show-inheritance:
+    :synopsis: Plot mutliple dynamic displacement plots against each other
+
 Tardigrade_MOOSE.summarize_micro_macro_force_displacements.py
 =============================================================
 
@@ -308,6 +444,14 @@ Tardigrade_MOOSE.summarize_micro_macro_force_displacements.py
     :show-inheritance:
     :synopsis: Process force-displacement from Tardigrade-MOOSE results
 
+Tardigrade_MOOSE.summarize_micro_macro_lateral_displacements.py
+================================================================
+
+.. automodule:: model_package.Tardigrade_MOOSE.summarize_micro_macro_lateral_displacements
+    :members:
+    :show-inheritance:
+    :synopsis: Plot mutliple lateral displacement plots against each other
+
 Tardigrade_MOOSE.write_elastic_material_card.py
 ===============================================
 
@@ -315,3 +459,11 @@ Tardigrade_MOOSE.write_elastic_material_card.py
     :members:
     :show-inheritance:
     :synopsis: Write elastic Tardigrade-MOOSE input card (.yml)
+
+Tardigrade_MOOSE.write_plastic_material_card.py
+===============================================
+
+.. automodule:: model_package.Tardigrade_MOOSE.write_plastic_material_card
+    :members:
+    :show-inheritance:
+    :synopsis: Write elastoplastic Tardigrade-MOOSE input card (.yml)

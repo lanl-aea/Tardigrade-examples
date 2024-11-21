@@ -1,10 +1,11 @@
-import pathlib
+#!python
 import argparse
+import pathlib
 import sys
 
-import pandas
-import numpy
 import matplotlib.pyplot
+import numpy
+import pandas
 
 from finite_stVK_calculation import finite_stVK_calculation
 from summarize_micro_macro_lateral_displacements import plot_convergence
@@ -54,12 +55,12 @@ def plot_force_displacement(csv_files, plot_labels, output_file, output_csv, con
 
 
 def get_parser():
+
     script_name = pathlib.Path(__file__)
+
     prog = f"python {script_name.name} "
     cli_description = "Plot mutliple force displacement plots against each other"
     parser=argparse.ArgumentParser(description=cli_description, prog=prog)
-
-    # TODO: handle multiple faces to sum forces if needed
     parser.add_argument('--csv-files', nargs="+", required=True,
         help="The csv files containing force results")
     parser.add_argument('--plot-labels', nargs="+", required=True,

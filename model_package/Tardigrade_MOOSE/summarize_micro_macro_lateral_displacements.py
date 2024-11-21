@@ -1,10 +1,11 @@
-import pathlib
+#!python
 import argparse
+import pathlib
 import sys
 
-import pandas
-import numpy
 import matplotlib.pyplot
+import numpy
+import pandas
 
 from finite_stVK_calculation import finite_stVK_calculation
 
@@ -79,11 +80,12 @@ def plot_lateral_displacement(csv_files, plot_labels, output_file, output_csv, c
 
 
 def get_parser():
+
     script_name = pathlib.Path(__file__)
+
     prog = f"python {script_name.name} "
     cli_description = "Plot mutliple lateral displacement plots against each other"
     parser=argparse.ArgumentParser(description=cli_description, prog=prog)
-
     parser.add_argument('--csv-files', nargs="+", required=True,
         help="The csv files containing force results")
     parser.add_argument('--plot-labels', nargs="+", required=True,

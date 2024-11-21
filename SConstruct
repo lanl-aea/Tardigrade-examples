@@ -63,11 +63,11 @@ AddOption(
          " (default: '%default')"
 )
 AddOption(
-    "--macro-plastic",
-    dest="macro_plastic",
+    "--macro-platen",
+    dest="macro_platen",
     default=False,
     action="store_true",
-    help="Boolean speciyfing whether or not to run heterogeneous, plastic macro simulation in Tardigrade-MOOSE. TEMPORARY! TO be replaced with dedicated Workflow in the future"\
+    help="Boolean speciyfing whether or not to run macro simulation in Tardigrade-MOOSE with loading platens."\
          " (default: '%default')"
 )
 AddOption(
@@ -107,6 +107,22 @@ AddOption(
     action="store_true",
     help="Boolean to submit jobs with SBATCH. (default: '%default')"
 )
+AddOption(
+    "--selected-parameter-sets",
+    dest="selected_parameter_sets",
+    default="All",
+    nargs=1,
+    type="str",
+    action="store",
+    help="Optional string of space separated integers specifying which parameters sets should be considered for filtering, calibrating, and performing macroscale simulations. (default: '%default')"
+)
+AddOption(
+    "--parse-filter-errors",
+    dest="parse_filter_errors",
+    default=False,
+    action="store_true",
+    help="Boolean to parse errors from Micromorphic Filter standard output. (default: '%default')"
+)
 # Inherit user's full environment and set project options
 env = Environment(ENV=os.environ.copy(),
                   variant_dir_base=GetOption("variant_dir_base"),
@@ -115,12 +131,14 @@ env = Environment(ENV=os.environ.copy(),
                   filter=GetOption("filter"),
                   calibrate=GetOption("calibrate"),
                   macro=GetOption("macro"),
-                  macro_plastic=GetOption("macro_plastic"),
+                  macro_platen=GetOption("macro_platen"),
                   macro_ignore_BCs=GetOption("macro_ignore_BCs"),
                   summary=GetOption("summary"),
                   peta_data_copy=GetOption("peta_data_copy"),
                   config_software=GetOption("config_software"),
                   use_sbatch=GetOption("use_sbatch"),
+                  selected_parameter_sets=GetOption("selected_parameter_sets"),
+                  parse_filter_errors=GetOption("parse_filter_errors"),
                   TARFLAGS="-c -j",
                   TARSUFFIX=".tar.bz2"
 )
@@ -130,10 +148,10 @@ env.Default()
 
 # ============================================================ LINK SOFTWARE ===
 # Sbatch
-env['sbatch'] = waves.scons_extensions.add_program(["sbatch"], env)
+env['sbatch'] = waves.scons_extensions.add_program(env,["sbatch"])
 
 # Sphinx
-env["sphinx_build"] = waves.scons_extensions.add_program(["sphinx-build"], env)
+env["sphinx_build"] = waves.scons_extensions.add_program(env, ["sphinx-build"])
 
 # Read in config.yml
 config_file = 'config_software.yml'
@@ -143,18 +161,18 @@ stream.close()
 
 # MPI
 mpi_location = program_paths['mpi']
-env['mpi'] = waves.scons_extensions.find_program(mpi_location, env)
+env['mpi'] = waves.scons_extensions.find_program(env, mpi_location)
 
 # Abaqus
 abaqus_windows = ["C:/Simulia/Commands/abaqus.bat"]
-env["abaqus"] = waves.scons_extensions.find_program(program_paths['Abaqus'] + abaqus_windows, env)
+env["abaqus"] = waves.scons_extensions.find_program(env, program_paths['Abaqus'] + abaqus_windows)
 
 # Cubit
-env["cubit"] = waves.scons_extensions.add_cubit(program_paths['Cubit'] + ["cubit"], env)
+env["cubit"] = waves.scons_extensions.add_cubit(env, program_paths['Cubit'] + ["cubit"])
 
 # Ratel
 ratel_location = program_paths['Ratel']
-env['Ratel'] = waves.scons_extensions.find_program(ratel_location, env)
+env['Ratel'] = waves.scons_extensions.find_program(env, ratel_location)
 if env['Ratel']:
     env.PrependENVPath("PATH", str(pathlib.Path(env['Ratel']).parent))
 ratel_solver = Builder(
@@ -204,11 +222,14 @@ micromorphic_location = program_paths['micromorphic'][-1]
 constraints_location = program_paths['constraints'][-1]
 
 # LD_LIBRARY_PATH
-env['LD_PATH'] = program_paths['LD_PATH']
+if len(program_paths['LD_PATH']) > 1:
+    env['LD_PATH'] = f'{":".join(program_paths["LD_PATH"])}'
+else:
+    env['LD_PATH'] = program_paths['LD_PATH']
 
 # Tardigrade-MOOSE
 tardigrade_location = program_paths['Tardigrade']
-env['Tardigrade'] = waves.scons_extensions.find_program(tardigrade_location, env)
+env['Tardigrade'] = waves.scons_extensions.find_program(env, tardigrade_location)
 if env['Tardigrade']:
     env.PrependENVPath("PATH", str(pathlib.Path(env['Tardigrade']).parent))
 tardigrade_solver = Builder(
@@ -371,6 +392,9 @@ workflow_configurations = [
     # Abaqus dynamic implicit elastic cylinder
     "Abaqus_elastic_cylinder_dynamic_imp",
     "Abaqus_elastic_cylinder_dynamic_imp_multi_domain",
+    # GEOS elastic cylinder
+    "GEOS_elastic_cylinder",
+    "GEOS_elastic_cylinder_multi_domain",
     # Ratel quasistatic elastic cylinder
     "Ratel_elastic_cylinder",
     "Ratel_elastic_cylinder_multi_domain",
@@ -380,10 +404,17 @@ workflow_configurations = [
     "Ratel_F83_multi_domain",
     # Ratel I41_02 workflows
     "Ratel_I41_02_elastic_multi_domain",
-    "Ratel_I41_02_elastic_single_domains",
+    #"Ratel_I41_02_elastic_single_domains",
+    # Ratel I43_09 workflow
+    "Ratel_I43_09_multi_domain",
     # Tardigrade solo studies
     "Tardigrade_convergence",
     "Tardigrade_dynamic_convergence",
+    # Brazilian Disk Compression
+    "Tardigrade_Brazilian_disk",
+    "Tardigrade_Brazilian_disk_platens",
+    "Tardigrade_Brazilian_disk_platens_eighth_symmetry",
+    "Abaqus_Brazilian_disk_platens_eighth_symmetry",
 ]
 for workflow in workflow_configurations:
     build_dir = str(variant_dir_base / workflow)

@@ -1,16 +1,13 @@
-import subprocess as sp
-import numpy
-import os
-import sys
+#!python
 import argparse
-import time
-import glob
+import pathlib
+import sys
 import yaml
-import inspect
 
-import seaborn
 import matplotlib.pyplot
+import numpy
 import pandas
+import seaborn
 
 
 def write_elastic_material_card(output_file, input_dict):
@@ -151,7 +148,7 @@ def collect_parameters(parameter_sets, case):
     elif case == 2:
         remove = ['tau1','tau2','tau3','tau4','tau5','tau6','tau7','tau8',
                   'tau9','tau10','tau11']
-    elif case == 3:
+    elif (case == 3) or (case == 5):
         remove = ['tau1','tau2','tau3','tau4','tau5','tau6','tau8','tau9',
                   'tau10','tau11']
     for item in remove:
@@ -222,7 +219,7 @@ def kde(rootname, results_dict, type, kde_best_parameters=None):
             matplotlib.pyplot.title(f'Best {key} = {best_value}')
             matplotlib.pyplot.tight_layout()
             matplotlib.pyplot.savefig(f'{rootname}_{key}.png')
-
+        matplotlib.pyplot.close()
     # output
     if kde_best_parameters:
         write_elastic_material_card(kde_best_parameters, output_parameters)
@@ -240,12 +237,20 @@ def summarize_calibration_results(parameter_sets, case,
     '''Main function to drive parameter summary and output
 
     :param list parameter_sets: List of yaml files containing calibration results
-    :param int case: The calibration "case". 1: two parameter, 2: 7 parameter,\
-              3: 7 parameter plus tau7, 4: all 18 parameters
+    :param int case: The calibration "case".
+                     1: two parameter,
+                     2: 7 parameter,
+                     3: 7 parameter plus tau7 without error for M,
+                     4: all 18 parameters,
+                     5: 7 parameter plus tau7 with error for M,
+                     6: 11 higher order parameters,
+                     7: 7 parameters using fixed higher order parameters determined from case 6,
+                     8: 7 parameters using initial guess and tighter bounds for higher order parameters determined from case 6
     :param str results_csv: Optional filename to store all calibrated parameter values
     :param str summary_csv: Optional filename to store summary statistics of calibrated parameters
     :param str kde_hist_plot: Optional root filename to plot kernel density estimate of each calibrated parameter with histogram
     :param str kde_plot: Optional root filename to plot kernel density estimate of each calibrated parameter
+    :param str kde_best: Optional root filename to plot kernel density estimate of each calibrated parameter with maximum value in title
     :param str kde_best_parameters: Optional root filename to output a yaml file containing the "best" parameters sampled from the kernel density estimate associated with "kde_best"
     '''
 
@@ -272,17 +277,23 @@ def summarize_calibration_results(parameter_sets, case,
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Summarize results of parameter calibration"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('--parameter-sets', nargs="+", required=True,
         help='Specify the list of yaml files containing calibration results')
     parser.add_argument('--case', type=int, required=True,
-        help='Specify the calibration "case". 1: two parameter, 2: 7 parameter,\
-              3: 7 parameter plus tau7, 4: all 18 parameters')
+        help="The calibration 'case'.\
+              1: two parameter,\
+              2: 7 parameter,\
+              3: 7 parameter plus tau7 without error for M,\
+              4: all 18 parameters,\
+              5: 7 parameter plus tau7 with error for M,\
+              6: 11 higher order parameters,\
+              7: 7 parameters using fixed higher order parameters determined from case 6,\
+              8: 7 parameters using initial guess and tighter bounds for higher order parameters determined from case 6")
     parser.add_argument('--results-csv', type=str, required=False,
         help='Optional filename to store all calibrated parameter values')
     parser.add_argument('--summary-csv', type=str, required=False,

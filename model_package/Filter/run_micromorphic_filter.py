@@ -1,8 +1,7 @@
-import os
-import inspect
-import sys
-import yaml
+#!python
 import argparse
+import pathlib
+import sys
 
 import micromorphic_filter.filter_dns
 
@@ -15,7 +14,7 @@ def run_filter(config_file):
     Runs the Micromorphic Filter
     '''
 
-    f = micromorphic_filter.filter_dns.Filter(config_file)
+    f = micromorphic_filter.filter_dns.FilterMicroDomain(config_file)
     f.filterIncrements()
 
     return 0
@@ -23,12 +22,11 @@ def run_filter(config_file):
 
 def get_parser():
 
-    filename = inspect.getfile(lambda: None)
-    basename = os.path.basename(filename)
-    basename_without_extension, extension = os.path.splitext(basename)
+    script_name = pathlib.Path(__file__)
+
+    prog = f"python {script_name.name} "
     cli_description = "Run the Micromorphic Filter"
-    parser = argparse.ArgumentParser(description=cli_description,
-                                     prog=os.path.basename(filename))
+    parser=argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('--config-file', type=str, required=True,
         help='Specify the filter configuration file')
     return parser
