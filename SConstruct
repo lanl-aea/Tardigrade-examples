@@ -180,7 +180,7 @@ abaqus_windows = ["C:/Simulia/Commands/abaqus.bat"]
 env["abaqus"] = env.AddProgram(program_paths['Abaqus'] + abaqus_windows)
 
 # Cubit
-env["cubit"] = env.AddCubitPython(program_paths['Cubit'] + ["cubit"])
+env["cubit"] = env.AddCubitPython(["cubit", program_paths['Cubit']])
 
 # Ratel
 ratel_location = program_paths['Ratel']
