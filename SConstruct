@@ -39,6 +39,13 @@ AddOption(
     help="Run the Abaqus Solve task using N CPUs. (default: '%default')"
 )
 AddOption(
+    "--print-build-failures",
+    dest="print_build_failures",
+    default=False,
+    action="store_true",
+    help="Print task *.stdout target file(s) on build failures. (default: '%default')"
+)
+AddOption(
     "--filter",
     dest="filter",
     default=False,
@@ -124,24 +131,29 @@ AddOption(
     help="Boolean to parse errors from Micromorphic Filter standard output. (default: '%default')"
 )
 # Inherit user's full environment and set project options
-env = Environment(ENV=os.environ.copy(),
-                  variant_dir_base=GetOption("variant_dir_base"),
-                  ignore_documentation=GetOption("ignore_documentation"),
-                  solve_cpus=GetOption("solve_cpus"),
-                  filter=GetOption("filter"),
-                  calibrate=GetOption("calibrate"),
-                  macro=GetOption("macro"),
-                  macro_platen=GetOption("macro_platen"),
-                  macro_ignore_BCs=GetOption("macro_ignore_BCs"),
-                  summary=GetOption("summary"),
-                  peta_data_copy=GetOption("peta_data_copy"),
-                  config_software=GetOption("config_software"),
-                  use_sbatch=GetOption("use_sbatch"),
-                  selected_parameter_sets=GetOption("selected_parameter_sets"),
-                  parse_filter_errors=GetOption("parse_filter_errors"),
-                  TARFLAGS="-c -j",
-                  TARSUFFIX=".tar.bz2"
+env = waves.scons_extensions.WAVESEnvironment(
+    ENV=os.environ.copy(),
+    variant_dir_base=GetOption("variant_dir_base"),
+    ignore_documentation=GetOption("ignore_documentation"),
+    solve_cpus=GetOption("solve_cpus"),
+    print_build_failures=GetOption("print_build_failures"),
+    filter=GetOption("filter"),
+    calibrate=GetOption("calibrate"),
+    macro=GetOption("macro"),
+    macro_platen=GetOption("macro_platen"),
+    macro_ignore_BCs=GetOption("macro_ignore_BCs"),
+    summary=GetOption("summary"),
+    peta_data_copy=GetOption("peta_data_copy"),
+    config_software=GetOption("config_software"),
+    use_sbatch=GetOption("use_sbatch"),
+    selected_parameter_sets=GetOption("selected_parameter_sets"),
+    parse_filter_errors=GetOption("parse_filter_errors"),
+    TARFLAGS="-c -j",
+    TARSUFFIX=".tar.bz2"
 )
+
+# Conditionally print failed task *.stdout files
+env.PrintBuildFailures(print_stdout=env["print_build_failures"])
 
 # Empty defaults list to avoid building all simulation targets by default
 env.Default()
@@ -151,7 +163,7 @@ env.Default()
 env['sbatch'] = waves.scons_extensions.add_program(env,["sbatch"])
 
 # Sphinx
-env["sphinx_build"] = waves.scons_extensions.add_program(env, ["sphinx-build"])
+env["sphinx_build"] = env.AddProgram(["sphinx-build"])
 
 # Read in config.yml
 config_file = 'config_software.yml'
@@ -165,10 +177,10 @@ env['mpi'] = waves.scons_extensions.find_program(env, mpi_location)
 
 # Abaqus
 abaqus_windows = ["C:/Simulia/Commands/abaqus.bat"]
-env["abaqus"] = waves.scons_extensions.find_program(env, program_paths['Abaqus'] + abaqus_windows)
+env["abaqus"] = env.AddProgram(program_paths['Abaqus'] + abaqus_windows)
 
 # Cubit
-env["cubit"] = waves.scons_extensions.add_cubit(env, program_paths['Cubit'] + ["cubit"])
+env["cubit"] = env.AddCubitPython(program_paths['Cubit'] + ["cubit"])
 
 # Ratel
 ratel_location = program_paths['Ratel']
@@ -343,12 +355,15 @@ env.PrependENVPath("PYTHONPATH", str(project_dir / model_package_source))
 # Build path object for extension and re-use
 variant_dir_base = pathlib.Path(env["variant_dir_base"])
 
+# Python Builder
+python_script = waves.scons_extensions.python_builder_factory(subcommand_options="${script_options}")
+
 # Add WAVES builders
 env.Append(BUILDERS={
     "AbaqusJournal": waves.scons_extensions.abaqus_journal(program=env["abaqus"]),
     "AbaqusSolver": waves.scons_extensions.abaqus_solver(program=env["abaqus"]),
     "AbaqusExtract": waves.scons_extensions.abaqus_extract(program=env["abaqus"]),
-    "PythonScript": waves.scons_extensions.python_script(),
+    "PythonScript": python_script,
     "CondaEnvironment": waves.scons_extensions.conda_environment(),
     "RatelSolver": ratel_builder_select(),
     "TardigradeSolver": tardigrade_builder_select(),
