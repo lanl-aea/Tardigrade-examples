@@ -7,8 +7,6 @@ import argparse
 import numpy
 import pandas
 
-sys.path.append(r'/projects/tea/PSAAP/tardigrade_filter/src/python')
-
 import file_io.xdmf
 
 

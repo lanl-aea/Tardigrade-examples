@@ -10,12 +10,6 @@ import matplotlib.pyplot
 import pandas
 import scipy
 
-sys.path.append(r'/projects/tea/tardigrade_plastic/tardigrade_micromorphic_element/src/python')
-sys.path.append(r'/projects/tea/tardigrade-examples/model_package')
-sys.path.append(r'/projects/tea/tardigrade-examples/model_package/Calibrate')
-sys.path.append(f'/projects/tea/tardigrade_plastic/tardigrade_micromorphic_linear_elasticity/src/python')
-
-
 import calibration_tools
 import micromorphic
 import xdmf_reader_tools as XRT
