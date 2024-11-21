@@ -59,7 +59,7 @@ def get_parser():
     script_name = pathlib.Path(__file__)
 
     prog = f"python {script_name.name} "
-    cli_description = "Process force-displacement from Ratel DNS results"
+    cli_description = "Process force-displacement from GEOS DNS results"
     parser=argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('--csv-file', type=str, required=True,
         help="The csv file containing force results")
