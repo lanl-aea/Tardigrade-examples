@@ -184,9 +184,8 @@ micromorphic upscaling workflow.
 
 .. _smith_conditions:
 
-****************
 Smith Conditions
-****************
+================
 
 Refer to the :ref:`linear_elastic_constraints` section for the discussion of the Smith
 conditions.
@@ -201,18 +200,60 @@ Micromorphic Elasto-plasticity
 ..
    TODO: Write this section
 
-Kinetics
-========
+Kinematics
+==========
+
+A multiplicative decomposition of the macro deformation gradient and micro deformation
+tensor is used to separate elastic and plastic effects.
+
+.. math::
+
+   F_{iI} &= F^{e}_{i\bar{I}} F^p_{\bar{I}I}
+
+   \chi_{iI} &= \chi^{e}_{i\bar{I}} \chi^p_{\bar{I}I}
+
+Figure :numref:`{number} <FeFp_configurations>` (borrowed from Miller 2021 :cite:`miller_micromorphic_2021`
+Figure 3.1) shows the effect of the multiplicative decomposition and resulting
+configuration spaces.
+As before, the reference configuration maps to the current configuration through
+:math:`\mathbf{F}` and :math:`\mathbf{\chi}`.
+A stress free, intermediate configuration (:math:`\bar{B}`) is introduced which maps from the reference
+configuration through :math:`\mathbf{F^p}` and :math:`\mathbf{\chi^p}`.
+The overbar notation :math:`\bar{.}` denotes quantities in the intermediate configuration.
+Figure :numref:`{number} <FeFp_configurations>` show the independent actions of macro
+deformation gradients and micro deformation tensors.
 
 ..
-   TODO: Add in discussion of elasto-plastic kinematics
+   TODO: Make my own version of the folowing figure
 
-.. note::
+.. figure:: FeFp_configurations.jpg
+   :name: FeFp_configurations
+   :align: center
+   :width: 80%
 
-    Discussion coming soon!
+   Configuration spaces of the multiplicative decomposition of :math:`\mathbf{F}` and :math:`\mathbf{\chi}`
 
-Deviatoric and Volumetric Bits
-===============================
+The elastic deformation measures from equations :math:numref:`{number} <deformation_measures_1>`,
+:math:numref:`{number} <GL_strain>`, and :math:numref:`{number} <micro_strain>` are now defined in the
+intermediate configuration as
+
+.. math::
+   :label: deformation_measures_intermediate
+
+   \bar{\mathcal{C}}^e_{\bar{I}\bar{J}} &= F^e_{i\bar{I}} F^e_{i\bar{J}}
+
+   \bar{\Psi}^e_{\bar{I}\bar{J}} &= F^e_{i\bar{I}} \xi^e_{i\bar{J}}
+
+   \bar{\Gamma}^e_{\bar{I}\bar{J}K} &= F^e_{i\bar{I}} \xi^e_{i\bar{J},\bar{K}}
+
+   \bar{E}^e_{\bar{I}\bar{J}} &= \frac{1}{2} \left( \mathcal{C}^e_{\bar{I}\bar{J}} - \delta_{\bar{I}\bar{J}} \right)
+
+   \bar{\mathcal{E}}^e_{\bar{I}\bar{J}} &= \Psi^e_{\bar{I}\bar{J}} - \delta_{\bar{I}\bar{J}}
+
+Further details of micromorphic elastoplasticity may be found in Chapter 3 of Miller 2021 :cite:`miller_micromorphic_2021`.
+
+Deviatoric Stress Measures
+==========================
 
 The deviatoric parts of the Cauchy, symmetric micro-, and higher-order stresses may be
 defined in the current configuration as
@@ -240,7 +281,7 @@ The Cauchy, micro-, and higher-order pressures may be defined in the current con
    p^{\nabla\chi}_k &= \frac{1}{3} m_{llk}
 		= \frac{1}{3 J^e}\bar{M}_{\bar{I}\bar{J}\bar{K}}\bar{C}^e_{\bar{I}\bar{J}}\chi^e_{k\bar{K}}
 
-where $\bar{C}^e_{\bar{I}\bar{J}}=F^e_{i\bar{I}}F^e_{j\bar{J}}$.
+where :math:`\bar{C}^e_{\bar{I}\bar{J}}=F^e_{i\bar{I}}F^e_{j\bar{J}}`.
 These pressures may be defined in the intermediate configuration as
 
 .. math::
@@ -252,7 +293,7 @@ These pressures may be defined in the intermediate configuration as
    \bar{p}^{\nabla\chi}_{\bar{K}} &= \frac{1}{3}\bar{C}^e_{\bar{I}\bar{J}}\bar{M}_{\bar{I}\bar{J}\bar{K}}.
 
 Using these terms, the deviatoric parts of the Second Piola-Kirchhoff, symmetric micro-
- and higher-order stresses may be written in the intermediate configuration as
+and higher-order stresses may be written in the intermediate configuration as
 
 .. math::
 
@@ -299,10 +340,10 @@ The invariants of the stress measures are defined as
    ||dev\left(\bar{\mathbf{\Sigma}}\right)|| &= \sqrt{\left(dev \left( \bar{\Sigma}_{\bar{I}\bar{J}}\right) \right)
        : \left(dev \left(\bar{\Sigma}_{\bar{I}\bar{J}}\right) \right)}
 
-   ||dev\left(\bar{\mathbf{M}}\right)||_{\bar{K}} &= \sqrt{\left(dev \left( \bar{M}_{\bar{I}\bar{J}\encircle{\bar{K}}}\right) \right)
-       : \left(dev \left(\bar{M}_{\bar{I}\bar{J}\encircle{\bar{K}}}\right) \right)}.
+   ||dev\left(\bar{\mathbf{M}}\right)||_{\bar{K}} &= \sqrt{\left(dev \left( \bar{M}_{\bar{I}\bar{J}\left(\bar{K}\right)}\right) \right)
+       : \left(dev \left(\bar{M}_{\bar{I}\bar{J}\left(\bar{K}\right)}\right) \right)}.
 
-The notation :math:`\encircle{.}` indicates that an index is free so
+The notation :math:`\left(\bar{K}\right)` indicates that the :math:`\bar{K}` index is free so
 :math:`||dev\left(\bar{\mathbf{M}}\right)||_{\bar{K}}` represents a
 vector of invariants of the higher-order stress.
 These yield functions depend on the friction angles (:math:`\phi^u`,
@@ -346,8 +387,8 @@ are defined as
 
 The plastic potential functions depend on the dilation angles (:math:`\psi^u`,
 :math:`\psi^{\chi}`, and :math:`\psi^{\nabla\chi}`) through functions of identical
-form as shown in \eq{eq:micromorphic_friction_angle_functions} except the :math:`\phi`
-terms are replaced with :math:`\psi`.
+form as shown in Eq. :math:numref:`{number} <micromorphic_friction_angle_functions>`
+except the :math:`\phi` terms are replaced with :math:`\psi`.
 Similarly, parameters :math:`\tilde{\beta}^{u,\psi}`, :math:`\tilde{\beta}^{\chi,\psi}`,
 and :math:`\tilde{\beta}^{\nabla\chi,\psi}` range from :math:`+/-` 1 to control how the
 potential functions relate to the Mohr-Coloumb yield surface.
@@ -368,7 +409,7 @@ For isotropy, the micro-gradient hardening moduli are simplified to
 :math:`\bar{H}^{\nabla\chi}_{\bar{I}\bar{J}}=\bar{H}^{\nabla\chi} \delta_{\bar{I}\bar{J}}`
 which reduces the stress-like ISV to :math:`\bar{Q}^{\chi}_{\bar{I}}=\bar{H}^{\nabla\chi}\bar{Z}^{\chi}_{,\bar{I}}`.
 
-The evolution equations are presented in full detail in \cite{isbuga2017, MillerThesis}.
+The evolution equations are presented in full detail in :cite:`isbuga2017, miller_micromorphic_2021`.
 For the present discussion, the evolution of the strain-like ISVs are
 
 .. math::
