@@ -120,6 +120,7 @@ figure_pictures = [
     "single_element_calibration.png",
     "micromorphic_configuration_out_no_beta.svg",
     "micromorphic_microaveraging_domains.svg",
+    "FeFp_configurations.jpg"
 ]
 for figure in figure_pictures:
     env.Command(
