@@ -14,6 +14,8 @@ New Features
 - Add new scripts for upscaling Ratel I43.09 DNS including micromorphic elastoplastic
   material model calibration. New workflows for Brazilian Disk simulations
   (:issue:`16`, :merge:`4`). By `Thomas Allard`_.
+- Update all scripts to use WAVES version 0.12 (:issue:`21`, :merge:`5`).
+  By `Thomas Allard`_.
 
 Documentation
 =============
