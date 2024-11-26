@@ -67,9 +67,9 @@ The included **DNS** investigate simple compression of a homogenoeous cylinder.
 Alternatively, externally performed DNS results may be upscaled that
 consider more interesting materials and stress states. DNS results are
 post-processed into the XDMF file format required by the Micromorphic
-Filter. This repository currently includes Python scripts for XDMF conversion
-of the Abaqus output database (ODB) and Ratel visualization toolkit (VTK) formats,
-with GEOS MPM VTK coming soon.
+Filter. This repository includes Python scripts for XDMF conversion
+of the Abaqus output database (ODB), Ratel visualization toolkit (VTK),
+and GEOS MPM VTK formats.
 
 The **Micromorphic Filter** homogenizes DNS results onto a macroscale mesh where
 each element is considered a "filtering domain." Meshes are generated using
@@ -80,12 +80,14 @@ using WAVES parametric study tools to analyze how homogenization changes
 as the number of filtering domains increase.
 
 The homogenized, micromorphic stress and deformation measures output by the
-Micromorphic Filter are used to **calibrate** various material models. A unique
-calibration for each filtering domain (macroscale element) is produced. For
-verification studies of simple DNS, classical inear elasticity is calibrated,
+Micromorphic Filter are used to **calibrate** various material models.
+A unique calibration for each filtering domain (macroscale element) is produced.
+For verification studies of simple DNS, classical inear elasticity is calibrated,
 while several forms of micromorphic linear elasticity are
-calibrated for heterogeneous DNS. Calibration of elasto-plasticity will be
-included in a future release of this repository.
+calibrated for heterogeneous DNS.
+Calibration of micromorphic elasto-plasticity is performed for inelastic DNS
+conducted externally to the workflows contained in this repository.
+Externally performed DNS are accessed using the "--peta-data-copy" tool.
 
 Finally, material calibration results are applied to macroscale simulations in
 **Tardigrade-MOOSE** with similar boundary and loading conditions as the original

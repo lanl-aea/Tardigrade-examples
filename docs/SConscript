@@ -23,8 +23,7 @@ alias_list = []
 # Perform variable substitution on Sphinx configuration file
 env.Substfile(
     "conf.py.in",
-    SUBST_DICT=waves.scons_extensions.substitution_syntax(project_variables)
-)
+    SUBST_DICT=env.SubstitutionSyntax(project_variables))
 
 # Copy project root files required by the documentation
 project_dir = pathlib.Path(env["project_dir"])
@@ -121,6 +120,7 @@ figure_pictures = [
     "single_element_calibration.png",
     "micromorphic_configuration_out_no_beta.svg",
     "micromorphic_microaveraging_domains.svg",
+    "FeFp_configurations.jpg"
 ]
 for figure in figure_pictures:
     env.Command(

@@ -47,6 +47,7 @@ extensions = ["sphinx.ext.autodoc",
               "sphinxcontrib.bibtex",
               "sphinx_subfigure",
               "sphinxarg.ext",
+              #"sphinx.ext.pngmath",
               #"sphinx_toolbox.source",
               ]
 bibtex_bibfiles = ["references.bib"]
@@ -85,6 +86,10 @@ information.
 
 preamble = r"""
 \usepackage{amsmath}
+\usepackage{bm}
+\usepackage{tikz}
+\usepackage{circledsteps}
+\usepackage{textcomp}
 \\addto\\captionsenglish{\\renewcommand{\\contentsname}{Table of Contents}}
 \\AtBeginEnvironment{sphinxVerbatim}{\\scriptsize}
 """
@@ -94,6 +99,7 @@ latex_elements = {
     'preamble': preamble,
     "maketitle": f"\\newcommand\\sphinxbackoftitlepage{{{copyright_latex}}}\sphinxmaketitle",
 }
+
 latex_documents = [
     (master_doc, latex_project.lower() + ".tex", latex_project.upper(), author_latex, "manual"),
 ]

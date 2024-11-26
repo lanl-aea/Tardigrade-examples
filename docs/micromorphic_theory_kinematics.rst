@@ -132,7 +132,7 @@ substitute the expression from Eq. :math:numref:`{number} <XprimedelX>`.
       + \frac{\partial \Xi_I}{\partial X_M}\right)^{-1}
 
 Substitute back into :math:`\mathbf{F}^{\left(\alpha\right)}`. Eq. :math:numref:`{number} <F_prime_general>` shows the
-\textit{general} form of deformation gradient!
+general form of deformation gradient!
 
 .. math::
    :label: F_prime_general
