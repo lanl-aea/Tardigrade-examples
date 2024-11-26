@@ -197,9 +197,6 @@ conditions.
 Micromorphic Elasto-plasticity
 ******************************
 
-..
-   TODO: Write this section
-
 Kinematics
 ==========
 
@@ -306,6 +303,63 @@ and higher-order stresses may be written in the intermediate configuration as
    dev\left(\bar{M}_{\bar{I}\bar{J}\bar{K}}\right) &= \bar{M}_{\bar{I}\bar{J}\bar{K}}
        - \bar{p}_{\bar{K}}^{\nabla\chi}\left(\bar{C}^e_{\bar{I}\bar{J}}\right)^{-1}.
 
+Helmholtz Free Energy Function
+==============================
+
+A micromorphic, linear isotropic, Drucker-Prager elastoplasticity is considered.
+The total Helmholtz free energy per unit mass in the intermediate configuration may
+be expressed as the addition of the elastic free energy function
+:math:`\left( \bar{\rho} \bar{\psi}\right)^e`
+(introduced in Eq. :math:numref:`{number} <elastic_helmholtz>`
+in the reference configuration) and plastic free energy
+function :math:`\left( \bar{\rho} \bar{\psi}\right)^p`.
+
+.. math::
+
+   \left(\bar{\rho} \bar{\psi}\right) \stackrel{\text{def}}{=}
+       \left(\bar{\rho} \bar{\psi}\right)^e + \left(\bar{\rho} \bar{\psi}\right)^p
+
+A quadratic form of the plastic Helmholtz energy function is defined as a function
+of strain-like internal state variables (ISVs) and hardening moduli.
+
+.. math::
+   :label: plastic_helmholtz
+
+   \left(\bar{\rho} \bar{\psi}\right)^p \stackrel{\text{def}}{=}
+       \frac{1}{2}\bar{H}^u \left(\bar{Z}^u\right)^2
+       + \frac{1}{2}\bar{H}^{\chi} \left(\bar{Z}^{\chi}\right)^2
+       + \frac{1}{2}\bar{Z}^{\chi}_{,\bar{I}} \bar{H}_{\bar{I}\bar{J}}^{\nabla\chi} \bar{Z}^{\chi}_{,\bar{J}}
+
+where :math:`\bar{Z}^u` and :math:`\bar{Z}^{\chi}` are scalars.
+
+As will be discussed in the proceeding section, :ref:`yield_surfaces`, three yield surfaces are
+defined for macro- (:math:`u`), micro- (:math:`\chi`), and micro-gradient plasticity (:math:`\nabla\chi`)
+with associated strain-like ISVs (:math:`\bar{Z}^u`, :math:`\bar{Z}^{\chi}`,
+and :math:`\bar{Z}^{\nabla \chi}`) and hardening moduli
+(:math:`\bar{H}^u`, :math:`\bar{H}^{\chi}`, and :math:`\bar{H}^{\nabla \chi}`).
+Stress-like ISVs are defined as
+
+.. math::
+   :label: micromorphic_ISVs
+
+   \bar{Q}^u &\stackrel{\text{def}}{=}
+       \frac{\partial \left( \bar{\rho} \bar{\psi} \right)}{\partial \bar{Z}^u_{\bar{I}}}
+       = \bar{H}^u\bar{Z}^u
+
+   \bar{Q}^{\chi} &\stackrel{\text{def}}{=}
+       \frac{\partial \left( \bar{\rho} \bar{\psi} \right)}{\partial \bar{Z}^{\chi}_{\bar{I}}}
+       = \bar{H}^{\chi}\bar{Z}^{\chi}
+
+   \bar{Q}^{\nabla\chi}_{\bar{I}} &\stackrel{\text{def}}{=}
+       \frac{\partial \left( \bar{\rho} \bar{\psi} \right)}{\partial \bar{Z}^{\nabla\chi}_{\bar{I},\bar{J}}}
+       = \bar{H}^{\nabla\chi}_{\bar{I}\bar{J}}\bar{Z}^{\chi}_{,\bar{J}}.
+
+For isotropy, the micro-gradient hardening moduli are simplified to
+:math:`\bar{H}^{\nabla\chi}_{\bar{I}\bar{J}}=\bar{H}^{\nabla\chi} \delta_{\bar{I}\bar{J}}`
+which reduces the stress-like ISV to :math:`\bar{Q}^{\chi}_{\bar{I}}=\bar{H}^{\nabla\chi}\bar{Z}^{\chi}_{,\bar{I}}`.
+
+.. _yield_surfaces:
+
 Yield Surfaces
 ==============
 
@@ -393,22 +447,6 @@ Similarly, parameters :math:`\tilde{\beta}^{u,\psi}`, :math:`\tilde{\beta}^{\chi
 and :math:`\tilde{\beta}^{\nabla\chi,\psi}` range from :math:`+/-` 1 to control how the
 potential functions relate to the Mohr-Coloumb yield surface.
 
-As it pertains to the evolution of plasticity, strain-like internal state vairables (ISVs) are related to stress-like ISVs as
-
-.. math::
-   :label: micromorphic_ISVs
-
-   \bar{Q}^u &= \bar{H}^u\bar{Z}^u
-
-   \bar{Q}^{\chi} &= \bar{H}^{\chi}\bar{Z}^{\chi}
-
-   \bar{Q}^{\nabla\chi}_{\bar{I}} &=\bar{H}^{\nabla\chi}_{\bar{I}\bar{J}}\bar{Z}^{\chi}_{,\bar{J}}
-
-where the :math:`\bar{H}` terms are the hardening moduli.
-For isotropy, the micro-gradient hardening moduli are simplified to
-:math:`\bar{H}^{\nabla\chi}_{\bar{I}\bar{J}}=\bar{H}^{\nabla\chi} \delta_{\bar{I}\bar{J}}`
-which reduces the stress-like ISV to :math:`\bar{Q}^{\chi}_{\bar{I}}=\bar{H}^{\nabla\chi}\bar{Z}^{\chi}_{,\bar{I}}`.
-
 The evolution equations are presented in full detail in :cite:`isbuga2017, miller_micromorphic_2021`.
 For the present discussion, the evolution of the strain-like ISVs are
 
@@ -420,7 +458,7 @@ For the present discussion, the evolution of the strain-like ISVs are
    \dot{\bar{Z}}^{\chi} &= -\dot{\bar{\gamma}}^{\chi} \frac{\partial\bar{G}^{\chi}}{\partial\bar{c}^{\chi}}
       = A^{\chi,\psi} \dot{\bar{\gamma}}^{\chi}
 
-   \dot{\bar{Z}}^{\chi}_{,\bar{J}} &= -\dot{\bar{\gamma}}^{\nabla\chi}_{\bar{J}}
+   \dot{\bar{Z}}^{\chi}_{,\bar{I}} &= -\dot{\bar{\gamma}}^{\nabla\chi}_{\bar{J}}
         \frac{\partial\bar{G}^{\nabla\chi}_{\bar{J}}}{\partial\bar{c}^{\nabla\chi}_{\bar{I}}}
         = A^{\nabla\chi,\psi} \dot{\bar{\gamma}}^{\nabla\chi}_{\bar{J}}\delta_{\bar{I}\bar{J}}
 
