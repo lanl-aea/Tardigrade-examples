@@ -102,4 +102,4 @@ latex_elements = {
 
 latex_documents = [
     (master_doc, latex_project.lower() + ".tex", latex_project.upper(), author_latex, "manual"),
-]\
+]
