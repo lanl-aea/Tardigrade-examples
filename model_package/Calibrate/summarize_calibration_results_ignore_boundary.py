@@ -27,7 +27,7 @@ def sort_elements(macro_file):
     nodes = macro.getIncrementReferenceNodePositions(0)[0][0]
     elements = macro.getIncrementConnectivity(0)[0][0]
 
-    # find boundaries from extend of node positions in the z-direcion
+    # find boundaries from extent of node positions in the z-direcion
     min = numpy.min(nodes,axis=0)[2]
     max = numpy.max(nodes,axis=0)[2]
 
