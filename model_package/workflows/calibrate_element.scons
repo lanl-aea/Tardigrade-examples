@@ -18,6 +18,7 @@ Import("params")
 
 # Set project-wide paths
 calibrate_source_abspath = pathlib.Path(env["calibrate_source_abspath"])
+filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
 
 # workflow variables
 build_directory = pathlib.Path(Dir(".").abspath)
@@ -46,6 +47,7 @@ if domain_number == 1:
     script_options += f" --L 1.0"
     script_options += f" --element 0"
     script_options += f" --plot-file {plot_root}"
+    script_options += f" --dev-norm-errors True"
     if 'calibration_increment' in params.keys():
         script_options += f" --increment {' '.join(str(i) for i in params['calibration_increment'])}"
     if ('UQ_file' in params.keys()) and (params['UQ_file'] == True):
@@ -110,6 +112,7 @@ else:
         script_options += f" --L {seed_size}"
         script_options += f" --element {elem}"
         script_options += f" --plot-file {plot_root}"
+        script_options += f" --dev-norm-errors True"
         if 'calibration_increment' in params.keys():
             script_options += f" --increment {' '.join(str(i) for i in params['calibration_increment'])}"
         if ('UQ_file' in params.keys()) and (params['UQ_file'] == True):
@@ -121,23 +124,64 @@ else:
             source = [f"{calibrate_source_abspath / calibration_script}", filter_file],
             script_options = script_options
         ))
+
+    # Build calibration map
+    calibration_map_script = 'build_calibration_map.py'
+    calibration_map_file = f"Calibration_map_elastic_parameters_case_{case}_{domain_number}.csv"
+    script_options = f"--output-file {calibration_map_file}"
+    script_options += f" --calibrated-elements {' '.join(calibrated_elements)}"
+    script_options += f" --calibrated-files {' '.join(calibrated_files)}"
+    script_options += " --map-type full_csv --material-type elastic"
+    workflow.extend(env.PythonScript(
+        target = [calibration_map_file],
+        source = [f"{calibrate_source_abspath / calibration_map_script}", calibrated_files],
+        script_options = script_options,
+    ))
+
+    # make xdmf file containing calibration results
+    xdmf_script = 'xdmf_3d_calculations.py'
+    output_fileroot = f'CALIBRATION_RESULTS_{model}_elastic_parameters_case_{case}_domain_number'
+    xdmf_targets = [f"{output_fileroot}.{suffix}" for suffix in ['xdmf', 'h5']]
+    script_options = f"--input-file {filter_file.split('.xdmf')[0]}"
+    script_options += f" --output-file {output_fileroot}"
+    script_options += " --write-type calibration"
+    script_options += f" --calibration-map-file {calibration_map_file}"
+    workflow.extend(env.PythonScript(
+        target = xdmf_targets,
+        source = [f"{filter_source_abspath / xdmf_script}", calibration_map_file],
+        script_options = script_options,
+    ))
+
+    # make xdmf file with relative paths
+    local_path_script = "xdmf_local_paths.py"
+    output_file = f"{output_fileroot}_for_paraview.xdmf"
+    script_options = f"--input-file {output_fileroot}.xdmf"
+    script_options += f" --output-file {output_file}"
+    script_options += f" --oldpath {build_directory/output_fileroot}.h5"
+    script_options += f" --newpath {output_fileroot}.h5"
+    workflow.extend(env.PythonScript(
+        target = output_file,
+        source = [f"{filter_source_abspath / local_path_script}"] + xdmf_targets,
+        script_options=script_options
+    ))
+
     # summarize calibration results
-    summary_script = 'summarize_calibration_results.py'
-    hist_plot_root = f'kde_case_{case}'
-    summary_targs = [f'Calibration_results_{int(domain_number)}_domains_case_{case}.csv',
-                     f'Calibration_summary_{int(domain_number)}_domains_case_{case}.csv',
-                     f'{hist_plot_root}_lamb_hist.PNG']
-    script_options = f'--parameter-sets {" ".join(calibrated_files)}'
+    summary_script = 'summarize_calibration_results_from_csv.py'
+    hist_plot_root = f'kde_elastic_case_{case}'
+    summary_targs = [f'Calibration_summary_{int(domain_number)}_domains_plastic_case_{case}.csv',
+                     f'{hist_plot_root}_lambda_hist.PNG']
+    script_options = f'--parameter-csv {calibration_map_file}'
     script_options += f' --case {case}'
-    script_options += f' --results-csv {summary_targs[0]}'
-    script_options += f' --summary-csv {summary_targs[1]}'
+    script_options += f' --summary-csv {summary_targs[0]}'
     script_options += f' --kde-hist-plot {hist_plot_root}'
     script_options += f' --kde-best {hist_plot_root}_best'
+    script_options += f' --kde-best-parameters best_parameters_{int(domain_number)}_elastic_case_{case}'
     workflow.extend(env.PythonScript(
         target = summary_targs,
-        source = [str(calibrate_source_abspath / summary_script), calibrated_files],
+        source = [str(calibrate_source_abspath / summary_script), calibration_map_file],
         script_options = script_options
         ))
+
     # Summarize calibration results but ignore elements on boundary
     if ('ignore_boundary' in params.keys()) and (params['ignore_boundary'] == True):
         macro_file = f"FILTER_macroscale_{model}_{int(domain_number)}"
