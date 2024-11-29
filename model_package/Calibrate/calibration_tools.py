@@ -531,7 +531,7 @@ def parse_fparams_file(parameter_file, material_type='elastic'):
         params = numpy.hstack([[float(i) for i in UI['line 1'].split(' ')[1:]],
                                [float(i) for i in UI['line 2'].split(' ')[1:]],
                                [float(i) for i in UI['line 3'].split(' ')[1:]],
-                               float(UI['obj'])])
+                               float(UI['obj_func_value'])])
     elif material_type == 'plastic':
         parameter_ordering = plastic_parameter_ordering + elastic_parameter_ordering + ['obj_func_value']
         params = numpy.hstack([[float(i) for i in UI['line 01'].split(' ')[1:]],
@@ -540,7 +540,7 @@ def parse_fparams_file(parameter_file, material_type='elastic'):
                                 [float(i) for i in UI['line 10'].split(' ')[1:]],
                                 [float(i) for i in UI['line 11'].split(' ')[1:]],
                                 [float(i) for i in UI['line 12'].split(' ')[1:]],
-                                float(UI['obj'])])
+                                float(UI['obj_func_value'])])
     elif material_type == 'full_plastic':
         raise NotImplementedError("'full_plastic' option has not been implemented yet!")
     else:
