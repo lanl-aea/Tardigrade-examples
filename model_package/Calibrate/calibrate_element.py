@@ -10,6 +10,12 @@ import matplotlib.pyplot
 import pandas
 import scipy
 
+sys.path.append(r'/projects/tea/tardigrade_GED/tardigrade_micromorphic_element/src/python')
+sys.path.append(r'/projects/tea/tardigrade-examples/model_package')
+sys.path.append(r'/projects/tea/tardigrade-examples/model_package/Calibrate')
+sys.path.append(f'/projects/tea/tardigrade_GED/tardigrade_micromorphic_linear_elasticity/src/python')
+
+
 import calibration_tools
 import micromorphic
 import xdmf_reader_tools as XRT
@@ -88,7 +94,7 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=No
         E = inputs[0]
         poisson = XX[0]/(2.*(XX[0] + XX[1]))
         #poisson = numpy.average([E[0][-1,0,0,0],E[0][-1,0,1,1]])
-        if (poisson >= 1.01*nu_targ) or (poisson <= .99*nu_targ):
+        if (poisson >= 1.05*nu_targ) or (poisson <= .95*nu_targ):
             return numpy.inf
 
     # Evaluate stresses from DNS strain inputs
@@ -106,15 +112,17 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=No
     PK2_error   = []
     SIGMA_error = []
     M_error     = []
-    obj = 0
+    obj = 0.
 
    # define time steps to calibrate against
-    if increment and (len(increment) == 1):
-        time_steps = [int(increment)]
-    elif increment and (len(increment) > 1):
+    if increment == None:
+        time_steps = list(range(1, steps))
+    elif increment != None and (len(increment) == 1):
+        time_steps = [int(increment[0])]
+    elif increment != None and (len(increment) > 1):
         time_steps = [int(i) for i in increment]
     else:
-        time_steps = range(steps)
+        print('something went wrong with incrementation')
 
     # Accumulate errors
     e = 0
@@ -453,12 +461,14 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
 
     # Read in the strain information
     E, Ecal, Gamma, F, chi, grad_chi, estrain, h = XRT.compute_deformations(data, nqp, nel)
-    
+
     # Get times
     times = numpy.unique(data['time'])
     ninc = len(times)
+    print(f'times = {times}')
     
     if average == True:
+        print('Averaging fields')
         cauchy = calibration_tools.average_quantities(cauchy, '3x3', element)
         symm = calibration_tools.average_quantities(symm, '3x3', element)
         PK2 = calibration_tools.average_quantities(PK2, '3x3', element)
@@ -492,17 +502,23 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
     
     # get target nu from E
     # define time steps to calibrate against
-    if increment and (len(increment) == 1):
-        nu_inc = int(increment)
+    print(f'increment = {increment}')
+    if increment == None:
+        nu_inc = ninc - 1
+    elif increment and (len(increment) == 1):
+        nu_inc = int(increment[0])
     elif increment and (len(increment) > 1):
         nu_inc = int(increment[-1])
     else:
-        nu_inc = -1
+        print('something went wrong determining the increment for calculation Poisson ratio')
     nu_targ = numpy.average([(-1*numpy.average([E[q][nu_inc,0,0,0],
                                                 E[q][nu_inc,0,1,1]])/E[q][nu_inc,0,2,2]) for q in range(0,nqp)])
 
     # Estimate initial parameters
-    param_est = calibration_tools.Isbuga_micrormorphic_elasticity_parameters(Emod, nu, L)
+    if case == 1:
+        param_est = calibration_tools.Isbuga_micrormorphic_elasticity_parameters(Emod, nu, L, case_1_override=True)
+    else:
+        param_est = calibration_tools.Isbuga_micrormorphic_elasticity_parameters(Emod, nu, L)
  
     # Define the elastic bounds
     upper = bound_half_width
@@ -717,6 +733,8 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                         element, nqp, '\mathcal{E}', '\Sigma', increment=increment, find_bounds=True)
         calibration_tools.plot_higher_order_stresses(Gamma, M, M_sim, f'{plot_file}_M_fit_case_{case}_bounded.PNG',
                                                      element, nqp, increment=increment, find_bounds=True)
+        calibration_tools.plot_stress_norm_calibration_comparison(PK2, PK2_sim, SIGMA, SIGMA_sim, M, M_sim, E, Ecal, Gamma,
+                                                                  f'{plot_file}_norms_case_{case}.PNG', nqp, increment=increment)
         # plot the full range of predictions if specific increments were speficied
         if increment:
             calibration_tools.plot_stresses(E, PK2, PK2_sim, f'{plot_file}_PK2_fit_case_{case}_ALL.PNG',
@@ -725,6 +743,8 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                             element, nqp, '\mathcal{E}', '\Sigma')
             calibration_tools.plot_higher_order_stresses(Gamma, M, M_sim, f'{plot_file}_M_fit_case_{case}_ALL.PNG',
                                                          element, nqp)
+            calibration_tools.plot_stress_norm_calibration_comparison(PK2, PK2_sim, SIGMA, SIGMA_sim, M, M_sim, E, Ecal, Gamma,
+                                                                      f'{plot_file}_norms_case_{case}_ALL.PNG', nqp)
 
     # output parameters
     output_filename = output_file
