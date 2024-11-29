@@ -49,6 +49,7 @@ elastic_cylinder_clamp = {
     'filter_parallel': 8,
     # parameters for calibration
     'calibration_case': 1,
+    'calibration_increment': [1, 2, 3, 4, 5],
     'UQ_file': False,
     'ignore_boundary': True,
     # paramters for Tardigrade-MOOSE
