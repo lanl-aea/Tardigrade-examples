@@ -80,6 +80,7 @@ else:
         script_options = f"--input-mesh {tardi_mesh_1}"
         script_options += f" --output-mesh {tardi_mesh_2}"
         script_options += f" --elements {domain_number}"
+        script_options += f" --exodus-mesh-map FILTER_macroscale_{model}_{int(domain_number)}_temp.e"
         workflow.extend(env.PythonScript(
             target=[tardi_mesh_2],
             source=[str(Tardigrade_MOOSE_source_abspath / mesh_script), tardi_mesh_1],
