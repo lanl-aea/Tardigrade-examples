@@ -104,7 +104,7 @@ def isolate_element(quantities, type, elem):
     return(output)
 
 
-def Isbuga_micrormorphic_elasticity_parameters(Emod, nu, Lc):
+def Isbuga_micrormorphic_elasticity_parameters(Emod, nu, Lc, case_1_override=False):
     '''Calculate initial estimate of 18 parameter micromorphic linear elasticity model parameters using method defined in https://doi.org/10.1016/j.ijengsci.2011.04.006
 
     :param float Emod: An estimate of homogenized elastic modulus
@@ -138,6 +138,10 @@ def Isbuga_micrormorphic_elasticity_parameters(Emod, nu, Lc):
     tau_9 = 0.495*(lame_mu*Lc*Lc)
     tau_10 = 0.408*(lame_mu*Lc*Lc)
     tau_11 = 0.495*(lame_mu*Lc*Lc)
+
+    if case_1_override == True:
+        lamb = lame_lambda
+        mu = lame_mu
 
     # collect
     parameters = numpy.array([lamb, mu, eta, tau, kappa, nu_new, sigma,
