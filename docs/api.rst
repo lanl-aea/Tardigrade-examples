@@ -260,6 +260,14 @@ Calibrate.calibration_tools.py
     :show-inheritance:
     :synopsis: Collection of utilities for calibration
 
+Calibrate.identify_z_boundary_elements.py
+=========================================
+
+.. automodule:: model_package.Calibrate.identify_z_boundary_elements
+    :members:
+    :show-inheritance:
+    :synopsis: Read in macroscale XDMF file of a cylindrical geometry and identify element found on the z-boundary
+
 Calibrate.joint_probability_distributions.py
 ============================================
 

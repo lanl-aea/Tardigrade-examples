@@ -184,6 +184,12 @@ Calibrate.calibrate_element_plastic.py
 .. argparse::
     :ref: model_package.Calibrate.calibrate_element_plastic.get_parser
 
+Calibrate.identify_z_boundary_elements.py
+=========================================
+
+.. argparse::
+    :ref: model_package.Calibrate.identify_z_boundary_elements.get_parser
+
 Calibrate.joint_probability_distributions.py
 ============================================
 
