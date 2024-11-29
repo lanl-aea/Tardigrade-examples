@@ -548,7 +548,7 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
     output_dict['line 11'] = f"5 {e[4]} {e[5]} {e[6]} {e[7]} {e[8]}"
     output_dict['line 12'] = f"11 {e[10]} {e[11]} {e[12]} {e[13]} {e[14]} {e[15]} {e[16]} {e[17]} {e[18]} {e[19]} {e[20]}"
     output_dict['line 13'] = f"2 {e[5]} {e[8]}"
-    output_dict['obj'] = f"{res.fun}"
+    output_dict['obj_func_value'] = f"{res.fun}"
     with open(output_filename, 'w') as f:
         yaml.dump(output_dict, f)
     return
