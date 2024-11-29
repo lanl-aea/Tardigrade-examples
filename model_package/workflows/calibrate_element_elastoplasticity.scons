@@ -39,7 +39,7 @@ common_options = f" --input-file {filter_file}"
 common_options += f" --Emod {params['material_E']}"
 common_options += f" --nu {params['material_nu']}"
 common_options += f" --L 0.5"
-common_options += f" --dev-norm True"
+common_options += f" --dev-norm-errors True"
 common_options += f" --increment {' '.join(str(i) for i in params['calibration_increment_elastic'])}"
 if domain_number == 1:
     # calibrate classical elasticity
