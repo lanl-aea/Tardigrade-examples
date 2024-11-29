@@ -754,7 +754,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
     output_dict['line 2'] = f"5 {p[2]} {p[3]} {p[4]} {p[5]} {p[6]}"
     output_dict['line 3'] = f"11 {p[7]} {p[8]} {p[9]} {p[10]} {p[11]} {p[12]} {p[13]} {p[14]} {p[15]} {p[16]} {p[17]}"
     output_dict['line 4'] = f"2 {p[3]} {p[6]}"
-    output_dict['obj'] = f"{res.fun}"
+    output_dict['obj_func_value'] = f"{res.fun}"
     with open(output_filename, 'w') as f:
         yaml.dump(output_dict, f)
     return
