@@ -130,6 +130,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
         params['parameter_sets'] = [f'calibrated_parameters_case_{case}_elem_0.yml']
     else:
         params['parameter_sets'] = [f'parameter_set{i}/calibrated_parameters_case_{case}_elem_{i}.yml' for i in range(0, int(domain_number))]
+        params['calibration_csv'] = [f"Calibration_map_elastic_parameters_case_{case}_{domain_number}.csv"]
 
     # ---------- Tardigrade-MOOSE ----------------------------------------------
     # Run common Tardigrade-MOOSE sconscript
