@@ -80,6 +80,10 @@ def full_csv_calibration_map(output_file, calibrated_elements, calibrated_files,
         else:
             out_params = numpy.vstack([out_params, numpy.hstack([float(element), parameters])])
 
+    # handle single domain case
+    if len(numpy.shape(out_params)) == 1:
+        out_params = out_params.reshape((1, -1))
+
     # DataFrame and output
     df = pandas.DataFrame(out_params, columns=header)
     df['element'] = df['element'].astype(int)
