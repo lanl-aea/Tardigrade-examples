@@ -140,7 +140,7 @@ else:
 
     # make xdmf file containing calibration results
     xdmf_script = 'xdmf_3d_calculations.py'
-    output_fileroot = f'CALIBRATION_RESULTS_{model}_elastic_parameters_case_{case}_domain_number'
+    output_fileroot = f'CALIBRATION_RESULTS_{model}_elastic_parameters_case_{case}_domain_number_{int(domain_number)}'
     xdmf_targets = [f"{output_fileroot}.{suffix}" for suffix in ['xdmf', 'h5']]
     script_options = f"--input-file {filter_file.split('.xdmf')[0]}"
     script_options += f" --output-file {output_fileroot}"
@@ -187,6 +187,7 @@ else:
     # Summarize calibration results but ignore elements on boundary
     if ('ignore_boundary' in params.keys()) and (params['ignore_boundary'] == True):
 
+        # find elements on the boundary
         boundary_script = "identify_z_boundary_elements.py"
         macro_file = f"FILTER_macroscale_{model}_{int(domain_number)}"
         boundary_csv = f"{model}_boundary_elements_{int(domain_number)}.csv"
@@ -235,7 +236,7 @@ else:
 
         # make xdmf file containing calibration results
         xdmf_script = 'xdmf_3d_calculations.py'
-        output_fileroot = f'CALIBRATION_RESULTS_{model}_elastic_parameters_case_{case}_domain_number_no_BCs'
+        output_fileroot = f'CALIBRATION_RESULTS_{model}_elastic_parameters_case_{case}_domain_number_{int(domain_number)}_no_BCs'
         xdmf_targets = [f"{output_fileroot}.{suffix}" for suffix in ['xdmf', 'h5']]
         script_options = f"--input-file {filter_file.split('.xdmf')[0]}"
         script_options += f" --output-file {output_fileroot}"
@@ -260,49 +261,5 @@ else:
             script_options=script_options
         ))
 
-
-        # summary_script = 'summarize_calibration_results_ignore_boundary.py'
-        # hist_plot_root = f'kde_case_{case}_no_BCs'
-        # best_parameters_root = f'best_parameters_case_{case}_{domain_number}_domains'
-        # summary_targs = [f'Calibration_results_{int(domain_number)}_domains_case_{case}_no_BCs.csv',
-                         # f'Calibration_summary_{int(domain_number)}_domains_case_{case}_no_BCs.csv',
-                         # f'{hist_plot_root}_lamb_hist.PNG',
-                         # f'{best_parameters_root}.yml']
-        # script_options = f'--parameter-sets {" ".join(calibrated_files)}'
-        # script_options += f' --element-sets {" ".join(calibrated_elements)}'
-        # script_options += f' --macro-file {macro_file}'
-        # script_options += f' --case {case}'
-        # script_options += f' --results-csv {summary_targs[0]}'
-        # script_options += f' --summary-csv {summary_targs[1]}'
-        # script_options += f' --kde-hist-plot {hist_plot_root}'
-        # script_options += f' --kde-best {hist_plot_root}_best'
-        # script_options += f' --kde-best-parameters {best_parameters_root}'
-        # workflow.extend(env.PythonScript(
-            # target = summary_targs,
-            # source = [str(calibrate_source_abspath / summary_script), calibrated_files],
-            # script_options = script_options
-            # ))
-
-        # # create a yaml file to map calibration results
-        # # calibration_map = {}
-        # # for element, file in zip(calibrated_elements, calibrated_files):
-            # # calibration_map[str(element)] = file
-        # # calibration_map['ignore_boundary_yml'] = summary_targs[-1]
-        # # calibration_map['ignore_boundary_summary_file'] = summary_targs[0]
-        # # with open(f'calibration_map.yml', 'w') as f:
-            # # yaml.dump(calibration_map, f)
-        # if os.path.exists(summary_targs[-1]):
-            # calibration_map_script = 'build_calibration_map.py'
-            # calibration_map_file = 'calibration_map.yml'
-            # script_options = f'--calibrated-elements {" ".join(calibrated_elements)}'
-            # script_options += f' --calibrated-files {" ".join(calibrated_files)}'
-            # script_options += f' --ignore-boundary-yml {summary_targs[-1]}'
-            # script_options += f' --ignore-boundary-summary-file {summary_targs[0]}'
-            # script_options += f' --output-file {calibration_map_file}'
-            # workflow.extend(env.PythonScript(
-                # target = calibration_map_file,
-                # source = [str(calibrate_source_abspath / calibration_map_script), summary_targs[-1], summary_targs[0]],
-                # script_options = script_options
-                # ))
 env.Alias(workflow_name, workflow)
 Return("workflow")
