@@ -36,7 +36,7 @@ def identify_z_boundary_elements(macro_file, output_file):
         flag = False
         for n in e:
             x, y, z = nodes[n]
-            if (z <= min) or (z >= max):
+            if (z == min) or (z == max):
                 flag = True
         if flag:
             boundary_elements.append(i)
