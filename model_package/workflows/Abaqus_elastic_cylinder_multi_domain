@@ -134,18 +134,17 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
             SConscript("calibrate_element.scons", variant_dir=variant_dir,
                        exports=["env", "parameters", "workflow_name", "model", "params"],
                        duplicate=False))
-    if domain_number == 1:
-        params['parameter_sets'] = [f'calibrated_parameters_case_{case}_elem_0.yml']
-    else:
-        params['parameter_sets'] = [f'parameter_set{i}/calibrated_parameters_case_{case}_elem_{i}.yml' for i in range(0, int(domain_number))]
+    params['calibration_map'] = f'{build_directory}/{set_name}/Calibration_map_elastic_parameters_case_{case}_{domain_number}.csv'
 
     # ---------- Tardigrade-MOOSE ----------------------------------------------
     # Run common Tardigrade-MOOSE sconscript
     if env['macro']:
+        calibration_map = params['calibration_map']
+        tardi_sim_name = f'TARDIGRADE-MOOSE_{model}_{domain_number}_elements_calib_case_{case}'
         variant_dir = build_directory / set_name
         workflow.extend(
             SConscript("tardigrade_moose.scons", variant_dir=variant_dir,
-                       exports=["env", "parameters", "workflow_name", "model", "params"],
+                       exports=["env", "parameters", "workflow_name", "model", "params", "tardi_sim_name", "calibration_map"],
                        duplicate=False))
 
 # ---------- Collect Results across Studies ------------------------------------
