@@ -50,6 +50,7 @@ def ignored_elements_calibration_map(output_file, best_parameters_yml_no_BCs, bo
 
     # DataFrame and output
     previous_parameter_df['element'] = previous_parameter_df['element'].astype(int)
+    previous_parameter_df = previous_parameter_df.sort_values(by='element')
     previous_parameter_df.to_csv(output_file, header=True, sep=',', index=False)
 
     return 0
@@ -82,6 +83,7 @@ def full_csv_calibration_map(output_file, calibrated_elements, calibrated_files,
     # DataFrame and output
     df = pandas.DataFrame(out_params, columns=header)
     df['element'] = df['element'].astype(int)
+    df = df.sort_values(by='element')
     df.to_csv(output_file, header=True, sep=',', index=False)
 
     return 0
