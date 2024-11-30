@@ -59,17 +59,18 @@ if domain_number == 1:
         source = [f"{calibrate_source_abspath / calibration_script}", filter_file],
         script_options = script_options
     ))
-    # # summarize calibration results
-    # summary_script = 'summarize_calibration_results.py'
-    # summary_targs = [f'Calibration_results_{int(domain_number)}_domains_case_{case}.csv']
-    # script_options = f'--parameter-sets {calibration_targs[0]}'
-    # script_options += f' --case {case}'
-    # script_options += f' --results-csv {summary_targs[0]}'
-    # workflow.extend(env.PythonScript(
-        # target = summary_targs,
-        # source = [str(calibrate_source_abspath / summary_script), calibration_targs[0]],
-        # script_options = script_options
-        # ))
+    # Build calibration map
+    calibration_map_script = 'build_calibration_map.py'
+    calibration_map_file = f"Calibration_map_elastic_parameters_case_{case}_{domain_number}.csv"
+    script_options = f"--output-file {calibration_map_file}"
+    script_options += " --calibrated-elements 0"
+    script_options += f" --calibrated-files {calibration_targs[0]}"
+    script_options += " --map-type full_csv --material-type elastic"
+    workflow.extend(env.PythonScript(
+        target = [calibration_map_file],
+        source = [f"{calibrate_source_abspath / calibration_map_script}", calibration_targs[0]],
+        script_options = script_options,
+    ))
     # Plot lambda vs. mu on evaluations
     if ('UQ_file' in params.keys()) and (params['UQ_file'] == True):
         eval_script = 'plot_objective_evaluation.py'
