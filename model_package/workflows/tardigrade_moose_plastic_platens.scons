@@ -26,7 +26,7 @@ seed_size = parameters['seed_size']
 bounding_csv = params['bounding_csv']
 case = params['plastic_calibration_case']
 cut = params['cut']
-parameter_sets = params['parameter_sets']
+calibration_map = params['calibration_map']
 
 # Collect the target nodes to build a concise alias for all targets
 workflow = []
@@ -99,7 +99,7 @@ tardigrade_input_script = "build_plastic_Tardigrade_input_deck_platens.py"
 tardi_sim_name = f'TARDIGRADE-MOOSE_{model}_{domain_number}_elements_plastic_calib_case_{case}_PLATENS'
 tardigrade_build_targs = f"{tardi_sim_name}.i"
 script_options = f"--output-file {tardigrade_build_targs}"
-script_options += f" --parameter-sets {' '.join(parameter_sets)}"
+script_options += f" --calibration-map {calibration_map}"
 script_options += f" --mesh {tardi_mesh_2}"
 script_options += f" --disp {params['macro_disp']}"
 script_options += f" --duration {params['macro_duration']}"
@@ -111,7 +111,7 @@ script_options += " --top-platen-fixture top_platen_top"
 script_options += " --bottom-platen-fixture bottom_platen_bottom"
 workflow.extend(env.PythonScript(
     target = [tardigrade_build_targs],
-    source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh_2, parameter_sets],
+    source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh_2, calibration_map],
     script_options = script_options
 ))
 
