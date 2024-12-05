@@ -23,7 +23,10 @@ Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_absp
 # workflow variables
 build_directory = pathlib.Path(Dir(".").abspath)
 workflow_configuration = [env["project_configuration"], workflow_name]
-case = params['calibration_case']
+try:
+    case = params['calibration_case']
+except:
+    case = 8
 
 # Collect the target nodes to build a concise alias for all targets
 workflow = []
