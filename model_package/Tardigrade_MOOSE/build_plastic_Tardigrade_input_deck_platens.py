@@ -5,15 +5,19 @@ import pathlib
 import sys
 import yaml
 
+import pandas
 
-def build_input(output_file, mesh_file, parameter_sets, disp, duration,
+import build_plastic_Tardigrade_input_deck
+
+
+def build_input(output_file, mesh_file, calibration_map, disp, duration,
                 specimen_top_surface, specimen_bottom_surface, top_platen_contact, bottom_platen_contact,
                 top_platen_fixture, bottom_platen_fixture, contact_type='frictionless'):
     '''Write Tardigrade-MOOSE input file for a plastic simulation with platens
     
     :param str output_file: The name of Tardigrade-MOOSE file to write
     :param str mesh_file: The name of the mesh file
-    :param list parameter_sets: The list of yaml files containing calibration results
+    :param str calibration_map: CSV file containing calibration data
     :param str BCs: The type of boundary conditions, either "slip" or "clamp"
     :param float disp: The compressive displacement to be applied
     :param float duration: The duration of the simulation
@@ -30,6 +34,10 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
     '''
 
     assert os.path.exists(mesh_file), f"Mesh file not found: {mesh_file}"
+
+    # load calibration map
+    parameter_df = pandas.read_csv(calibration_map)
+    parameter_df = parameter_df.sort_values(by='element')
 
     # Write input file
     with open(output_file, 'w') as f:
@@ -839,38 +847,22 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
             print('Specify a valid contact_type!')
         f.write('[Materials]\n')
         # Load in parameter data for each filter domain / element
-        if len(parameter_sets) > 1:
-            for i, set in enumerate(parameter_sets):
-                # Load yaml file
-                stream = open(set, 'r')
-                UI = yaml.load(stream, Loader=yaml.FullLoader)
-                stream.close()
-                mat_line_01 = UI['line 01']
-                mat_line_02 = UI['line 02']
-                mat_line_03 = UI['line 03']
-                mat_line_04 = UI['line 04']
-                mat_line_05 = UI['line 05']
-                mat_line_06 = UI['line 06']
-                mat_line_07 = UI['line 07']
-                mat_line_08 = UI['line 08']
-                mat_line_09 = UI['line 09']
-                mat_line_10 = UI['line 10']
-                mat_line_11 = UI['line 11']
-                mat_line_12 = UI['line 12']
-                mat_line_13 = UI['line 13']
-                mat_line_14 = '0.5 0.5 0.5 1e-9 1e-9'
+        if len(list(parameter_df.index)) > 1:
+            for index in parameter_df.index:
+                # Unpack parameters
+                mat_line_1, mat_line_2, mat_line_3, mat_line_blank, mat_line_10, mat_line_11, mat_line_12, mat_line_13, mat_line_14, element = build_plastic_Tardigrade_input_deck.unpack_plastic_parameter_csv(parameter_df, index)
                 # Write in material info
-                f.write(f'  [./linear_elastic_{i}]\n')
+                f.write(f'  [./linear_elastic_{element}]\n')
                 f.write('    type = MicromorphicMaterial\n')
-                f.write(f'    material_fparameters = "{mat_line_01}\n')
-                f.write(f'                            {mat_line_02}\n')
-                f.write(f'                            {mat_line_03}\n')
-                f.write(f'                            {mat_line_04}\n')
-                f.write(f'                            {mat_line_05}\n')
-                f.write(f'                            {mat_line_06}\n')
-                f.write(f'                            {mat_line_07}\n')
-                f.write(f'                            {mat_line_08}\n')
-                f.write(f'                            {mat_line_09}\n')
+                f.write(f'    material_fparameters = "{mat_line_1}\n')
+                f.write(f'                            {mat_line_2}\n')
+                f.write(f'                            {mat_line_3}\n')
+                f.write(f'                            {mat_line_blank}\n')
+                f.write(f'                            {mat_line_blank}\n')
+                f.write(f'                            {mat_line_blank}\n')
+                f.write(f'                            {mat_line_blank}\n')
+                f.write(f'                            {mat_line_blank}\n')
+                f.write(f'                            {mat_line_blank}\n')
                 f.write(f'                            {mat_line_10}\n')
                 f.write(f'                            {mat_line_11}\n')
                 f.write(f'                            {mat_line_12}\n')
@@ -892,40 +884,23 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
                 f.write('    phi_32 = "phi_zy"\n')
                 f.write('    phi_31 = "phi_zx"\n')
                 f.write('    phi_21 = "phi_yx"\n')
-                f.write(f'    block = "element_{i}"\n')
+                f.write(f'    block = "element_{element}"\n')
                 f.write('  [../]\n')
         else:
-            # Load yaml file
-            set = parameter_sets[0]
-            stream = open(set, 'r')
-            UI = yaml.load(stream, Loader=yaml.FullLoader)
-            stream.close()
-            mat_line_01 = UI['line 01']
-            mat_line_02 = UI['line 02']
-            mat_line_03 = UI['line 03']
-            mat_line_04 = UI['line 04']
-            mat_line_05 = UI['line 05']
-            mat_line_06 = UI['line 06']
-            mat_line_07 = UI['line 07']
-            mat_line_08 = UI['line 08']
-            mat_line_09 = UI['line 09']
-            mat_line_10 = UI['line 10']
-            mat_line_11 = UI['line 11']
-            mat_line_12 = UI['line 12']
-            mat_line_13 = UI['line 13']
-            mat_line_14 = UI['line 14']
+            # Unpack parameters
+            mat_line_1, mat_line_2, mat_line_3, mat_line_blank, mat_line_10, mat_line_11, mat_line_12, mat_line_13, mat_line_14, element = unpack_plastic_parameter_csv(parameter_df, 0)
             # Write in material info
             f.write(f'  [./linear_elastic]\n')
             f.write('    type = MicromorphicMaterial\n')
-            f.write(f'    material_fparameters = "{mat_line_01}\n')
-            f.write(f'                            {mat_line_02}\n')
-            f.write(f'                            {mat_line_03}\n')
-            f.write(f'                            {mat_line_04}\n')
-            f.write(f'                            {mat_line_05}\n')
-            f.write(f'                            {mat_line_06}\n')
-            f.write(f'                            {mat_line_07}\n')
-            f.write(f'                            {mat_line_08}\n')
-            f.write(f'                            {mat_line_09}\n')
+            f.write(f'    material_fparameters = "{mat_line_1}\n')
+            f.write(f'                            {mat_line_2}\n')
+            f.write(f'                            {mat_line_3}\n')
+            f.write(f'                            {mat_line_blank}\n')
+            f.write(f'                            {mat_line_blank}\n')
+            f.write(f'                            {mat_line_blank}\n')
+            f.write(f'                            {mat_line_blank}\n')
+            f.write(f'                            {mat_line_blank}\n')
+            f.write(f'                            {mat_line_blank}\n')
             f.write(f'                            {mat_line_10}\n')
             f.write(f'                            {mat_line_11}\n')
             f.write(f'                            {mat_line_12}\n')
@@ -997,7 +972,7 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
             f.write('  [../]\n')
             f.write('\n')
         # Execution
-        dt = duration / 100
+        dt = duration / 20
         f.write('[Executioner]\n')
         f.write('  type = Transient\n')
         #f.write('  solve_type = NEWTON\n')
@@ -1052,8 +1027,8 @@ def get_parser():
         help="Specify the name of Tardigrade-MOOSE file to write")
     parser.add_argument('--mesh', type=str, required=True,
         help='Specify the mesh file')
-    parser.add_argument('--parameter-sets', nargs="+", required=True,
-        help='Specify the list of yaml files containing calibration results')
+    parser.add_argument('--calibration-map', type=str, required=True,
+        help='CSV file containing calibration data')
     parser.add_argument('--disp', type=float, required=True,
         help='Specify the compressive displacement to be applied')
     parser.add_argument('--duration', type=float, required=True,
@@ -1082,7 +1057,7 @@ if __name__ == '__main__':
     args, unknown = parser.parse_known_args()
     sys.exit(build_input(output_file=args.output_file,
                          mesh_file=args.mesh,
-                         parameter_sets=args.parameter_sets,
+                         calibration_map=args.calibration_map,
                          disp=args.disp,
                          duration=args.duration,
                          specimen_top_surface=args.specimen_top_surface,
