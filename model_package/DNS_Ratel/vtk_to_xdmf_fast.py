@@ -8,9 +8,9 @@ import numpy
 import pandas
 
 import file_io.xdmf
+import calibrate_element
 
-
-def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_factor, ref_density, density_factor):
+def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_factor, ref_density, density_factor, damage):
     '''Write XDMF file of collected Ratel DNS results for Micromorphic Filter
 
     :param dict results: dictionary of results
@@ -40,6 +40,7 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
     n_vol = 'diagnostic_quantitiesdual.nodal_volume'
     n_dens = 'diagnostic_quantitiesdual.nodal_density'
     Jdef = 'diagnostic_quantitiesprojected.J'
+    damage_field = 'diagnostic_quantitiesprojected.damage'
 
     data_filename=output_file
     xdmf = file_io.xdmf.XDMF(output_filename=data_filename)
@@ -62,7 +63,7 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
         # get the reference positions
         if t == 0.:
             print('collecting reference positions')
-            reference_positions = dist_factor*(mesh.points.T)
+            reference_positions = dist_factor*(mesh.points)
             ndata = reference_positions.shape[0]
 
         ## initialization stuff
@@ -74,7 +75,7 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
         # get the unique displacements
         unique_displacements = dist_factor*numpy.array([mesh.point_data[disp_x].flatten(),
                                                         mesh.point_data[disp_y].flatten(),
-                                                        mesh.point_data[disp_z].flatten()])
+                                                        mesh.point_data[disp_z].flatten()]).T
         print(f"shape of unique displacements = {numpy.shape(unique_displacements)}")
         xdmf.addData(grid, "disp", unique_displacements, "Node", dtype='d')
 
@@ -102,7 +103,7 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
                                                      mesh.point_data[sig_yz].flatten(),
                                                      mesh.point_data[sig_xz].flatten(),
                                                      mesh.point_data[sig_yz].flatten(),
-                                                     mesh.point_data[sig_zz].flatten()])
+                                                     mesh.point_data[sig_zz].flatten()]).T
         print(f"shape of stresses = {numpy.shape(unique_stresses)}")
         xdmf.addData(grid, "stress", unique_stresses, "Node", dtype='d')
 
@@ -121,13 +122,19 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
         print(f"shape of density = {numpy.shape(unique_densities)}")
         xdmf.addData(grid, "density", unique_densities, "Node", dtype='d')
 
+        # Option for damage
+        if damage == True:
+            unique_damage = density_factor*mesh.point_data[damage_field].flatten().reshape((-1,1))
+            print(f"shape of damage = {numpy.shape(unique_damage)}")
+            xdmf.addData(grid, "damage", unique_damage, "Node", dtype='d')
+
     xdmf.write()
     print("XDMF file written!")
 
     return 0
 
 
-def convert_VTK_to_XDMF(input_files, output_file, dist_factor=1, stress_factor=1, ref_density=2.e-9, density_factor=1, dump_all_33_stresses=None):
+def convert_VTK_to_XDMF(input_files, output_file, dist_factor=1, stress_factor=1, ref_density=2.e-9, density_factor=1, dump_all_33_stresses=None, damage=False):
     '''Driving function to call functions for parsing Ratel VTK results and writing XDMF output
 
     :param list input_file: The input VTK files containing Ratel DNS results
@@ -141,7 +148,7 @@ def convert_VTK_to_XDMF(input_files, output_file, dist_factor=1, stress_factor=1
                                  to Mg/tonne^3, default=1
     '''
     # collect VTU results and convert to XDMF
-    collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_factor, ref_density, density_factor)
+    collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_factor, ref_density, density_factor, damage)
 
     # Dump Cauchy 33 stresses to csv
     # if dump_all_33_stresses:
@@ -177,6 +184,8 @@ def get_parser():
                to Mg/tonne^3')
     parser.add_argument('--dump-all-33-stresses', type=str, required=False, default=None,
         help='Optional filename to dump all 33 stresses from DNS')
+    parser.add_argument('--damage', type=str, required=False, default=False,
+        help='Optional filename to dump all 33 stresses from DNS')
 
     return parser
 
@@ -192,4 +201,5 @@ if __name__ == '__main__':
                                  ref_density=args.ref_density,
                                  density_factor=args.density_factor,
                                  dump_all_33_stresses=args.dump_all_33_stresses,
+                                 damage=calibrate_element.str2bool(args.damage),
                                  ))
