@@ -344,12 +344,14 @@ sys.path.insert(0, str(project_dir))
 sys.path.append(str(filter_location))
 sys.path.append(str(micromorphic_location))
 sys.path.append(str(project_dir / filter_source_dir))
+sys.path.append(str(project_dir / calibrate_source_dir))
 sys.path.append(str(constraints_location))
 sys.path.append(str(project_dir / model_package_source))
 env.PrependENVPath("PYTHONPATH", str(filter_location))
 env.PrependENVPath("PYTHONPATH", str(project_dir))
 env.PrependENVPath("PYTHONPATH", str(micromorphic_location))
 env.PrependENVPath("PYTHONPATH", str(project_dir / filter_source_dir))
+env.PrependENVPath("PYTHONPATH", str(project_dir / calibrate_source_dir))
 env.PrependENVPath("PYTHONPATH", str(constraints_location))
 env.PrependENVPath("PYTHONPATH", str(project_dir / model_package_source))
 
@@ -423,6 +425,7 @@ workflow_configurations = [
     #"Ratel_I41_02_elastic_single_domains",
     # Ratel I43_09 workflow
     "Ratel_I43_09_multi_domain",
+    "Ratel_I43_09_damage_multi_domain",
     # Tardigrade solo studies
     "Tardigrade_convergence",
     "Tardigrade_dynamic_convergence",
