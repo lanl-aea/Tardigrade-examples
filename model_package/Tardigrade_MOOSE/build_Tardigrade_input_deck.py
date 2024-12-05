@@ -548,9 +548,9 @@ def build_input(output_file, mesh_file, BCs, disp, duration, calibration_map, di
         if len(list(parameter_df.index)) > 1:
             for index in parameter_df.index:
                 # Unpack parameters
-                mat_line_1, mat_line_2, mat_line_3, mat_line_4, element = unpack_elastic_parameter_csv(parameter_df, i)
+                mat_line_1, mat_line_2, mat_line_3, mat_line_4, element = unpack_elastic_parameter_csv(parameter_df, index)
                 # Write in material info
-                f.write(f'  [./linear_elastic_{i}]\n')
+                f.write(f'  [./linear_elastic_{element}]\n')
                 f.write('    type = MicromorphicMaterial\n')
                 f.write(f'    material_fparameters = "{mat_line_1}\n')
                 f.write(f'                            {mat_line_2}\n')
@@ -571,7 +571,7 @@ def build_input(output_file, mesh_file, BCs, disp, duration, calibration_map, di
                 f.write('    phi_32 = "phi_zy"\n')
                 f.write('    phi_31 = "phi_zx"\n')
                 f.write('    phi_21 = "phi_yx"\n')
-                f.write(f'    block = "element_{i}"\n')
+                f.write(f'    block = "element_{element}"\n')
                 f.write('  [../]\n')
         else:
             # Unpack parameters
