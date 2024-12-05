@@ -65,7 +65,7 @@ results_files = [f"{peta_data_copy_abspath}/{file}" for file in params['DNS_file
 main_XDMF_name = f"FILTER_INPUT_{model}"
 filter_inputs = [f"{main_XDMF_name}.{ext}" for ext in ['xdmf', 'h5']]
 cauchy_stresses = "DNS_all_33_stresses.csv"
-XDMF_script = "vtk_to_xdmf.py"
+XDMF_script = "vtk_to_xdmf_fast.py"
 script_options = f"--input-files {' '.join(results_files)}"
 script_options += f" --output-file {str(build_directory / main_XDMF_name)}"
 script_options += " --dist-factor 0.001"
@@ -73,7 +73,7 @@ script_options += " --stress-factor 1."
 script_options += " --density-factor 1.e-12"
 script_options += f" --dump-all-33-stresses {cauchy_stresses}"
 workflow.extend(env.PythonScript(
-    target=filter_inputs + [cauchy_stresses],
+    target=filter_inputs,
     source=[str(DNS_Ratel_abspath / XDMF_script)] + results_files,
     script_options=script_options))
 
@@ -189,7 +189,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
 
     # ---------- CALIBRATE ------------------------------------------------------------
     # Run common calibration sconscript
-    case = 8
+    case = params['plastic_calibration_case']
     if env['calibrate']:
         filter_file = str(build_directory / set_name / filter_targs[0])
         params['filter_file'] = filter_file
@@ -198,10 +198,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
             SConscript("calibrate_element_elastoplasticity.scons", variant_dir=variant_dir,
                        exports=["env", "parameters", "workflow_name", "model", "params"],
                        duplicate=False))
-    if domain_number == 1:
-        params['parameter_sets'] = [f'calibrated_plastic_parameters_case_{params["plastic_calibration_case"]}_elem_0.yml']
-    else:
-        params['parameter_sets'] = [f'parameter_set{i}/calibrated_plastic_parameters_case_{params["plastic_calibration_case"]}_elem_{i}.yml' for i in range(0, int(domain_number))]
+    params['calibration_map'] = f'{build_directory}/{set_name}/Calibration_map_plastic_parameters_case_{case}_{domain_number}.csv'
 
     # ---------- Tardigrade-MOOSE --------------------------------------------------
     # Run common Tardigrade-MOOSE sconscript
