@@ -111,6 +111,21 @@ if domain_number == 1:
         source = [f"{calibrate_source_abspath / plastic_calibration_script}", filter_file, elastic_parameters],
         script_options = script_options
     ))
+
+    # Build calibration map
+    calibration_map_script = 'build_calibration_map.py'
+    case = params['plastic_calibration_case']
+    calibration_map_file = f"Calibration_map_plastic_parameters_case_{case}_{domain_number}.csv"
+    script_options = f"--output-file {calibration_map_file}"
+    script_options += f" --calibrated-elements 0"
+    script_options += f" --calibrated-files {calibration_targs[0]}"
+    script_options += " --map-type full_csv --material-type plastic"
+    workflow.extend(env.PythonScript(
+        target = [calibration_map_file],
+        source = [f"{calibrate_source_abspath / calibration_map_script}", calibration_targs[0]],
+        script_options = script_options,
+    ))
+
 # set up parameter study to calibrate each element individually
 else:
     element_array = numpy.array(list(range(0,int(domain_number)))).reshape((-1,1))
