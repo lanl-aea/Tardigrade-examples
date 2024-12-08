@@ -153,9 +153,9 @@ I41_RVEs['rho_grain'] = 2.001e-9
 # I43_damage
 I43_damage_coarse_finetime = {
     # DNS parameters
-    'diam': 5.05934739145766,
-    'height': 4.400976867675782,
-    'center': [3.0664815594943176, 3.065754248753459, 2.7645057067871095],
+    'diam': 5.059347391457650,
+    'height': 4.400976867675780,
+    'center': [2.529673695728830, 2.529673695728830, 2.200488433837890],
     'material_E': 250.0,
     'material_nu': 0.25,
     'cut': True,
@@ -166,31 +166,31 @@ I43_damage_coarse_finetime = {
     'velocity': False,
     'filter_parallel': 8,
     # parameters for elastic calibration
-    'plastic_calibration_case': 7,
+    'plastic_calibration_case': 6,
     'calibration_increment_elastic': [0, 1, 2, 3, 4],
-    'calibration_increment_plastic': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+    'calibration_increment_plastic': [3, 5, 7, 9, 10, 11, 12, 13],
     # parameters for plastic calibration
     'cohesion_case': 1,
     'cohesion_increment': [3, 4, 5],
     # paramters for Tardigrade-MOOSE
-    'macro_disp': 0.156857,
+    'macro_disp': 0.210*0.72221649302258428, #timestep for Monitor_000124.vtu
     'macro_duration': 1.0,
     'macro_BC': 'clamp',
 }
 I43_damage_coarse_finetime['DNS_files'] = [
-    'from_Erik_11-12-2024/Monitor_0.vtu',
-    'from_Erik_11-12-2024/Monitor_10.vtu',
-    'from_Erik_11-12-2024/Monitor_15.vtu',
-    'from_Erik_11-12-2024/Monitor_20.vtu',
-    'from_Erik_11-12-2024/Monitor_25.vtu',
-    'from_Erik_11-12-2024/Monitor_30.vtu',
-    'from_Erik_11-12-2024/Monitor_35.vtu',
-    'from_Erik_11-12-2024/Monitor_40.vtu',
-    'from_Erik_11-12-2024/Monitor_45.vtu',
-    'from_Erik_11-12-2024/Monitor_50.vtu',
-    'from_Erik_11-12-2024/Monitor_55.vtu',
-    'from_Erik_11-12-2024/Monitor_60.vtu',
-    'from_Erik_11-12-2024/Monitor_70.vtu',
-    'from_Erik_11-12-2024/Monitor_80.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000000.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000005.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000010.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000015.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000020.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000025.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000030.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000035.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000040.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000045.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000050.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000055.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000060.vtu',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000065.vtu',
     ]
-I43_damage_coarse_finetime['DNS_forces'] = 'from_Erik_9-17-2024/Export_I43-09_QOI-DF20-DenImp.csv'
+I43_damage_coarse_finetime['DNS_forces'] = 'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Forces_OUT_I43-09_BIN4_SM10_DF20_MI10_MD0.5.csv'
