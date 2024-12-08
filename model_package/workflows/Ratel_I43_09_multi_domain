@@ -59,7 +59,7 @@ viz_targs =  (
 params['viz_targs'] = viz_targs
 
 # ---------- Process existing DNS ----------------------------------------------
-results_files = [f"{peta_data_copy_abspath}/{file}" for file in params['DNS_files']]
+results_files = [f"{peta_data_copy_abspath}/{file.split('/')[-1]}" for file in params['DNS_files']]
 
 # Filter prep - Extract results to XDMF
 main_XDMF_name = f"FILTER_INPUT_{model}"
@@ -71,7 +71,6 @@ script_options += f" --output-file {str(build_directory / main_XDMF_name)}"
 script_options += " --dist-factor 0.001"
 script_options += " --stress-factor 1."
 script_options += " --density-factor 1.e-12"
-script_options += f" --dump-all-33-stresses {cauchy_stresses}"
 workflow.extend(env.PythonScript(
     target=filter_inputs,
     source=[str(DNS_Ratel_abspath / XDMF_script)] + results_files,
@@ -91,14 +90,15 @@ filter_inputs = [f"{str(build_directory / main_XDMF_name)}.{ext}" for ext in ['x
 
 # Post-processing step - force vs. displacement
 plot_script = "plot_force_displacement.py"
-force_results = f"{peta_data_copy_abspath}/{params['DNS_forces']}"
+force_results = f"{peta_data_copy_abspath}/{params['DNS_forces'].split('/')[-1]}"
 force_plot_targets = [f"{model}_force_displacement.png", f"{model}_force_displacement.csv"]
 script_options = f"--csv-file {force_results}"
 script_options += f" --output-file {force_plot_targets[0]}"
 script_options += f" --output-csv {force_plot_targets[1]}"
-script_options += " --force-col 'Force (N)'"
+script_options += " --face-id 3"
+script_options += " --final-disp 0.210"
 script_options += " --header-row 0"
-script_options += " --filter-markers 0 10 15 20 25 30 35 40 45 50 55 60 70 80"
+script_options += " --filter-markers 0 5 10 15 20 25 30 35 40 45 50 55 60 65"
 workflow.extend(env.PythonScript(
     target=[force_plot_targets],
     source=[str(DNS_Ratel_abspath / plot_script)],
