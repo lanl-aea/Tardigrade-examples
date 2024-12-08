@@ -809,7 +809,7 @@ def build_input(output_file, mesh_file, calibration_map, BCs, disp, duration):
         f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
-        dt = duration / 100
+        dt = duration / 20
         f.write('[Executioner]\n')
         f.write('  type = Transient\n')
         f.write('  solve_type = NEWTON\n')
