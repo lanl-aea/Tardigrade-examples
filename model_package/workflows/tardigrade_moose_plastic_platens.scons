@@ -37,7 +37,7 @@ if domain_number == 1:
     tardi_mesh_2 = f"{tardi_mesh_name}.e"
     # Build macro mesh if Cubit is found, otherwise copy a template
     if env['cubit']:
-        mesh_script = 'cylinder_from_bounds_with_platens.py'
+        mesh_script = 'cylinder_from_bounds_with_box_platens.py'
         seed_size = params['height']/10
         script_options = f"--output-file {tardi_mesh_name}"
         script_options += f" --bounds-file {bounding_csv}"
@@ -61,7 +61,7 @@ else:
     tardi_mesh_2 = tardi_mesh_1.split('.')[0] + '_with_blocks.e'
     # Build macro mesh if Cubit is found, otherwise copy a template
     if env['cubit']:
-        mesh_script = 'cylinder_from_bounds_with_platens.py'
+        mesh_script = 'cylinder_from_bounds_with_box_platens.py'
         script_options = f"--output-file {tardi_mesh_name}"
         script_options += f" --bounds-file {bounding_csv}"
         script_options += f" --seed-size {seed_size}"
