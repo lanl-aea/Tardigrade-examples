@@ -33,7 +33,7 @@ workflow = []
 
 # Only run multi-domain cases
 if domain_number == 1:
-    tardi_mesh_name = f"TARDIGRADE-MOOSE_{model}_mesh"
+    tardi_mesh_name = f"TARDIGRADE-MOOSE_{model}_mesh_1_domain_platens"
     tardi_mesh_2 = f"{tardi_mesh_name}.e"
     # Build macro mesh if Cubit is found, otherwise copy a template
     if env['cubit']:
