@@ -888,7 +888,7 @@ def build_input(output_file, mesh_file, calibration_map, disp, duration,
                 f.write('  [../]\n')
         else:
             # Unpack parameters
-            mat_line_1, mat_line_2, mat_line_3, mat_line_blank, mat_line_10, mat_line_11, mat_line_12, mat_line_13, mat_line_14, element = unpack_plastic_parameter_csv(parameter_df, 0)
+            mat_line_1, mat_line_2, mat_line_3, mat_line_blank, mat_line_10, mat_line_11, mat_line_12, mat_line_13, mat_line_14, element = build_plastic_Tardigrade_input_deck.unpack_plastic_parameter_csv(parameter_df, 0)
             # Write in material info
             f.write(f'  [./linear_elastic]\n')
             f.write('    type = MicromorphicMaterial\n')
@@ -922,6 +922,7 @@ def build_input(output_file, mesh_file, calibration_map, disp, duration,
             f.write('    phi_32 = "phi_zy"\n')
             f.write('    phi_31 = "phi_zx"\n')
             f.write('    phi_21 = "phi_yx"\n')
+            f.write('    block = "specimen"\n')
             f.write('  [../]\n')
         # Platens
         platen_material = 'micromorphic'
