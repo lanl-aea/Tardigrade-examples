@@ -112,9 +112,10 @@ def peta_copy(source_directory, output_directory):
     source_files = Ratel_variables.I41_02['DNS_files'] + \
                    [Ratel_variables.I41_02['DNS_forces']] + \
                    Ratel_variables.F83['DNS_files'] + \
-                   Ratel_variables.additional_files
-                   #[Ratel_variables.I43_damage['DNS_forces'][0]] + \
-                   #Ratel_variables.I43_damage['DNS_files']
+                   Ratel_variables.additional_files + \
+                   Ratel_variables.I43_damage_coarse_finetime['DNS_files'] + \
+                   [Ratel_variables.I43_damage_coarse_finetime['DNS_forces']]
+
     transfer_Ratel_files(source_files, source_directory, output_directory, username)
 
     # GEOS transfer

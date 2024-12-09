@@ -10,6 +10,7 @@ import numpy
 import pandas
 import seaborn
 
+import calibration_tools
 
 def write_plastic_material_card(output_file, input_dict):
     '''Write elastic micromorphic material card
@@ -21,10 +22,9 @@ def write_plastic_material_card(output_file, input_dict):
     '''
     multiplier = 10
     defaults = {
-        'cu0': 3.192202765, 'Hu': 1e-8,
-        'cchi0': 1e-8, 'Hchi': 1e-8,
-        'friction': 0,
-        'cnablachi0': 1e-8, 'Hnablachi': 1e-8,
+        'cu0': 1.e8, 'Hu': 1e-8,
+        'cchi0': 1.e8, 'Hchi': 1e-8,
+        'cnablachi0': 1.e8, 'Hnablachi': 1e-8,
         'lambda': 0.0, 'mu': 0.0, 'eta': 0.0, 'tau': 0.0,
         'kappa': 0.0, 'nu': 0.0, 'sigma': 0.0, 'tau1': 0.0,
         'tau2': 0.0, 'tau3': 0.0, 'tau4': 0.0, 'tau5': 0.0,
@@ -55,6 +55,7 @@ def write_plastic_material_card(output_file, input_dict):
     output_dict['line 13'] = f"2 {input_dict['tau']} {input_dict['sigma']}"
     # integration
     output_dict['line 14'] = '0.5 0.5 0.5 1e-9 1e-9'
+    output_dict['obj_func_value'] = 0.0
     with open(f'{output_file}.yml', 'w') as f:
         yaml.dump(output_dict, f)
 
@@ -135,6 +136,7 @@ def kde(rootname, parameter_df, type, kde_best_parameters=None):
     if kde_best_parameters:
         #write_elastic_material_card(kde_best_parameters, output_parameters)
         write_plastic_material_card(kde_best_parameters, output_parameters)
+
     return 0
 
 
@@ -143,7 +145,8 @@ def summarize_calibration_results(parameter_csv,
                                   kde_hist_plot=None,
                                   kde_plot=None,
                                   kde_best=None,
-                                  kde_best_parameters=None,):
+                                  kde_best_parameters=None,
+                                  boundary_csv=None):
     '''Main function to drive parameter summary and output
 
     :param list parameter_sets: List of yaml files containing calibration results
@@ -157,6 +160,15 @@ def summarize_calibration_results(parameter_csv,
     '''
 
     parameter_df = pandas.read_csv(parameter_csv)
+
+    # if boundary_csv provided, modify paramter_df to replace those calibrations with "best" parameter results
+    if boundary_csv:
+        boundary_elements_df = pandas.read_csv(boundary_csv)
+        boundary_elements = list(boundary_elements_df['boundary_elements'].values)
+        for index in parameter_df.index:
+            if int(parameter_df.loc[index]['element']) in boundary_elements:
+                print(f'element {parameter_df.loc[index]["element"]} and index {index} in boundary elements!')
+                parameter_df = parameter_df.drop(index)
 
     if summary_csv:
         make_summary_csv(summary_csv, parameter_df)
@@ -192,6 +204,8 @@ def get_parser():
         help='Optional root filename to plot kernel density estimate of each calibrated parameter with maximum value in title')
     parser.add_argument('--kde-best-parameters', type=str, required=False, default=None,
         help='Optional root filename to output a yaml file containing the "best" parameters sampled from the kernel density estimate associated with "--kde-best"')
+    parser.add_argument('--boundary-csv', type=str, required=False, default=None,
+        help='A csv file containing list of boundary elements')
     return parser
 
 
@@ -205,4 +219,5 @@ if __name__ == '__main__':
                                            kde_plot=args.kde_plot,
                                            kde_best=args.kde_best,
                                            kde_best_parameters=args.kde_best_parameters,
+                                           boundary_csv=args.boundary_csv,
                                            ))

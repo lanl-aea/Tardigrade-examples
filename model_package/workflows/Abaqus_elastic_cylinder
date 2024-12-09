@@ -91,14 +91,16 @@ if env['calibrate']:
         SConscript("calibrate_element.scons",
                    exports=["env", "parameters", "workflow_name", "model", "params"],
                    duplicate=False))
-params['parameter_sets'] = [f'calibrated_parameters_case_{case}_elem_0.yml']
+params['calibration_map'] = f'{build_directory}/Calibration_map_elastic_parameters_case_{case}_1.csv'
 
 # ---------- Tardigrade-MOOSE --------------------------------------------------
 # Run common Tardigrade-MOOSE sconscript
 if env['macro']:
+    calibration_map = params['calibration_map']
+    tardi_sim_name = f'TARDIGRADE-MOOSE_{model}_1_elements_calib_case_{case}'
     workflow.extend(
         SConscript("tardigrade_moose.scons",
-                   exports=["env", "parameters", "workflow_name", "model", "params"],
+                   exports=["env", "parameters", "workflow_name", "model", "params", "tardi_sim_name", "calibration_map"],
                    duplicate=False))
 
 # ---------- ARCHIVE -----------------------------------------------------------

@@ -8,16 +8,46 @@ import yaml
 import pandas
 
 
-def build_input(output_file, mesh_file, BCs, disp, duration, parameter_sets=None, calibration_map=None, disp_point=None):
+def unpack_elastic_parameter_csv(parameter_df, i):
+    '''Convert a single line of an elastic calibration map into relevant material strings and element number
+
+    :params DataFrame parameter_df: The loaded calibration map
+    :params int i: The current DataFrame index
+
+    :returns: mat_line_1, mat_line_2, mat_line_3, mat_line_4, element
+    '''
+
+
+    # A tensor parameters
+    lamb, mu = parameter_df.at[i, 'lambda'], parameter_df.at[i, 'mu']
+    mat_line_1 = f'2 {lamb} {mu}'
+
+    # B and D tensor parameters
+    eta, tau, kappa, = parameter_df.at[i, 'eta'], parameter_df.at[i, 'tau'], parameter_df.at[i, 'kappa']
+    nu, sigma = parameter_df.at[i, 'nu'], parameter_df.at[i, 'sigma']
+    mat_line_2 = f'5 {eta} {tau} {kappa} {nu} {sigma}'
+    mat_line_4 = f'2 {tau} {sigma}'
+
+    # C tensor parameters
+    mat_line_3 = '11'
+    for j in range(1, 12):
+        tau_j = f'tau{j}'
+        mat_line_3 = mat_line_3 + f' {parameter_df.at[i, tau_j]}'
+
+    element = parameter_df.at[i, 'element']
+
+    return mat_line_1, mat_line_2, mat_line_3, mat_line_4, element
+
+
+def build_input(output_file, mesh_file, BCs, disp, duration, calibration_map, disp_point=None):
     '''Write a Tardigrade-MOOSE input file
-    
+
     :param str output_file: The name of Tardigrade-MOOSE file to write
     :param str mesh_file: The name of the mesh file
     :param str BCs: The type of boundary conditions, either "slip" or "clamp"
     :param float disp: The compressive displacement to be applied
     :param float duration: The duration of the simulation
-    :param list parameter_sets: The list of yaml files containing calibration results, required if calibration-map is not provided
-    :param str calibration_map: Optional yaml file containing names of calibration files
+    :param str calibration_map: CSV file containing calibration data
     :param str disp_point: Optional string of coordinates to query x-displacement
 
     :returns: ``output_file``
@@ -25,22 +55,9 @@ def build_input(output_file, mesh_file, BCs, disp, duration, parameter_sets=None
 
     assert os.path.exists(mesh_file), f"Mesh file not found: {mesh_file}"
 
-    # unpack parameter set files if calibration map is provided
-    if calibration_map:
-        stream = open(calibration_map, 'r')
-        calibrations = yaml.load(stream, Loader=yaml.FullLoader)
-        stream.close()
-        # Get number of elements and assign the default parameter set
-        num_elements = len(calibrations.keys()) - 2
-        parameter_sets = [calibrations['ignore_boundary_yml'] for i in range(0, num_elements)]
-        # Override defaults for the elements not located on the boundary
-        summary_file = calibrations['ignore_boundary_summary_file']
-        if os.path.exists(summary_file):
-            df = pandas.read_csv(summary_file, sep=',')
-            for element in df['element']:
-                parameter_sets[element] = calibrations[str(element)]
-    else:
-        assert parameter_sets is not None
+    # load calibration map
+    parameter_df = pandas.read_csv(calibration_map)
+    parameter_df = parameter_df.sort_values(by='element')
 
     # Write input file
     with open(output_file, 'w') as f:
@@ -528,18 +545,12 @@ def build_input(output_file, mesh_file, BCs, disp, duration, parameter_sets=None
         f.write('\n')
         f.write('[Materials]\n')
         # Load in parameter data for each filter domain / element
-        if len(parameter_sets) > 1:
-            for i, set in enumerate(parameter_sets):
-                # Load yaml file
-                stream = open(set, 'r')
-                UI = yaml.load(stream, Loader=yaml.FullLoader)
-                stream.close()
-                mat_line_1 = UI['line 1']
-                mat_line_2 = UI['line 2']
-                mat_line_3 = UI['line 3']
-                mat_line_4 = UI['line 4']
+        if len(list(parameter_df.index)) > 1:
+            for index in parameter_df.index:
+                # Unpack parameters
+                mat_line_1, mat_line_2, mat_line_3, mat_line_4, element = unpack_elastic_parameter_csv(parameter_df, index)
                 # Write in material info
-                f.write(f'  [./linear_elastic_{i}]\n')
+                f.write(f'  [./linear_elastic_{element}]\n')
                 f.write('    type = MicromorphicMaterial\n')
                 f.write(f'    material_fparameters = "{mat_line_1}\n')
                 f.write(f'                            {mat_line_2}\n')
@@ -560,18 +571,11 @@ def build_input(output_file, mesh_file, BCs, disp, duration, parameter_sets=None
                 f.write('    phi_32 = "phi_zy"\n')
                 f.write('    phi_31 = "phi_zx"\n')
                 f.write('    phi_21 = "phi_yx"\n')
-                f.write(f'    block = "element_{i}"\n')
+                f.write(f'    block = "element_{element}"\n')
                 f.write('  [../]\n')
         else:
-            # Load yaml file
-            set = parameter_sets[0]
-            stream = open(set, 'r')
-            UI = yaml.load(stream, Loader=yaml.FullLoader)
-            stream.close()
-            mat_line_1 = UI['line 1']
-            mat_line_2 = UI['line 2']
-            mat_line_3 = UI['line 3']
-            mat_line_4 = UI['line 4']
+            # Unpack parameters
+            mat_line_1, mat_line_2, mat_line_3, mat_line_4, element = unpack_elastic_parameter_csv(parameter_df, 0)
             # Write in material info
             f.write(f'  [./linear_elastic]\n')
             f.write('    type = MicromorphicMaterial  \n')
@@ -642,10 +646,8 @@ def get_parser():
         help="The name of Tardigrade-MOOSE file to write")
     parser.add_argument('--mesh', type=str, required=True,
         help='The mesh file')
-    parser.add_argument('--parameter-sets', nargs="+", required=False, default=None,
-        help='List of yaml files containing calibration results, required if calibration-map is not provided')
-    parser.add_argument('--calibration-map', type=str, required=False, default=None,
-        help='Optional yaml file containing names of calibration files')
+    parser.add_argument('--calibration-map', type=str, required=True,
+        help='CSV file containing calibration data')
     parser.add_argument('--BCs', type=str, required=True,
         help='The type of boundary conditions, either "slip" or "clamp"')
     parser.add_argument('--disp', type=float, required=True,
@@ -667,7 +669,6 @@ if __name__ == '__main__':
                          BCs=args.BCs,
                          disp=args.disp,
                          duration=args.duration,
-                         parameter_sets=args.parameter_sets,
                          calibration_map=args.calibration_map,
                          disp_point=args.disp_point,
                          ))

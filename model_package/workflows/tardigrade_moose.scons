@@ -13,6 +13,8 @@ Import("parameters")
 Import("workflow_name")
 Import("model")
 Import("params")
+Import("tardi_sim_name")
+Import("calibration_map")
 
 # Set project-wide paths
 Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
@@ -26,7 +28,6 @@ seed_size = parameters['seed_size']
 bounding_csv = params['bounding_csv']
 case = params['calibration_case']
 cut = params['cut']
-parameter_sets = params['parameter_sets']
 
 # Collect the target nodes to build a concise alias for all targets
 workflow = []
@@ -80,6 +81,7 @@ else:
         script_options = f"--input-mesh {tardi_mesh_1}"
         script_options += f" --output-mesh {tardi_mesh_2}"
         script_options += f" --elements {domain_number}"
+        script_options += f" --exodus-mesh-map FILTER_macroscale_{model}_{int(domain_number)}_temp.e"
         workflow.extend(env.PythonScript(
             target=[tardi_mesh_2],
             source=[str(Tardigrade_MOOSE_source_abspath / mesh_script), tardi_mesh_1],
@@ -96,17 +98,16 @@ else:
 
 # build input file
 tardigrade_input_script = "build_Tardigrade_input_deck.py"
-tardi_sim_name = f'TARDIGRADE-MOOSE_{model}_{domain_number}_elements_calib_case_{case}'
 tardigrade_build_targs = f"{tardi_sim_name}.i"
 script_options = f"--output-file {tardigrade_build_targs}"
-script_options += f" --parameter-sets {' '.join(parameter_sets)}"
+script_options += f" --calibration-map {calibration_map}"
 script_options += f" --mesh {tardi_mesh_2}"
 script_options += f" --BCs {params['macro_BC']}"
 script_options += f" --disp {params['macro_disp']}"
 script_options += f" --duration {params['macro_duration']}"
 workflow.extend(env.PythonScript(
     target = [tardigrade_build_targs],
-    source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh_2, parameter_sets],
+    source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh_2, calibration_map],
     script_options = script_options
 ))
 

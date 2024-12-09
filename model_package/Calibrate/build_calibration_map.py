@@ -10,25 +10,48 @@ import pandas
 import calibration_tools
 
 
-def ignored_elements_calibration_map(output_file, calibrated_elements, calibrated_files, ignore_boundary_yml, ignore_boundary_summary_file):
+def ignored_elements_calibration_map(output_file, best_parameters_yml_no_BCs, boundary_csv, previous_calibration_map):
     '''Create a yaml file to map calibration results for interior and boundary elements
 
     :params str output_file: The name of the output yaml file
-    :params list calibrated_elements: A list of elements with associated calibration files
-    :params list calibrated_files: A list of files containing calibration results
-    :params str ignore_boundary_yml: A yaml file containing the 'best' calibration using the kernel density estimate
-    :params str ignore_boundary_summary_file: A csv file containing a summary of calibrated parameters for each element
+    :params str best_parameters_yml_no_BCs: A yaml file containing the 'best' calibration using the kernel density estimate for
+                                            elements not on the boundary
+    :params str boundary_csv: A csv file containing list of boundary elements
+    :params str previous_calibration_map: A csv file containing a previous calibration map for all elements to be modified
 
     :returns: Write ``output_file``
     '''
 
-    calibration_map = {}
-    for element, file in zip(calibrated_elements, calibrated_files):
-        calibration_map[str(element)] = file
-    calibration_map['ignore_boundary_yml'] = ignore_boundary_yml
-    calibration_map['ignore_boundary_summary_file'] = ignore_boundary_summary_file
-    with open(output_file, 'w') as f:
-        yaml.dump(calibration_map, f)
+    previous_parameter_df = pandas.read_csv(previous_calibration_map)
+    boundary_elements_df = pandas.read_csv(boundary_csv)
+    boundary_elements = list(boundary_elements_df['boundary_elements'].values)
+
+    # if all elements are on boundary, overwrite name of best_parameters_yml_no_BCs to be best_parameters_yml
+    if len(list(previous_parameter_df.index)) == len(boundary_elements):
+        print('It looks like all elements are on the boundary! Forcing best_parameters_yml_no_BCs to be best_parameters_yml')
+        best_parameters_yml_no_BCs = f'{best_parameters_yml_no_BCs.split("_no_BCs")[0]}.yml'
+
+    # Unpack best_parameters_yml_no_BCs
+    temp_dict = {}
+    best_params, best_parameter_ordering = calibration_tools.parse_fparams_file(best_parameters_yml_no_BCs, material_type='plastic')
+    for param, param_name in zip(best_params, best_parameter_ordering):
+        temp_dict[param_name] = param
+    temp_dict['obj_func_value'] = 0.0
+
+    # Build new parameter dictionary
+    headers = list(previous_parameter_df.columns)
+    headers.remove('element')
+    for index in previous_parameter_df.index:
+        if int(previous_parameter_df.loc[index]['element'] in boundary_elements):
+            element_id = int(previous_parameter_df.loc[index]['element'])
+            for column in headers:
+                #previous_parameter_df.loc[index][column] = temp_dict[column]
+                previous_parameter_df.at[index, column] = temp_dict[column]
+
+    # DataFrame and output
+    previous_parameter_df['element'] = previous_parameter_df['element'].astype(int)
+    previous_parameter_df = previous_parameter_df.sort_values(by='element')
+    previous_parameter_df.to_csv(output_file, header=True, sep=',', index=False)
 
     return 0
 
@@ -57,9 +80,14 @@ def full_csv_calibration_map(output_file, calibrated_elements, calibrated_files,
         else:
             out_params = numpy.vstack([out_params, numpy.hstack([float(element), parameters])])
 
+    # handle single domain case
+    if len(numpy.shape(out_params)) == 1:
+        out_params = out_params.reshape((1, -1))
+
     # DataFrame and output
     df = pandas.DataFrame(out_params, columns=header)
     df['element'] = df['element'].astype(int)
+    df = df.sort_values(by='element')
     df.to_csv(output_file, header=True, sep=',', index=False)
 
     return 0
@@ -86,7 +114,7 @@ def trim_csv_file_for_tardigrade(output_file, input_file):
 
 
 def build_calibration_map(output_file, calibrated_elements=None, calibrated_files=None, map_type='full_csv',
-                          material_type=None,ignore_boundary_yml=None, ignore_boundary_summary_file=None, 
+                          material_type=None, best_parameters_yml_no_BCs=None, boundary_csv=None, previous_calibration_map=None,
                           input_csv=None):
     '''Create a file mapping calibration results for each macroscale element
 
@@ -98,8 +126,10 @@ def build_calibration_map(output_file, calibrated_elements=None, calibrated_file
                           'ignore_boundary_yaml' to create a yaml file containing names of yaml files
                           containing material parameters for every element.
     :param str material_type: The material type: 'elastic', 'plastic', or 'full_plastic'
-    :params str ignore_boundary_yml: A yaml file containing the 'best' calibration using the kernel density estimate
-    :params str ignore_boundary_summary_file: A csv file containing a summary of calibrated parameters for each element
+    :params str best_parameters_yml_no_BCs: A yaml file containing the 'best' calibration using the kernel density estimate for
+                                            elements not on the boundary
+    :params str boundary_csv: A csv file containing list of boundary elements
+    :params str previous_calibration_map: A csv file containing a previous calibration map for all elements to be modified
     :params str input_csv: An input, previously generated csv file using 'map_type=full_csv' to be trimmed for Tardigrade
 
     :returns: Call full_csv_calibration_map function if map_type='full_csv', call ignored_elements_calibration_map function if map_type='ignore_boundary_yaml', or call trim_csv_file_for_tardigrade if map_type='trim_for_tardigrade'
@@ -112,13 +142,10 @@ def build_calibration_map(output_file, calibrated_elements=None, calibrated_file
         assert material_type != None, "material_type must be specified!"
         full_csv_calibration_map(output_file, calibrated_elements, calibrated_files, material_type)
     elif map_type == 'ignore_boundary_yaml':
-        assert calibrated_elements != None, "List of calibrated elements must be provided!"
-        assert calibrated_files != None, "List of calibration files must be provided!"
-        assert len(calibrated_elements) == len(calibrated_files), "Length of calibrated_elements must equal calibrated_files!"
-        assert ignore_boundary_yml != None, "ignore_boundary_yml must be provided!"
-        assert ignore_boundary_summary_file != None, "ignore_boundary_yml must be provided!"
-        ignored_elements_calibration_map(output_file, calibrated_elements, calibrated_files,
-                                         ignore_boundary_yml, ignore_boundary_summary_file)
+        assert best_parameters_yml_no_BCs != None, "best_parameters_yml_no_BCs must be provided!"
+        assert boundary_csv != None, "boundary_csv must be provided!"
+        assert previous_calibration_map != None, "previous_calibration_map must be provided!"
+        ignored_elements_calibration_map(output_file, best_parameters_yml_no_BCs, boundary_csv, previous_calibration_map)
     elif map_type == 'trim_for_tardigrade':
         assert input_csv != None, "input_csv must be specified!"
         trim_csv_file_for_tardigrade(output_file, input_csv)
@@ -144,15 +171,17 @@ def get_parser():
     parser.add_argument('--map-type', type=str, required=False, default="full_csv",
         help="The type of calibration map to generate. 'full_csv' (default) to create a csv\
               file containing material parameters mapped for every element.\
-              'ignore_boundary_yaml' to create a yaml file containing names of yaml files\
-              containing material parameters for every element.\
+              'ignore_boundary_yaml' to create a new calibration map with boundary element parameters\
+              swapped with best_parameters_yml_no_BCs.\
               'trim_for_tardigrade' to modify a previously generated csv file for Tardigrade")
     parser.add_argument('--material-type', type=str, required=False, default=None,
         help="The material type: 'elastic', 'plastic', or 'full_plastic'")
-    parser.add_argument('--ignore-boundary-yml', type=str, required=False, default=None,
-        help="A yaml file containing the 'best' calibration using the kernel density estimate")
-    parser.add_argument('--ignore-boundary-summary-file', type=str, required=False, default=None,
-        help="A csv file containing a summary of calibrated parameters for each element")
+    parser.add_argument('--best-parameters-yml-no-BCs', type=str, required=False, default=None,
+        help="A yaml file containing the 'best' calibration using the kernel density estimate for elements not on the boundary")
+    parser.add_argument('--boundary-csv', type=str, required=False, default=None,
+        help="A csv file containing list of boundary elements")
+    parser.add_argument('--previous-calibration-map', type=str, required=False, default=None,
+        help="A csv file containing a previous calibration map for all elements to be modified")
     parser.add_argument('--input-csv', type=str, required=False, default=None,
         help="An input, previously generated csv file using 'map_type=full_csv' to be trimmed for Tardigrade")
 
@@ -167,7 +196,8 @@ if __name__ == '__main__':
                                    calibrated_files=args.calibrated_files,
                                    map_type=args.map_type,
                                    material_type=args.material_type,
-                                   ignore_boundary_yml=args.ignore_boundary_yml,
-                                   ignore_boundary_summary_file=args.ignore_boundary_summary_file,
+                                   best_parameters_yml_no_BCs=args.best_parameters_yml_no_BCs,
+                                   boundary_csv=args.boundary_csv,
+                                   previous_calibration_map=args.previous_calibration_map,
                                    input_csv=args.input_csv,
                                    ))

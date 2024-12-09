@@ -190,6 +190,7 @@ def assign_calibration_results(xdmf_file_out, calibration_map_file, reference_po
 
     # output parameters
     df = pandas.read_csv(calibration_map_file)
+    df = df.sort_values(by='element')
     parameters = list(df.columns)
     for param in parameters:
         array_out = df[param].values.reshape((1,-1))

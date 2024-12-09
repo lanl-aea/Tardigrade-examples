@@ -16,6 +16,8 @@ New Features
   (:issue:`16`, :merge:`4`). By `Thomas Allard`_.
 - Update all scripts to use WAVES version 0.12 (:issue:`21`, :merge:`5`).
   By `Thomas Allard`_.
+- Update all calibration and Tardigrade-MOOSE workflows to generate and use parameter
+  sets from a calibration map csv file (:issue:`4`, :merge:`6`). By `Thomas Allard`_.
 
 Documentation
 =============
