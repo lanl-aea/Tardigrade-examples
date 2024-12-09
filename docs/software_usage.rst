@@ -18,7 +18,7 @@ The :code:`SConstruct` file is the main input that `SCons`_ reads to control wor
 The software described in :ref:`software_installation` is linked using "BUILDERS":
 
 .. literalinclude:: SConstruct.py
-   :lines: 327-340
+   :lines: 373-385
 
 Individual workflows are created in SConscript files. These SConscript files are
 stored in the :code:`model_package/workflows/` directory.
@@ -26,7 +26,7 @@ They are linked as simulation targets in the main :code:`SConstruct` file.
 The current collection of workflows are as follows:
 
 .. literalinclude:: SConstruct.py
-   :lines: 366-388
+   :lines: 412-446
 
 Unless a user is adding another piece of software or creating a custom workflow,
 these files do not need to be modified.
@@ -102,7 +102,7 @@ file below. This is the basic builder for serial simulations. To use Ratel for p
 simulations, see the discussion in :ref:`serial_vs_parallel`.
 
 .. literalinclude:: SConstruct.py
-   :lines: 160-167
+   :lines: 200-207
 
 The options and mesh files are passsed to this Builder as input arguments.
 Output arguments are also specified for the VTK monitor file, which will contain the simulation
@@ -195,7 +195,7 @@ To use Tardigrade-MOOSE for parallel simulations, see the discussion in
 :ref:`serial_vs_parallel`.
 
 .. literalinclude:: SConstruct.py
-   :lines: 214-221
+   :lines: 257-264
 
 Setting up Tardigrade-MOOSE simulations
 =======================================
@@ -281,7 +281,7 @@ a method to configure the Tardigrade-MOOSE solver depending on the available
 resources, see here:
 
 .. literalinclude:: SConstruct.py
-   :lines: 241-247
+   :lines: 282-288
 
 **Auto-batch**
 
