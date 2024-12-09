@@ -66,7 +66,7 @@ AddOption(
     dest="macro",
     default=False,
     action="store_true",
-    help="Boolean speciyfing whether or not to run macro simulation in Tardigrade-MOOSE."\
+    help="Boolean speciyfing whether or not to run plastic macro simulation in Tardigrade-MOOSE."\
          " (default: '%default')"
 )
 AddOption(
@@ -75,6 +75,14 @@ AddOption(
     default=False,
     action="store_true",
     help="Boolean speciyfing whether or not to run macro simulation in Tardigrade-MOOSE with loading platens."\
+         " (default: '%default')"
+)
+AddOption(
+    "--macro-damage",
+    dest="macro_damage",
+    default=False,
+    action="store_true",
+    help="Boolean speciyfing whether or not to run plastic macro simulation in Tardigrade-MOOSE gradient enhanced damage."\
          " (default: '%default')"
 )
 AddOption(
@@ -141,6 +149,7 @@ env = waves.scons_extensions.WAVESEnvironment(
     calibrate=GetOption("calibrate"),
     macro=GetOption("macro"),
     macro_platen=GetOption("macro_platen"),
+    macro_damage=GetOption("macro_damage"),
     macro_ignore_BCs=GetOption("macro_ignore_BCs"),
     summary=GetOption("summary"),
     peta_data_copy=GetOption("peta_data_copy"),
