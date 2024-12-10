@@ -18,6 +18,9 @@ New Features
   By `Thomas Allard`_.
 - Update all calibration and Tardigrade-MOOSE workflows to generate and use parameter
   sets from a calibration map csv file (:issue:`4`, :merge:`6`). By `Thomas Allard`_.
+- Use PiecewiseConstantFromCSV to pass calibrated material card csv file to
+  gradient enhanced damage Tardigrade-MOOSE simulations (:issue:`7`, :merge:`7`).
+  By `Thomas Allard`_.
 
 Documentation
 =============
