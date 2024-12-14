@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-""" Workflow for upscaling the Ratel I43.09 DNS
+""" Workflow for multi domain upscaling the inelastic Ratel I43.09 DNS
 Requires the following ``Sconscript(..., exports=[])``
 * ``env`` - The SCons construction environment with the following required keys
   * ``DNS_Ratel_abspath`` - String absolute path to model_package/DNS_Ratel
