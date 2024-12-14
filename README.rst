@@ -164,6 +164,15 @@ Developers
 
 * `Thomas Allard`_
 
+Git large file storage (LFS)
+============================
+
+In order to clone binary image and mesh files, make sure that git lfs is installed.
+
+   .. code-block::
+
+      $ git lfs install --skip-smudge
+
 ****************
 Copyright Notice
 ****************
