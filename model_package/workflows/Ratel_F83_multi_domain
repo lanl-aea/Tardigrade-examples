@@ -1,16 +1,20 @@
 #! /usr/bin/env python
 
-""" TODO
-
+""" Workflow for multi domain upscaling the elastic Ratel F83 DNS
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``DNS_Ratel_abspath`` - String absolute path to model_package/DNS_Ratel
+  * ``filter_source_abspath`` - String absolute path to model_package/Filter
+  * ``peta_data_copy_abspath`` - String absolute path to peta_data_copy
 """
 
 import pathlib
 
 import waves
 import numpy
-import SCons.Defaults
 
 from model_package.DNS_Ratel import simulation_variables_nominal
+
 
 # Inherit the parent construction environment
 Import('env')
@@ -18,9 +22,6 @@ Import('env')
 # set project-wide paths with os-agnostic path separators
 DNS_Ratel_abspath = pathlib.Path(env["DNS_Ratel_abspath"])
 filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
-calibrate_source_abspath = pathlib.Path(env["calibrate_source_abspath"])
-Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
-model_package_abspath = pathlib.Path(env["model_package_abspath"])
 peta_data_copy_abspath = pathlib.Path(env["peta_data_copy_abspath"])
 
 # Simulation variables
@@ -169,15 +170,5 @@ if env['summary']:
                    exports=["env", "workflow_name", "model", "params", "set_names", "num_domains", "dns_forces"],
                    duplicate=False))
 
-# ---------- ARCHIVE -----------------------------------------------------------
-# Archive
-archive_DNS = True
-if archive_DNS:
-    archive_name = f"{env['project_name']}-{env['version']}"
-    archive_target = env.Tar(
-        target=archive_name,
-        source=workflow + workflow_configuration)
-
 # Collector alias based on parent directory name
 env.Alias(workflow_name, workflow)
-env.Alias(f"{workflow_name}_archive", archive_target)
