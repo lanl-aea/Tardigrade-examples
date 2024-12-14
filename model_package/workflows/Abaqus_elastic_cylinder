@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-""" elastic_cylinder compression workflow in Abaqus/Standard
+""" Workflow for running and upscaling an Abaqus/Standard DNS of an elastic cylinder under uni-axial stress in compression
 Requires the following ``Sconscript(..., exports=[])``
 * ``env`` - The SCons construction environment with the following required keys
   * ``abaqus_source_abspath`` - String absolute path to the Abaqus journal files
@@ -9,7 +9,6 @@ Requires the following ``Sconscript(..., exports=[])``
   * ``Tardigrade-MOOSE`` - String path for the Tardigrade-MOOSE application
   * ``project_name`` - String project name
   * ``version`` - String project version
-TODO! Finish this docstrings
 """
 
 import pathlib
@@ -102,15 +101,6 @@ if env['macro']:
         SConscript("tardigrade_moose.scons",
                    exports=["env", "parameters", "workflow_name", "model", "params", "tardi_sim_name", "calibration_map"],
                    duplicate=False))
-
-# ---------- ARCHIVE -----------------------------------------------------------
-# Archive
-archive_DNS = True
-if archive_DNS:
-    archive_name = f"{env['project_name']}-{env['version']}"
-    archive_target = env.Tar(
-        target=archive_name,
-        source=workflow + workflow_configuration)
 
 # Collector alias based on parent directory name
 env.Alias(workflow_name, workflow)
