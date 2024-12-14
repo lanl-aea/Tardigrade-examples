@@ -1,7 +1,14 @@
 #! /usr/bin/env python
 
-""" TODO
-
+""" Workflow for upscaling the Ratel I43.09 DNS
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``DNS_Ratel_abspath`` - String absolute path to model_package/DNS_Ratel
+  * ``filter_source_abspath`` - String absolute path to model_package/Filter
+  * ``calibrate_source_abspath`` - String absolute path to model_package/Calibrate
+  * ``Tardigrade_MOOSE_source_abspath`` - String absolute path to model_package/Tardigrade-MOOSE
+  * ``model_package_abspath`` - String absolute path to model_package
+  * ``peta_data_copy_abspath`` - String absolute path to peta_data_copy
 """
 
 import pathlib
@@ -233,15 +240,6 @@ if env['summary']:
         SConscript("summarize_multi_domain.scons",
                    exports=["env", "workflow_name", "model", "params", "set_names", "num_domains", "dns_forces"],
                    duplicate=False))
-
-# ---------- ARCHIVE -----------------------------------------------------------
-# Archive
-archive_DNS = True
-if archive_DNS:
-    archive_name = f"{env['project_name']}-{env['version']}"
-    archive_target = env.Tar(
-        target=archive_name,
-        source=workflow + workflow_configuration)
 
 # Collector alias based on parent directory name
 env.Alias(workflow_name, workflow)
