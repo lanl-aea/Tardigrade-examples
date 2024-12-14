@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-""" Workflow for multi domain upscaling of an GEOS MPM DNS of an elastic cylinder under uni-axial stress in compression
+""" Workflow for multi domain upscaling of a GEOS MPM DNS of an elastic cylinder under uni-axial stress in compression
 Requires the following ``Sconscript(..., exports=[])``
 * ``env`` - The SCons construction environment with the following required keys
   * ``DNS_GEOS_abspath`` - String absolute path to model_package/DNS_GEOS
