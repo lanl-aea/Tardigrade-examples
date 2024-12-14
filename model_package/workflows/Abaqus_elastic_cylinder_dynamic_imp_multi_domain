@@ -17,11 +17,7 @@ from model_package.DNS_Abaqus import simulation_variables_nominal
 Import('env')
 
 # set project-wide paths with os-agnostic path separators
-DNS_Abaqus_abspath = pathlib.Path(env["DNS_Abaqus_abspath"])
-filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
-calibrate_source_abspath = pathlib.Path(env["calibrate_source_abspath"])
 Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
-model_package_abspath = pathlib.Path(env["model_package_abspath"])
 
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)
