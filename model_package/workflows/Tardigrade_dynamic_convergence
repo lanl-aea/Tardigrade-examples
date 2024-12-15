@@ -1,12 +1,14 @@
 #! /usr/bin/env python
 
-""" Workflow for running a mesh convergence study of dyanmic Tardigrade-MOOSE simulations of a elastic cylinder under uni-axial stress in compression
+""" Workflow for running a mesh convergence study of dynamic Tardigrade-MOOSE simulations of a elastic cylinder under uni-axial stress in compression
 Requires the following ``Sconscript(..., exports=[])``
 * ``env`` - The SCons construction environment with the following required keys
   * ``Tardigrade_MOOSE_source_abspath`` - String path for the Tardigrade-MOOSE application
   * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
+  * ``mpi`` - String absolute path to mpiexec program
+  * ``LD_PATH`` - String absolute path(s) for shared libraries required to run Tardigrade
+  * ``Tardigrade`` - String absolute path to tardigrade-opt program
 """
-
 
 import pathlib
 
