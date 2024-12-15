@@ -3,14 +3,16 @@
 """ Workflow for running a Tardigrade-MOOSE simulation of a Brazilian disk indirect tension experiment
 Requires the following ``Sconscript(..., exports=[])``
 * ``env`` - The SCons construction environment with the following required keys
+  * ``filter_source_abspath`` - String absolute path to model_package/Filter
   * ``Tardigrade_MOOSE_source_abspath`` - String path for the Tardigrade-MOOSE application
-  * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
+  * ``cubit`` - String absolute path to Cubit Python intepreter
+  * ``mpi`` - String absolute path to mpiexec program
+  * ``LD_PATH`` - String absolute path(s) for shared libraries required to run Tardigrade
+  * ``Tardigrade`` - String absolute path to tardigrade-opt program
+  * ``solve_cpus`` - Integer specifying the number of processes to run Tardigrade-MOOSE, default=1
 """
 
 import pathlib
-
-import waves
-import numpy
 
 from model_package.Tardigrade_MOOSE import simulation_variables_nominal
 
@@ -129,7 +131,7 @@ workflow.extend(env.PythonScript(
     # LD_LIBRARY_PATH = env['LD_PATH'],
     # tardigrade_program = env['Tardigrade'],
     # tardigrade_input = tardigrade_build_targs,
-    # tardigrade_cpus =  solve_cpus,
+    # tardigrade_cpus =  env['solve_cpus'],
     # stdout_file = f"{tardi_sim_name}_out.e.stdout",
     # mpi_location = mpi_location,
     # ))
