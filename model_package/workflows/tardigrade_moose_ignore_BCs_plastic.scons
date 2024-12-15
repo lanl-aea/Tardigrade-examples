@@ -1,10 +1,25 @@
 #! /usr/bin/env python
+
+""" Common workflow for performing elastic Tardigrade-MOOSE simulations of quasi-static cylinder compression with special treatment of elements on the boundaries
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``Tardigrade_MOOSE_source_abspath`` - String absolute path to model_package/Tardigrade-MOOSE
+  * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
+  * ``cubit`` - String absolute path to Cubit Python intepreter, optional
+  * ``mpi`` - String absolute path to mpiexec program
+  * ``LD_PATH`` - String absolute path(s) for shared libraries required to run Tardigrade
+  * ``Tardigrade`` - String absolute path to tardigrade-opt program
+  * ``solve_cpus`` - Integer specifying the number of processes to run Tardigrade-MOOSE, default=1
+* ``parameters`` - WAVES CustomStudy parameter dictionary with the following required kyes
+  * ``num_domains`` - The number of macroscale filtering domains
+  * ``seed_size`` - The approximate element size (mm) for creating macroscale meshes in Cubit
+* ``workflow_name`` - The name of the workflow calling this SConscript
+* ``model`` - The name of the model
+* ``params`` - Parameter dictionary with the following required keys
 """
-    TODO
-"""
+
 import pathlib
 
-import waves
 
 # Inherit the parent construction environment
 Import("env")
@@ -15,6 +30,7 @@ Import("params")
 
 # Set project-wide paths
 Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
 
 # workflow variables
 build_directory = pathlib.Path(Dir(".").abspath)
@@ -32,7 +48,7 @@ workflow = []
 # Only run multi-domain cases
 tardi_mesh_name = f"TARDIGRADE-MOOSE_{model}_mesh_{domain_number}_elements"
 # Build macro mesh if Cubit is found, otherwise copy a template
-if 'cubit' in env.keys():
+if env['cubit']:
     mesh_script = 'cylinder_from_bounds.py'
     tardi_mesh_1 = f"{tardi_mesh_name}.e"
     script_options = f"--output-file {tardi_mesh_name}"
@@ -119,5 +135,4 @@ workflow.extend(env.PythonScript(
     # script_options=script_options,
     # ))
 
-env.Alias(workflow_name, workflow)
-Return("workflow")
+env.Alias(workflow_name, wo
