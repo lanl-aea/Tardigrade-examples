@@ -1,12 +1,41 @@
 #! /usr/bin/env python
+
+""" Common workflow for performing elastic Tardigrade-MOOSE simulations of dynamic vibration of cylinder compression
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``Tardigrade_MOOSE_source_abspath`` - String absolute path to model_package/Tardigrade-MOOSE
+  * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
+  * ``cubit`` - String absolute path to Cubit Python intepreter, optional
+  * ``mpi`` - String absolute path to mpiexec program
+  * ``LD_PATH`` - String absolute path(s) for shared libraries required to run Tardigrade
+  * ``Tardigrade`` - String absolute path to tardigrade-opt program
+  * ``solve_cpus`` - Integer specifying the number of processes to run Tardigrade-MOOSE, default=1
+* ``parameters`` - WAVES CustomStudy parameter dictionary with the following required kyes
+  * ``num_domains`` - The number of macroscale filtering domains
+  * ``seed_size`` - The approximate element size (mm) for creating macroscale meshes in Cubit
+* ``workflow_name`` - The name of the workflow calling this SConscript
+* ``model`` - The name of the model
+* ``params`` - Parameter dictionary with the following required keys
+  * ``bounding_csv`` - String absolute path to a csv file containing the DNS bounding box data
+  * ``calibration_case`` - Integer specifying the calibration case
+  * ``cut`` - Boolean specifying whether a macroscale cylinder will be partioned by x-, y-, and z-planes
+  * ``parameter_sets`` - List of string absolute paths to yaml files containing individual calibration results
+  * ``diam`` - The diameter (mm) of the cylindrical geometry
+  * ``height`` - The height (mm) of the cylindrical geometry
+  * ``mesh_copy_root`` - File root string for locating required DNS mesh in model_package/meshes if Cubit program is unavailable
+  * ``macro_BC`` - The type of boundary condition to apply in the Tardigrade-MOOSE, either "slip" or "clamp" or "brazil"
+  * ``total_force`` - The total compressive force to apply to the top cylinder face
+  * ``duration`` - The duration of hte Tardigrade-MOOSE simulation
+  * ``num_steps`` - The number of time steps to simulate
+  * ``finite_rise`` - The number of timesteps over which to ramp "total_force" at the beginning of the simulation
+  * ``material_rho`` - The density (Mg/mm^3) of the material
 """
-    TODO
-"""
+
 import pathlib
 
-import waves
 import math
 import SCons.Defaults
+
 
 # Inherit the parent construction environment
 Import("env")
@@ -96,6 +125,7 @@ else:
             ))
 
 # build input file
+## TODO! Update to use calibration map
 tardigrade_input_script = "build_dynamic_Tardigrade_input_deck.py"
 tardi_sim_name = f'TARDIGRADE-MOOSE_{model}_{domain_number}_elements_calib_case_{case}'
 tardigrade_build_targs = f"{tardi_sim_name}.i"
