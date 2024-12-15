@@ -135,4 +135,5 @@ workflow.extend(env.PythonScript(
     # script_options=script_options,
     # ))
 
-env.Alias(workflow_name, wo
+env.Alias(workflow_name, workflow)
+Return("workflow")
