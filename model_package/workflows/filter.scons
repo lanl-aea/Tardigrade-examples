@@ -10,7 +10,7 @@ Requires the following ``Sconscript(..., exports=[])``
   * ``parse_filter_errors`` - Boolean or string identifying if Micromorphic balance equation errors will be analyzed, optional
 * ``parameters`` - WAVES CustomStudy parameter dictionary with the following required kyes
   * ``num_domains`` - The number of macroscale filtering domains
-  * ``seed_size`` - The approximate element size for creating macroscale meshes in Cubit
+  * ``seed_size`` - The approximate element size (mm) for creating macroscale meshes in Cubit
 * ``workflow_name`` - The name of the workflow calling this SConscript
 * ``model`` - The name of the model
 * ``params`` - Parameter dictionary with the following required keys
@@ -22,8 +22,8 @@ Requires the following ``Sconscript(..., exports=[])``
   * ``acceleration`` - Boolean specifying whether DNS accelerations will be homogenized
   * ``velocity`` - Boolean specifying whether DNS velocities will be homogenized
   * ``filter_parallel`` - Integer specifying the number of parallel processes will be used by the Micromorphic Filter
-  * ``rho_binder`` - The density of binder material, only required if "csv-all-quantities-single-domain" included in "viz_targs"
-  * ``rho_grain`` - The density of grain material, only required if "csv-all-quantities-single-domain" included in "viz_targs"
+  * ``rho_binder`` - The density (Mg/mm^3) of binder material, only required if "csv-all-quantities-single-domain" included in "viz_targs"
+  * ``rho_grain`` - The density (Mg/mm^3)of grain material, only required if "csv-all-quantities-single-domain" included in "viz_targs"
 * ``filter_inputs`` - List containing names of the XDMF/H5 file pair of DNS results to be homogenized
 """
 
