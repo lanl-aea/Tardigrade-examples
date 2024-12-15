@@ -1,7 +1,29 @@
 #! /usr/bin/env python
 
-"""
-    TODO
+""" Common workflow for performing quasi-static Ratel elastic cylinder DNS
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``DNS_Ratel_abspath`` - String absolute path to model_package/DNS_Ratel
+  * ``filter_source_abspath`` - String absolute path to model_package/Filter
+  * ``Tardigrade_MOOSE_source_abspath`` - String absolute path to model_package/Tardigrade-MOOSE
+  * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
+  * ``cubit`` - String absolute path to Cubit Python intepreter, optional
+* ``workflow_name`` - The name of the workflow calling this SConscript
+* ``model`` - The name of the model
+* ``params`` - Parameter dictionary with the following required keys
+  * ``diam`` - The diameter (mm) of the cylindrical geometry
+  * ``height`` - The height (mm) of the cylindrical geometry
+  * ``cut`` - Boolean specifying whether a macroscale cylinder will be partioned by x-, y-, and z-planes
+  * ``seed`` - The approximate element size (mm) for the DNS mesh
+  * ``mesh_copy_root`` - File root string for locating required DNS mesh in model_package/meshes if Cubit program is unavailable
+  * ``material_E`` - The elastic modulus (MPa) of the DNS material
+  * ``material_nu`` - The Poisson ratio of the DNS material
+  * ``material_rho`` - The density (Mg/mm^3) of the DNS material
+  * ``disp`` - The nominal compressive strain to apply to the top face of the cylinder
+  * ``num_steps`` - The number of time steps to simulate
+  * ``top_surface_id`` - Integer specifying the top surface of the cylindrical geometry
+  * ``bottom_surface_id`` - Integer specifying the bottom surface of the cylindrical geometry
+  * ``micro_BC`` - The type of boundary condition to apply in the DNS, either "slip" or "clamp"
 """
 
 import pathlib
