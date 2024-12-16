@@ -4,28 +4,12 @@
 Requires the following ``Sconscript(..., exports=[])``
 * ``env`` - The SCons construction environment with the following required keys
   * ``Tardigrade_MOOSE_source_abspath`` - String absolute path to model_package/Tardigrade-MOOSE
+  * ``calibrate_source_abspath`` - String absolute path to model_package/Calibrate
   * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
-  * ``cubit`` - String absolute path to Cubit Python intepreter, optional
   * ``mpi`` - String absolute path to mpiexec program
   * ``LD_PATH`` - String absolute path(s) for shared libraries required to run Tardigrade
   * ``Tardigrade`` - String absolute path to tardigrade-opt program
   * ``solve_cpus`` - Integer specifying the number of processes to run Tardigrade-MOOSE, default=1
-* ``parameters`` - WAVES CustomStudy parameter dictionary with the following required kyes
-  * ``num_domains`` - The number of macroscale filtering domains
-  * ``seed_size`` - The approximate element size (mm) for creating macroscale meshes in Cubit
-* ``workflow_name`` - The name of the workflow calling this SConscript
-* ``model`` - The name of the model
-* ``params`` - Parameter dictionary with the following required keys
-  * ``bounding_csv`` - String absolute path to a csv file containing the DNS bounding box data
-  * ``calibration_case`` - Integer specifying the calibration case
-  * ``cut`` - Boolean specifying whether a macroscale cylinder will be partioned by x-, y-, and z-planes
-  * ``height`` - The height (mm) of the cylindrical geometry
-  * ``mesh_copy_root`` - File root string for locating required DNS mesh in model_package/meshes if Cubit program is unavailable
-  * ``macro_BC`` - The type of boundary condition to apply in the Tardigrade-MOOSE, either "slip" or "clamp" or "brazil"
-  * ``macro_disp`` - The compressive displacement to apply to the top face of the cylinder
-  * ``duration`` - The duration of hte Tardigrade-MOOSE simulation
-* ``tardi_sim_name`` - The string root name for the Tardigrade-MOOSE simulation files
-* ``calibration_map`` - String absolute path to the calibration results for each element
 """
 
 
@@ -37,6 +21,7 @@ import SCons.Defaults
 
 from model_package.DNS_Ratel import simulation_variables_nominal
 
+
 # Inherit the parent construction environment
 Import('env')
 
@@ -44,7 +29,6 @@ Import('env')
 Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
 calibrate_source_abspath = pathlib.Path(env["calibrate_source_abspath"])
 mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
-model_package_abspath = pathlib.Path(env["model_package_abspath"])
 
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)
@@ -133,14 +117,20 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     # Macroscale
     if env['macro']:
         # run Tardigrade-MOOSE
+        if env['mpi']:
+            mpi_location = env["mpi"]
+        else:
+            mpi_location = []
         tardigrade_moose_targs = [f'{tardi_sim_name}_out.e', f'{tardi_sim_name}_out.csv']
         workflow.extend(env.TardigradeSolver(
             target = tardigrade_moose_targs,
             source = [f"{set_name}/{tardigrade_build_input}", f"{set_name}/{tardi_mesh}"],
+            LD_LIBRARY_PATH = env['LD_PATH'],
             tardigrade_program = env['Tardigrade'],
             tardigrade_input = tardigrade_build_input,
-            tardigrade_threads =  env['solve_cpus'],
-            stdout_file = f"{tardigrade_moose_targs[0]}.stdout"
+            tardigrade_cpus =  env['solve_cpus'],
+            stdout_file = f"{tardigrade_moose_targs[0]}.stdout",
+            mpi_location = mpi_location,
         ))
 
         # plot force vs displacement
