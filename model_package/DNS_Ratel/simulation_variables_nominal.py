@@ -138,6 +138,29 @@ additional_files = [
     'RatelDNS/IDOX-ESTANE/I41_02/I41_02_sm3_df20_clamped_elast3/I41_02_sm3_fd20_l200_Ge01_Ee250_clamped_elast3_90.vtu',
     ]
 
+# softening study
+I41_02_clamp = {
+    # DNS parameters
+    'diam': 6.0,
+    'height': 5.485,
+    'material_E': 450.0,
+    'material_nu': 0.25,
+    'cut': True,
+    # paramters for Tardigrade-MOOSE
+    'macro_disp': 0.30,
+    'macro_duration': 1.0,
+    'macro_BC': 'clamp',
+    'lambda': 696.441593,
+    'mu': 126.7138,
+    'eta': -18.67498,
+    'tau': -37.817315,
+    'kappa': 15.177654,
+    'nu': -24.071197,
+    'sigma': -5.861821,
+    'tau7': 792.523471,
+    'cchi0': 3.192202765,
+}
+
 # Combine file lists, force the order
 all_files = []
 for file1, file2 in zip(I41_02['DNS_files'], additional_files):

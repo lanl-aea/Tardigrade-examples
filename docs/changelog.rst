@@ -21,6 +21,8 @@ New Features
 - Use PiecewiseConstantFromCSV to pass calibrated material card csv file to
   gradient enhanced damage Tardigrade-MOOSE simulations (:issue:`7`, :merge:`7`).
   By `Thomas Allard`_.
+- Extend workflows for plastic macroscale simulations with and without friction
+  (:issue:`20`, :merge:`10`). By `Thomas Allard`_.
 
 Documentation
 =============
@@ -29,6 +31,7 @@ Documentation
   documentation (:issue:`16`, :merge:`4`). By `Thomas Allard`_.
 - Update docstrings for all all SConscripts (:issue:`14`, :merge:`9`).
   By `Thomas Allard`_.
+- Document plastic macroscale studies (:issue:`20`, :merge:`10`). By `Thomas Allard`_.
 
 ******************
 0.1.0 (2024-06-21)
