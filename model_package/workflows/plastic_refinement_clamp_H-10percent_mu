@@ -1,0 +1,175 @@
+#! /usr/bin/env python
+
+""" Workflow for performing elastoplastic Tardigrade-MOOSE simulations with clamped BCs and 10% softening
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``Tardigrade_MOOSE_source_abspath`` - String absolute path to model_package/Tardigrade-MOOSE
+  * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
+  * ``cubit`` - String absolute path to Cubit Python intepreter, optional
+  * ``mpi`` - String absolute path to mpiexec program
+  * ``LD_PATH`` - String absolute path(s) for shared libraries required to run Tardigrade
+  * ``Tardigrade`` - String absolute path to tardigrade-opt program
+  * ``solve_cpus`` - Integer specifying the number of processes to run Tardigrade-MOOSE, default=1
+* ``parameters`` - WAVES CustomStudy parameter dictionary with the following required kyes
+  * ``num_domains`` - The number of macroscale filtering domains
+  * ``seed_size`` - The approximate element size (mm) for creating macroscale meshes in Cubit
+* ``workflow_name`` - The name of the workflow calling this SConscript
+* ``model`` - The name of the model
+* ``params`` - Parameter dictionary with the following required keys
+  * ``bounding_csv`` - String absolute path to a csv file containing the DNS bounding box data
+  * ``calibration_case`` - Integer specifying the calibration case
+  * ``cut`` - Boolean specifying whether a macroscale cylinder will be partioned by x-, y-, and z-planes
+  * ``height`` - The height (mm) of the cylindrical geometry
+  * ``mesh_copy_root`` - File root string for locating required DNS mesh in model_package/meshes if Cubit program is unavailable
+  * ``macro_BC`` - The type of boundary condition to apply in the Tardigrade-MOOSE, either "slip" or "clamp" or "brazil"
+  * ``macro_disp`` - The compressive displacement to apply to the top face of the cylinder
+  * ``duration`` - The duration of hte Tardigrade-MOOSE simulation
+* ``tardi_sim_name`` - The string root name for the Tardigrade-MOOSE simulation files
+* ``calibration_map`` - String absolute path to the calibration results for each element
+"""
+
+
+import pathlib
+
+import waves
+import numpy
+import SCons.Defaults
+
+from model_package.DNS_Ratel import simulation_variables_nominal
+
+# Inherit the parent construction environment
+Import('env')
+
+# set project-wide paths with os-agnostic path separators
+Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+calibrate_source_abspath = pathlib.Path(env["calibrate_source_abspath"])
+mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
+model_package_abspath = pathlib.Path(env["model_package_abspath"])
+
+# Simulation variables
+build_directory = pathlib.Path(Dir('.').abspath)
+workflow_name = build_directory.name
+workflow_configuration = [env["project_configuration"], workflow_name]
+output_file_type = "h5"
+model = "plastic_refinement_clamp_H-10percent_mu"
+params = simulation_variables_nominal.I41_02_clamp
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+
+# specify the fraction of mu for hardening
+fraction = 0.10
+
+# specify mesh refinement study
+parameter_schema = dict(
+    parameter_samples = numpy.array([
+        [192],
+        [960],
+        [2160],
+        [6912],
+        ], dtype=object),
+    parameter_names = numpy.array(["elements"])
+)
+
+# Refinement study
+output_csvs = []
+all_meshes = []
+parameter_generator = waves.parameter_generators.CustomStudy(parameter_schema)
+for set_name, parameters in parameter_generator.parameter_study_to_dict().items():
+    set_name = pathlib.Path(set_name)
+
+    elements = parameters['elements']
+
+    # Specify output name
+    hardening = str(fraction*params['mu']).split('.')
+    identifier = f'n{hardening[0]}p{hardening[1]}'
+    tardi_sim_name = f'TARDIGRADE-MOOSE_{elements}_elements_{params["macro_BC"]}_{identifier}'
+
+    # Copy exodus mesh to build directory
+    tardi_mesh = f'TARDIGRADE-MOOSE_I41_02_elastic_mesh_{elements}.e'
+    workflow.extend(env.Command(
+        target=[f"{set_name}/{tardi_mesh}"],
+        source=[f"{mesh_templates_abspath}/{tardi_mesh}"],
+        action=SCons.Defaults.Copy("${TARGET}", "${SOURCE}", False)
+        ))
+
+    # Write material card
+    material_script = 'write_plastic_material_card.py'
+    material_card = 'plastic_material_card.csv'
+    script_options = f'--output-file {material_card}'
+    script_options += ' --output-type csv'
+    script_options += f' --lamb {params["lambda"]}'
+    script_options += f' --mu {params["mu"]}'
+    script_options += f' --eta {params["eta"]}'
+    script_options += f' --tau {params["tau"]}'
+    script_options += f' --kappa {params["kappa"]}'
+    script_options += f' --nu {params["nu"]}'
+    script_options += f' --sigma {params["sigma"]}'
+    script_options += f' --tau7 {params["tau7"]}'
+    script_options += f' --cchi0 {params["cchi0"]}'
+    script_options += f' --Hchi {-1*fraction*params["mu"]}'
+    workflow.extend(env.PythonScript(
+        target = [f"{set_name}/{material_card}"],
+        source = [f"{Tardigrade_MOOSE_source_abspath / material_script}"],
+        script_options = script_options
+    ))
+
+    # build input file
+    tardigrade_input_script = "build_plastic_Tardigrade_input_deck.py"
+    tardigrade_build_input = f"{tardi_sim_name}.i"
+    script_options = f"--output-file {tardigrade_build_input}"
+    script_options += f" --calibration-map {material_card}"
+    script_options += f" --mesh {tardi_mesh}"
+    script_options += f" --BCs {params['macro_BC']}"
+    script_options += f" --disp {params['macro_disp']}"
+    script_options += f" --duration {params['macro_duration']}"
+    workflow.extend(env.PythonScript(
+        target = [f"{set_name}/{tardigrade_build_input}"],
+        source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}",
+        f"{set_name}/{tardi_mesh}", f"{set_name}/{material_card}"],
+        script_options = script_options
+    ))
+
+    # Macroscale
+    if env['macro']:
+        # run Tardigrade-MOOSE
+        tardigrade_moose_targs = [f'{tardi_sim_name}_out.e', f'{tardi_sim_name}_out.csv']
+        workflow.extend(env.TardigradeSolver(
+            target = tardigrade_moose_targs,
+            source = [f"{set_name}/{tardigrade_build_input}", f"{set_name}/{tardi_mesh}"],
+            tardigrade_program = env['Tardigrade'],
+            tardigrade_input = tardigrade_build_input,
+            tardigrade_threads =  env['solve_cpus'],
+            stdout_file = f"{tardigrade_moose_targs[0]}.stdout"
+        ))
+
+        # plot force vs displacement
+        plot_script = "plot_force_displacement.py"
+        plot_targets = [f"{tardi_sim_name}_force_displacement.png", f"{tardi_sim_name}_force_displacement.csv"]
+        script_options = f"--csv-file {tardigrade_moose_targs[1]}"
+        script_options += f" --output-file {plot_targets[0]}"
+        script_options += f" --output-csv {plot_targets[1]}"
+        script_options += f" --final-disp {params['macro_disp']}"
+        workflow.extend(env.PythonScript(
+            target=[plot_targets],
+            source=[str(Tardigrade_MOOSE_source_abspath / plot_script)],
+            script_options=script_options,
+            ))
+
+if env['summary']:
+    # summarize results
+    summary_script = "summarize_force_displacements.py"
+    output_targets = [f"{model}_force_summary.png", f"{model}_force_summary.csv"]
+    script_options = f"--csv-files {' '.join(output_csvs)}"
+    script_options += f" --plot-labels {' '.join(all_meshes)}"
+    script_options += f" --output-file {output_targets[0]}"
+    script_options += f" --output-csv {output_targets[1]}"
+    script_options += f" --plot-title {model}"
+    workflow.extend(env.PythonScript(
+        target=output_targets,
+        source=[f"{Tardigrade_MOOSE_source_abspath / summary_script}"] + output_csvs,
+        script_options=script_options
+        ))
+
+# Collector alias based on parent directory name
+env.Alias(workflow_name, workflow)
