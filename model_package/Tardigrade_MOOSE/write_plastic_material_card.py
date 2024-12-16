@@ -34,14 +34,14 @@ def write_plastic_material_card(output_file, output_type,
     :params float tau9: The elastic tau9 parameter
     :params float tau10: The elastic tau10 parameter
     :params float tau11: The elastic tau11 parameter
-    :params float cu0: The plastic initial macro cohesion parameter, c^{u,0}
-    :params float Hu: The plastic macro hardening parameter, H^u
-    :params float cchi0: The plastic initial micro cohesion parameter, c^{\chi,0}
-    :params float Hchi: The plastic micro hardening parameter, H^{\chi}
-    :params float cnablachi0: The plastic initial micro gradient cohesion parameter, c^{\nabla\chi, 0}
-    :params float Hnablachi: The plastic micro gradient hardening parameter, H^{\nabla\chi}
+    :params float cu0: The plastic initial macro cohesion parameter, $c^{u,0}$
+    :params float Hu: The plastic macro hardening parameter, $H^u$
+    :params float cchi0: The plastic initial micro cohesion parameter, $c^{\chi,0}$
+    :params float Hchi: The plastic micro hardening parameter, $H^{\chi}$
+    :params float cnablachi0: The plastic initial micro gradient cohesion parameter, $c^{\nabla\chi, 0}$
+    :params float Hnablachi: The plastic micro gradient hardening parameter, $H^{\nabla\chi}$
 
-    :returns: Write ``output_file``
+    :returns: ``output_file``
     '''
 
     # Dump to yaml
@@ -135,17 +135,17 @@ def get_parser():
     parser.add_argument('--tau11', type=float, required=False, default=0.0,
         help="The elastic tau11 parameter")
     parser.add_argument('--cu0', type=float, required=False, default=1.e4,
-        help="The plastic initial macro cohesion parameter, c^{u,0}")
+        help="The plastic initial macro cohesion parameter, $c^{u,0}$")
     parser.add_argument('--Hu', type=float, required=False, default=1.e-8,
-        help="The plastic macro hardening parameter, H^u")
+        help="The plastic macro hardening parameter, $H^u$")
     parser.add_argument('--cchi0', type=float, required=False, default=1.e4,
-        help="The plastic initial micro cohesion parameter, c^{\chi,0}")
+        help="The plastic initial micro cohesion parameter, $c^{\chi,0}$")
     parser.add_argument('--Hchi', type=float, required=False, default=1.e-8,
-        help="The plastic micro hardening parameter, H^{\chi}")
+        help="The plastic micro hardening parameter, $H^{\chi}$")
     parser.add_argument('--cnablachi0', type=float, required=False, default=1.e4,
-        help="The plastic initial micro gradient cohesion parameter, c^{\nabla\chi,0}")
+        help="The plastic initial micro gradient cohesion parameter, $c^{\nabla\chi,0}$")
     parser.add_argument('--Hnablachi', type=float, required=False, default=1.e-8,
-        help="The plastic micro gradient hardening parameter, H^{\nabla\chi}")
+        help="The plastic micro gradient hardening parameter, $H^{\nabla\chi}$")
 
     return parser
 
