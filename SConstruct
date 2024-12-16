@@ -438,6 +438,7 @@ workflow_configurations = [
     # Tardigrade solo studies
     "Tardigrade_convergence",
     "Tardigrade_dynamic_convergence",
+    "plastic_refinement_clamp_H-10percent_mu",
     # Brazilian Disk Compression
     "Tardigrade_Brazilian_disk",
     "Tardigrade_Brazilian_disk_platens",
