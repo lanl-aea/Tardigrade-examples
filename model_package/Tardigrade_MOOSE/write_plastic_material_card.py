@@ -34,12 +34,12 @@ def write_plastic_material_card(output_file, output_type,
     :params float tau9: The elastic tau9 parameter
     :params float tau10: The elastic tau10 parameter
     :params float tau11: The elastic tau11 parameter
-    :params float cu0: The plastic initial macro cohesion parameter, $c^{u,0}$
-    :params float Hu: The plastic macro hardening parameter, $H^u$
-    :params float cchi0: The plastic initial micro cohesion parameter, $c^{\chi,0}$
-    :params float Hchi: The plastic micro hardening parameter, $H^{\chi}$
-    :params float cnablachi0: The plastic initial micro gradient cohesion parameter, $c^{\nabla\chi, 0}$
-    :params float Hnablachi: The plastic micro gradient hardening parameter, $H^{\nabla\chi}$
+    :params float cu0: The plastic initial macro cohesion parameter
+    :params float Hu: The plastic macro hardening parameter
+    :params float cchi0: The plastic initial micro cohesion parameter
+    :params float Hchi: The plastic micro hardening parameter
+    :params float cnablachi0: The plastic initial micro gradient cohesion parameter
+    :params float Hnablachi: The plastic micro gradient hardening parameter
 
     :returns: ``output_file``
     '''
@@ -64,13 +64,12 @@ def write_plastic_material_card(output_file, output_type,
         output_dict['line 13'] = f'2 {tau} {sigma}'
         # integration
         output_dict['line 14'] = '0.5 0.5 0.5 1e-9 1e-9'
-
         with open(output_file, 'w') as f:
             yaml.dump(output_dict, f)
     # Dump to csv
     elif output_type == 'csv':
-        elastic_parameter_ordering = ['lambda', 'mu', 'eta', 'tau', 'kappa', 'nu', 'sigma',\
-                                      'tau1', 'tau2', 'tau3', 'tau4', 'tau5', 'tau6', 'tau7',\
+        elastic_parameter_ordering = ['lambda', 'mu', 'eta', 'tau', 'kappa', 'nu', 'sigma',
+                                      'tau1', 'tau2', 'tau3', 'tau4', 'tau5', 'tau6', 'tau7',
                                       'tau8', 'tau9', 'tau10', 'tau11']
         plastic_parameter_ordering = ['cu0', 'Hu', 'cchi0', 'Hchi', 'cnablachi0', 'Hnablachi']
         parameter_ordering = ['element'] + plastic_parameter_ordering + elastic_parameter_ordering
@@ -152,7 +151,7 @@ def get_parser():
 
 if __name__ == '__main__':
     parser = get_parser()
-    
+
     args, unknown = parser.parse_known_args()
     sys.exit(write_plastic_material_card(output_file=args.output_file,
                                          output_type=args.output_type,
