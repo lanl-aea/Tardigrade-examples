@@ -1,7 +1,13 @@
 #! /usr/bin/env python
 
-""" TODO
-
+""" Workflow for running a mesh convergence study of dynamic Tardigrade-MOOSE simulations of a elastic cylinder under uni-axial stress in compression
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``Tardigrade_MOOSE_source_abspath`` - String path for the Tardigrade-MOOSE application
+  * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
+  * ``mpi`` - String absolute path to mpiexec program
+  * ``LD_PATH`` - String absolute path(s) for shared libraries required to run Tardigrade
+  * ``Tardigrade`` - String absolute path to tardigrade-opt program
 """
 
 import pathlib
@@ -12,13 +18,13 @@ import SCons.Defaults
 
 from model_package.Tardigrade_MOOSE import simulation_variables_nominal
 
+
 # Inherit the parent construction environment
 Import('env')
 
 # set project-wide paths with os-agnostic path separators
 Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
 mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
-model_package_abspath = pathlib.Path(env["model_package_abspath"])
 
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)
@@ -132,6 +138,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     elements = parameters['elements']
     disp_csvs.append(f'{set_name}/TARDIGRADE-MOOSE_{model}_{elements}_dynamic_displacement.csv')
     element_labels.append(elements)
+
 # Displacement vs time
 summary_script = "summarize_dynamic_displacements.py"
 output_targets = ["all_dynamic_displacements.png", "all_dynamic_displacements.csv"]

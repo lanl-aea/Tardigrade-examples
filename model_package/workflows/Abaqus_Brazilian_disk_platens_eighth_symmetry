@@ -1,16 +1,17 @@
 #! /usr/bin/env python
 
-""" TODO
-
+""" Workflow for running an Abaqus/Standard simulation of a Brazilian disk indirect tension experiment with 1/8th symmetry with loading platens
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``DNS_Abaqus_abspath`` - String absolute path to the Abaqus journal files
+  * ``Tardigrade_MOOSE_source_abspath`` - String path for the Tardigrade-MOOSE application
+  * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
 """
 
 import pathlib
 
-import waves
-import numpy
-import SCons.Defaults
-
 from model_package.Tardigrade_MOOSE import simulation_variables_nominal
+
 
 # Inherit the parent construction environment
 Import('env')
@@ -19,7 +20,6 @@ Import('env')
 DNS_Abaqus_abspath = pathlib.Path(env["DNS_Abaqus_abspath"])
 Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
 mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
-model_package_abspath = pathlib.Path(env["model_package_abspath"])
 
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)

@@ -1,7 +1,30 @@
 #! /usr/bin/env python
 
-"""
-    TODO
+""" Common workflow for homogenization using the Micromorphic Filter
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``filter_source_abspath`` - String absolute path to model_package/Filter
+  * ``Tardigrade_MOOSE_source_abspath`` - String absolute path to model_package/Tardigrade-MOOSE
+  * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
+  * ``cubit`` - String absolute path to Cubit Python intepreter, optional
+  * ``parse_filter_errors`` - Boolean or string identifying if Micromorphic balance equation errors will be analyzed, optional
+* ``parameters`` - WAVES CustomStudy parameter dictionary with the following required kyes
+  * ``num_domains`` - The number of macroscale filtering domains
+  * ``seed_size`` - The approximate element size (mm) for creating macroscale meshes in Cubit
+* ``workflow_name`` - The name of the workflow calling this SConscript
+* ``model`` - The name of the model
+* ``params`` - Parameter dictionary with the following required keys
+  * ``bounding_csv`` - String absolute path to a csv file containing the DNS bounding box data
+  * ``cut`` - Boolean specifying whether a macroscale cylinder will be partioned by x-, y-, and z-planes
+  * ``viz_targs`` - Tuple of tuples containing pairs of visualization command line arguments and associated build targets
+  * ``filter_targs`` - List containing names of the XDMF/H5 file pair of Micromorphic Filter results
+  * ``mesh_copy_root`` - File root string for locating required macroscale mesh in model_package/meshes if Cubit program is unavailable
+  * ``acceleration`` - Boolean specifying whether DNS accelerations will be homogenized
+  * ``velocity`` - Boolean specifying whether DNS velocities will be homogenized
+  * ``filter_parallel`` - Integer specifying the number of parallel processes will be used by the Micromorphic Filter
+  * ``rho_binder`` - The density (Mg/mm^3) of binder material, only required if "csv-all-quantities-single-domain" included in "viz_targs"
+  * ``rho_grain`` - The density (Mg/mm^3)of grain material, only required if "csv-all-quantities-single-domain" included in "viz_targs"
+* ``filter_inputs`` - List containing names of the XDMF/H5 file pair of DNS results to be homogenized
 """
 
 import pathlib
@@ -36,8 +59,10 @@ filter_results = params['filter_targs'][0].split('.')[0]
 # Collect the target nodes to build a concise alias for all targets
 workflow = []
 
+
 # Filter prep - write macroscale_domain
 macro_file = f"FILTER_macroscale_{model}_{int(domain_number)}"
+# ---------- Single Domain ---------------------------------------------------------------
 if domain_number == 1:
     # Single filter domain option
     macro_script = "single_macroscale.py"
@@ -49,6 +74,7 @@ if domain_number == 1:
         source = [f"{filter_source_abspath / macro_script}", bounding_csv],
         script_options = script_options
     ))
+# ---------- Multi Domain ---------------------------------------------------------------
 else:
     # Build mesh if Cubit is found, otherwise copy a template
     if env['cubit']:
@@ -73,7 +99,7 @@ else:
             action=SCons.Defaults.Copy("${TARGET}", "${SOURCE}", False)
             ))
 
-    # convert to foramt needed by filter
+    # convert to format needed by filter
     convert_script = "xdmf_tomfoolery.py"
     new_mesh_targets = [f"{macro_file}.{ext}" for ext in ['xdmf', 'h5']]
     script_options = f"--output-file {macro_file}"
@@ -84,7 +110,7 @@ else:
         script_options=script_options
         ))
 
-## Filter prep - write filter config
+# Filter prep - write filter config
 filter_config_script = "build_filter_config.py"
 job_name = str(build_directory / f"{filter_results}.xdmf")
 filter_config_file = f"FILTER_config_{model}_{int(domain_number)}.yml"
@@ -104,9 +130,8 @@ workflow.extend(env.PythonScript(
     script_options = script_options
 ))
 
-## Filter!
+# Filter!
 filter_script = "run_micromorphic_filter.py"
-#filter_sources = filter_inputs + [f'{macro_file}.xdmf', filter_config_file]
 filter_sources = [f'{macro_file}.xdmf', filter_config_file]
 filter_targs = params['filter_targs']
 script_options = f" --config-file {filter_config_file}"
@@ -116,7 +141,7 @@ workflow.extend(env.PythonScript(
     script_options = script_options
 ))
 
-## Parse balance equation errors
+# Parse balance equation errors
 if env["parse_filter_errors"]:
     balance_script = "parse_balance_errors.py"
     balance_file = f"{filter_results}.xdmf.stdout"
@@ -131,7 +156,7 @@ if env["parse_filter_errors"]:
         script_options = script_options
     ))
 
-## Visualize, make some plots and populate documentation
+# Visualize, make some plots and populate documentation
 viz_script = "visualize_results.py"
 script_options = f"--input-file {filter_results}.xdmf"
 script_options += f" --num-domains {domain_number}"
@@ -142,7 +167,6 @@ for option, target in viz_targs:
 if 'csv-all-quantities-single-domain' in [targ[0] for targ in viz_targs]:
     script_options += f" --rho-binder {params['rho_binder']}"
     script_options += f" --rho-grain {params['rho_grain']}"
-#script_options += " --options average"
 workflow.extend(env.PythonScript(
     target = viz_targets,
     source = [f"{filter_source_abspath / viz_script}"] + filter_targs,

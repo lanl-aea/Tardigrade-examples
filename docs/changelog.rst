@@ -27,6 +27,8 @@ Documentation
 
 - Document new Ratel I43.09 upscaling results. Fix typos and errors in previous
   documentation (:issue:`16`, :merge:`4`). By `Thomas Allard`_.
+- Update docstrings for all all SConscripts (:issue:`14`, :merge:`9`).
+  By `Thomas Allard`_.
 
 ******************
 0.1.0 (2024-06-21)

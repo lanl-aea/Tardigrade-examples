@@ -9,7 +9,7 @@ import pandas
 
 def process_calibration_map_to_parameter_csv(output_file, calibration_map):
     '''Process a calibration map file to a parameter csv for Tardigrade-MOOSE
-    
+
     :param str output_file: Specify the name of the output csv to write
     :param str calibration_map: CSV file containing calibration data
 

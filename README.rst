@@ -157,6 +157,15 @@ analyses. The DNS software, on the other hand, is not necessarily required.
 ..
    TODO: finish describing software requirements!
 
+Git large file storage (LFS)
+============================
+
+In order to clone binary image and mesh files, make sure that git lfs is installed.
+
+   .. code-block::
+
+      $ git lfs install --skip-smudge
+
 .. software-requirements-description-end-do-not-remove
 
 Developers

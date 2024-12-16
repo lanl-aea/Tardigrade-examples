@@ -1,11 +1,36 @@
 #! /usr/bin/env python
+
+""" Common workflow for performing plastic Tardigrade-MOOSE simulations of quasi-static cylinder compression
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``Tardigrade_MOOSE_source_abspath`` - String absolute path to model_package/Tardigrade-MOOSE
+  * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
+  * ``cubit`` - String absolute path to Cubit Python intepreter, optional
+  * ``mpi`` - String absolute path to mpiexec program
+  * ``LD_PATH`` - String absolute path(s) for shared libraries required to run Tardigrade
+  * ``Tardigrade`` - String absolute path to tardigrade-opt program
+  * ``solve_cpus`` - Integer specifying the number of processes to run Tardigrade-MOOSE, default=1
+* ``parameters`` - WAVES CustomStudy parameter dictionary with the following required kyes
+  * ``num_domains`` - The number of macroscale filtering domains
+  * ``seed_size`` - The approximate element size (mm) for creating macroscale meshes in Cubit
+* ``workflow_name`` - The name of the workflow calling this SConscript
+* ``model`` - The name of the model
+* ``params`` - Parameter dictionary with the following required keys
+  * ``bounding_csv`` - String absolute path to a csv file containing the DNS bounding box data
+  * ``plastic_calibration_case`` - Integer specifying the plastic calibration case
+  * ``cut`` - Boolean specifying whether a macroscale cylinder will be partioned by x-, y-, and z-planes
+  * ``calibration_map`` - String absolute path to the calibration results for each element
+  * ``height`` - The height (mm) of the cylindrical geometry
+  * ``mesh_copy_root`` - File root string for locating required DNS mesh in model_package/meshes if Cubit program is unavailable
+  * ``macro_BC`` - The type of boundary condition to apply in the Tardigrade-MOOSE, either "slip" or "clamp" or "brazil"
+  * ``macro_disp`` - The compressive displacement to apply to the top face of the cylinder
+  * ``macro_duration`` - The duration of the Tardigrade-MOOSE simulation
 """
-    TODO
-"""
+
 import pathlib
 
-import waves
 import SCons.Defaults
+
 
 # Inherit the parent construction environment
 Import("env")

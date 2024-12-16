@@ -1,10 +1,23 @@
 #! /usr/bin/env python
+
+""" Common workflow for summarizing multi domain upscaling results for homogenization, calibration, and macro-scale simulation(s)
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``filter_source_abspath`` - String absolute path to model_package/Filter
+  * ``calibrate_source_abspath`` - String absolute path to model_package/Calibrate
+  * ``Tardigrade_MOOSE_source_abspath`` - String absolute path to model_package/Tardigrade-MOOSE
+* ``workflow_name`` - The name of the workflow calling this SConscript
+* ``model`` - The name of the model
+* ``params`` - Parameter dictionary with the following required keys
+  * ``calibration_case`` - Integer specifying the calibration case
+  * ``ignore_boundary`` - Optional key that indicates if summary of calibration and macroscale simulation(s) results will be collected in which calibration results for the elements on the top and bottom cylidner surface are ignored
+* ``set_names`` - A list of string absolute paths to the parameter studiy directories containing results
+* ``num_domains`` - A list of strings representing integers associated with the number of filtering domains for each study
+* ``dns_forces`` - String name of file containing DNS force vs displacement data
 """
-    TODO
-"""
+
 import pathlib
 
-import waves
 
 # Inherit the parent construction environment
 Import("env")
