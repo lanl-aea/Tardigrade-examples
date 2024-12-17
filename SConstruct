@@ -62,6 +62,14 @@ AddOption(
          " (default: '%default')"
 )
 AddOption(
+    "--calibrate-qp",
+    dest="calibrate_qp",
+    default=False,
+    action="store_true",
+    help="Boolean speciyfing whether or not to run calibration of quadrature points for a particular upscaling study."\
+         " (default: '%default')"
+)
+AddOption(
     "--macro",
     dest="macro",
     default=False,
@@ -147,6 +155,7 @@ env = waves.scons_extensions.WAVESEnvironment(
     print_build_failures=GetOption("print_build_failures"),
     filter=GetOption("filter"),
     calibrate=GetOption("calibrate"),
+    calibrate_qp=GetOption("calibrate_qp"),
     macro=GetOption("macro"),
     macro_platen=GetOption("macro_platen"),
     macro_damage=GetOption("macro_damage"),
