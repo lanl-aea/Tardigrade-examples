@@ -23,6 +23,8 @@ New Features
   By `Thomas Allard`_.
 - Extend workflows for plastic macroscale simulations with and without friction
   (:issue:`20`, :merge:`10`). By `Thomas Allard`_.
+- Implement material point calibration for single and multiple filter domain
+  workflows(:issue:`5`, :merge:`11`). By `Thomas Allard`_.
 
 Documentation
 =============
