@@ -11,6 +11,9 @@ Glossary
    CI
      Continuous integration
 
+   CGNS
+     CFD General Notation System
+
    CLI
      A command line interface (CLI) is the text based user interface for modifying software execution behavior
 
@@ -18,7 +21,6 @@ Glossary
      Directed acyclic graph
 
    DNS
-
      Direct Numerical Simulation
 
    git
@@ -33,6 +35,12 @@ Glossary
    IP
      Intellectual property
 
+   LFS
+     Large File Storage service
+
+   MPM
+     material point method
+
    modsim
      Models and simulations, abbreviated as 'modsim', is the practice of using analytical or numerical models for
      science and engineering.
@@ -43,3 +51,9 @@ Glossary
 
    OS
      Operating system
+
+   VTK
+     Visualization ToolKit
+
+   XDMF
+     eXtensible Data Model Format
