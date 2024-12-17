@@ -27,7 +27,6 @@ Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_absp
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)
 workflow_name = build_directory.name
-workflow_configuration = [env["project_configuration"], workflow_name]
 output_file_type = "h5"
 model = "Brazil_disk"
 params = simulation_variables_nominal.Brazilian_disk

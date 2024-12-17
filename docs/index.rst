@@ -54,6 +54,13 @@
 
    Ratel_I41_02_elastic
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Micro-averaging Domain Studies
+
+   Neper_cube
+   Neper_cylinder
+
 .. raw:: latex
 
    \part{Model Repository}

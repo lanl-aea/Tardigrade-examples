@@ -37,6 +37,7 @@ def config_software(config_file):
                              'Tardigrade': [''],
                              'LD_PATH': [''],
                              'mpi': [''],
+                             'Neper': [''],
                              'paraview': [''],
                              }
 

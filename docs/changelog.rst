@@ -25,6 +25,9 @@ New Features
   (:issue:`20`, :merge:`10`). By `Thomas Allard`_.
 - Implement material point calibration for single and multiple filter domain
   workflows(:issue:`5`, :merge:`11`). By `Thomas Allard`_.
+- New workflows to investigate spectral clustering method of identifying
+  micro-averaging domains using bonded grain DNS generated using Neper
+  (:issue:`18`, :merge:`12`). By `Thomas Allard`_.
 
 Documentation
 =============
@@ -34,6 +37,8 @@ Documentation
 - Update docstrings for all all SConscripts (:issue:`14`, :merge:`9`).
   By `Thomas Allard`_.
 - Document plastic macroscale studies (:issue:`20`, :merge:`10`). By `Thomas Allard`_.
+- Document bonded neper spectral clustering workflow (:issue:`18`, :merge:`12`).
+  By `Thomas Allard`_.
 
 ******************
 0.1.0 (2024-06-21)

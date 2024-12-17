@@ -112,6 +112,10 @@ figure_pictures = [
     "Ratel_I41_macroscale_elastic_960.jpeg",
     "Ratel_I41_pk2_colorbar.jpg",
     "Ratel_I41_all_force_displacements_case_3.png",
+    # Ratel I43
+    # Neper
+    "neper_cube_grain_geometry.jpg",
+    "neper_cylinder_grain_geometry.jpg",
     # Workflow and general
     "upscaling_flowchart.png",
     "averaging_domains.png",
@@ -170,6 +174,8 @@ documentation_file_list = [
     "Abaqus_elastic_cylinder_dynamic_imp.rst",
     "Tardigrade_MOOSE_dynamic_convergence.rst",
     "Ratel_I41_02_elastic.rst",
+    "Neper_cube.rst",
+    "Neper_cylinder.rst",
     # Pictures
     "project_logo.png",
 ]

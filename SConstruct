@@ -74,7 +74,7 @@ AddOption(
     dest="macro",
     default=False,
     action="store_true",
-    help="Boolean speciyfing whether or not to run plastic macro simulation in Tardigrade-MOOSE."\
+    help="Boolean speciyfing whether or not to run macro simulation(s) in Tardigrade-MOOSE."\
          " (default: '%default')"
 )
 AddOption(
@@ -99,7 +99,7 @@ AddOption(
     default=False,
     action="store_true",
     help="Boolean speciyfing whether or not to run macro simulation in Tardigrade-MOOSE"\
-         " with an 'averaged' material card for boundary elements(default: '%default')"
+         " with an 'averaged' material card for boundary elements. (default: '%default')"
 )
 AddOption(
     "--summary",
@@ -201,6 +201,10 @@ env["abaqus"] = env.AddProgram(program_paths['Abaqus'] + abaqus_windows)
 #env["cubit"] = env.AddCubitPython(program_paths['Cubit'])
 env["cubit"] = env.AddCubitPython(["/apps/Cubit-16.16/cubit","cubit"])
 
+# Neper
+neper_location = program_paths['Neper']
+env["neper"] = waves.scons_extensions.find_program(env, neper_location)
+
 # Ratel
 ratel_location = program_paths['Ratel']
 env['Ratel'] = waves.scons_extensions.find_program(env, ratel_location)
@@ -296,6 +300,12 @@ def tardigrade_builder_select():
     else:
         return tardigrade_solver
 
+# Neper
+neper_tesselate = Builder(
+    action=["cd ${TARGET.dir.abspath} && \
+             neper -T -n ${num_grains} -o ${output_name} ${arguments} \
+             > ${stdout_file}"])
+
 # # Custom Paraview image generator
 # env['paraview'] = waves.scons_extensions.find_program(program_paths['filter'], env)
 # if env['paraview']:
@@ -384,13 +394,16 @@ env.Append(BUILDERS={
     "AbaqusJournal": waves.scons_extensions.abaqus_journal(program=env["abaqus"]),
     "AbaqusSolver": waves.scons_extensions.abaqus_solver(program=env["abaqus"]),
     "AbaqusExtract": waves.scons_extensions.abaqus_extract(program=env["abaqus"]),
+    "NeperTesselate": neper_tesselate,
     "PythonScript": python_script,
     "CondaEnvironment": waves.scons_extensions.conda_environment(),
     "RatelSolver": ratel_builder_select(),
     "TardigradeSolver": tardigrade_builder_select(),
     #"ParaviewImage": paraview_image,
     "SphinxBuild": waves.scons_extensions.sphinx_build(program=env["sphinx_build"], options="-W"),
-    "SphinxPDF": waves.scons_extensions.sphinx_latexpdf(program=env["sphinx_build"], options="-W")
+    "SphinxPDF": waves.scons_extensions.sphinx_latexpdf(program=env["sphinx_build"], options="-W"),
+    "AbaqusSolverOverride": waves.scons_extensions.abaqus_solver(program=env["abaqus"],
+        action_suffix="> ${stdout_file} || true && cd ${TARGET.dir.abspath} && grep -i 'COMPLETED' ${search}"),
 })
 env.Append(SCANNERS=waves.scons_extensions.sphinx_scanner())
 
@@ -453,11 +466,24 @@ workflow_configurations = [
     "Tardigrade_Brazilian_disk_platens",
     "Tardigrade_Brazilian_disk_platens_eighth_symmetry",
     "Abaqus_Brazilian_disk_platens_eighth_symmetry",
+    #Neper studies
+    "neper_cube",
+    "neper_cylinder",
 ]
+
 for workflow in workflow_configurations:
-    build_dir = str(variant_dir_base / workflow)
-    workflow_sconscript = pathlib.Path(f"{workflow_dir}/{workflow}")
-    SConscript(workflow_sconscript, variant_dir=build_dir, exports="env", duplicate=False)
+    if ("neper" in workflow.lower()) and (not env['neper']):
+        print(f"Neper program not found! Skipping '{workflow}' workflow.")
+    elif ("abaqus" in workflow.lower()) and (not env['abaqus']):
+        print(f"Abaqus program not found! Skipping '{workflow}' workflow.")
+    elif ("ratel_elastic" in workflow.lower()) and (not env['Ratel']):
+        print(f"Ratel program not found! Skipping '{workflow}' workflow.")
+    elif ("tardigrade" in workflow.lower()) and (not env['Tardigrade']):
+        print(f"Tardigrade program not found! Skipping '{workflow}' workflow.")
+    else:
+        build_dir = str(variant_dir_base / workflow)
+        workflow_sconscript = pathlib.Path(f"{workflow_dir}/{workflow}")
+        SConscript(workflow_sconscript, variant_dir=build_dir, exports="env", duplicate=False)
 
 # Update local copies of Peta data
 import model_package.peta

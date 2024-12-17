@@ -1,0 +1,134 @@
+#! /usr/bin/env python
+
+""" Common workflow for calibrating micromorphic elasticity for elements and quadrature points
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``calibrate_source_abspath`` - String absolute path to model_package/Calibrate
+  * ``filter_source_abspath`` - String absolute path to model_package/Filter
+* ``parameters`` - WAVES CustomStudy parameter dictionary with the following required kyes
+  * ``num_domains`` - The number of macroscale filtering domains
+  * ``seed_size`` - The approximate element size (mm) for creating macroscale meshes in Cubit
+* ``workflow_name`` - The name of the workflow calling this SConscript
+* ``model`` - The name of the model
+* ``params`` - Parameter dictionary with the following required keys
+  * ``filter_file`` - XDMF file containing Micromorphic Filter results
+  * ``calibration_case`` - Integer specifying the calibration case
+  * ``material_E`` - The elastic modulus (MPa) of the DNS material
+  * ``material_nu`` - The Poisson ratio of the DNS material
+  * ``calibration_increment`` - An optional list of one or more increments to perform calibration
+  * ``UQ_file`` - Optional csv filename to store function evaluations and parameter sets for UQ
+"""
+
+import pathlib
+import os
+
+import waves
+import numpy
+
+
+# Inherit the parent construction environment
+Import("env")
+Import("parameters")
+Import("workflow_name")
+Import("model")
+Import("params")
+
+# Set project-wide paths
+calibrate_source_abspath = pathlib.Path(env["calibrate_source_abspath"])
+filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
+
+# workflow variables
+build_directory = pathlib.Path(Dir(".").abspath)
+domain_number = parameters['num_domains']
+seed_size = parameters['seed_size']
+filter_file = params['filter_file']
+case = params['calibration_case']
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+ignore_boundary_parameter_sets = []
+
+calibration_script = 'calibrate_qp.py'
+plot_root = 'CALIBRATION_COMPARISON'
+
+qp_list = list(range(0,8))
+
+if domain_number == 1:
+    qp_array = numpy.array(qp_list).reshape((-1,1))
+    calibration_schema = dict(parameter_samples=qp_array, parameter_names=numpy.array(['qps']))
+    calibration_generator = waves.parameter_generators.CustomStudy(calibration_schema)
+
+    # calibration loop
+    calibrated_files = []
+
+    for calib_set, calib_params in calibration_generator.parameter_study_to_dict().items():
+        qp = calib_params['qps']
+
+        calibration_targs = [f'calibrated_parameters_case_{case}_elem_0_qp_{qp}.yml',
+                             f'{plot_root}_PK2_fit_case_{case}.PNG',
+                             f'{plot_root}_SIGMA_fit_case_{case}.PNG']
+        script_options = f"--input-file {filter_file}"
+        script_options += f" --output-file {calibration_targs[0]}"
+        script_options += f" --case {case}"
+        script_options += f" --Emod {params['material_E']}"
+        script_options += f" --nu {params['material_nu']}"
+        script_options += f" --L 1.0"
+        script_options += f" --element 0"
+        script_options += f" --qp {qp}"
+        script_options += f" --plot-file {plot_root}"
+        script_options += f" --dev-norm-errors True"
+        if 'calibration_increment' in params.keys():
+            script_options += f" --increment {' '.join(str(i) for i in params['calibration_increment'])}"
+        if ('UQ_file' in params.keys()) and (params['UQ_file'] == True):
+            UQ_output = f"{calibration_targs[0].split('.')[0]}_evals.csv"
+            calibration_targs.append(UQ_output)
+            script_options += f" --UQ-file {UQ_output}"
+        workflow.extend(env.PythonScript(
+            target = [f'{calib_set}/{cali_targ}' for cali_targ in calibration_targs],
+            source = [f"{calibrate_source_abspath / calibration_script}", filter_file],
+            script_options = script_options
+        ))
+
+# set up parameter study to calibrate each element individually
+else:
+    element_list = list(range(0,int(domain_number)))
+    calibration_schema={
+        'elements': element_list,
+        'qps': qp_list,}
+    calibration_generator = waves.parameter_generators.CartesianProduct(calibration_schema)
+
+    # calibration loop
+    calibrated_files = []
+
+    for calib_set, calib_params in calibration_generator.parameter_study_to_dict().items():
+        elem = calib_params['elements']
+        qp = calib_params['qps']
+
+        calibration_targs = [f'calibrated_parameters_case_{case}_elem_{elem}_qp_{qp}.yml',
+                             f'{plot_root}_PK2_fit_case_{case}.PNG',
+                             f'{plot_root}_SIGMA_fit_case_{case}.PNG']
+        calibrated_files.append(f'{calib_set}/{calibration_targs[0]}')
+        script_options = f"--input-file {filter_file}"
+        script_options += f" --output-file {calibration_targs[0]}"
+        script_options += f" --case {case}"
+        script_options += f" --Emod {params['material_E']}"
+        script_options += f" --nu {params['material_nu']}"
+        script_options += f" --L {seed_size}"
+        script_options += f" --element {elem}"
+        script_options += f" --qp {qp}"
+        script_options += f" --plot-file {plot_root}"
+        script_options += f" --dev-norm-errors True"
+        if 'calibration_increment' in params.keys():
+            script_options += f" --increment {' '.join(str(i) for i in params['calibration_increment'])}"
+        if ('UQ_file' in params.keys()) and (params['UQ_file'] == True):
+            UQ_output = f"{calibration_targs[0].split('.')[0]}_evals.csv"
+            calibration_targs.append(UQ_output)
+            script_options += f" --UQ-file {UQ_output}"
+        workflow.extend(env.PythonScript(
+            target = [f'{calib_set}/{cali_targ}' for cali_targ in calibration_targs],
+            source = [f"{calibrate_source_abspath / calibration_script}", filter_file],
+            script_options = script_options
+        ))
+
+env.Alias(workflow_name, workflow)
+Return("workflow")

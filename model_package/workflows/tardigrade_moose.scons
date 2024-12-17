@@ -48,7 +48,6 @@ mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
 
 # workflow variables
 build_directory = pathlib.Path(Dir(".").abspath)
-workflow_configuration = [env["project_configuration"], workflow_name]
 domain_number = parameters['num_domains']
 seed_size = parameters['seed_size']
 bounding_csv = params['bounding_csv']

@@ -87,3 +87,34 @@ dynamic_elastic_cylinder = {
     'macro_disp': 0.05,
     'macro_duration': 1.0,
 }
+
+neper_cylinder = {
+    'diam': 1.0,
+    'height': 1.0,
+    'number_grains': 20,
+    'material_name': 'alum6061',
+    'pressure': 10.,
+    'displacement': -0.1,
+    'block_name': 'GRAINS',
+    'material_rho': 2.8,
+    'cut': True,
+    # parameters for micromorphic filter
+    'acceleration': False,
+    'velocity': False,
+    'filter_parallel': 8,
+}
+
+neper_cube = {
+    'width': 1.0,
+    'number_grains': 50,
+    'material_name': 'alum6061',
+    'pressure': 10.,
+    'displacement': -0.1,
+    'block_name': 'GRAINS',
+    'material_rho': 2.8,
+    'cut': True,
+    # parameters for micromorphic filter
+    'acceleration': False,
+    'velocity': False,
+    'filter_parallel': 8,
+}

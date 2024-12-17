@@ -551,8 +551,8 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
     output_dict['obj_func_value'] = f"{res.fun}"
     with open(output_filename, 'w') as f:
         yaml.dump(output_dict, f)
-    return
-    return
+
+    return 0
 
 
 def get_parser():

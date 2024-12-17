@@ -44,6 +44,22 @@ DNS_Abaqus.build_elastic_cylinder.py
     :show-inheritance:
     :synopsis: Create an Abaqus model of an elastic cylinder under static compression
 
+DNS_Abaqus.convert_tess.py
+==========================
+
+.. automodule:: model_package.DNS_Abaqus.convert_tess
+    :members:
+    :show-inheritance:
+    :synopsis: Convert a tesslation file output by Neper to STL and create Abaqus mesh
+
+DNS_Abaqus.convert_tess_cylinder.py
+===================================
+
+.. automodule:: model_package.DNS_Abaqus.convert_tess_cylinder
+    :members:
+    :show-inheritance:
+    :synopsis: Convert a tesslation file output by Neper for a cylindrical geometry to STL and create Abaqus mesh
+
 DNS_Abaqus.dynamic_analytical_comparison.py
 ===========================================
 
@@ -83,6 +99,22 @@ DNS_Abaqus.ODBextract_to_XDMF.py
     :members:
     :show-inheritance:
     :synopsis: Convert Abaqus DNS results to XDMF format
+
+DNS_Abaqus.parse_sets_from_inp.py
+=================================
+
+.. automodule:: model_package.DNS_Abaqus.parse_sets_from_inp
+    :members:
+    :show-inheritance:
+    :synopsis: Extract element IDs associated with element sets from Abaqus input file
+
+DNS_Abaqus.write_section_file.py
+================================
+
+.. automodule:: model_package.DNS_Abaqus.write_section_file
+    :members:
+    :show-inheritance:
+    :synopsis: Write an Abaqus input file for the section definition of grains"
 
 DNS_GEOS.plot_force_displacement.py
 ===================================
@@ -197,7 +229,7 @@ Filter.single_macroscale.py
     :synopsis: Write a single macroscale domain file for the Micromorphic Filter
 
 Filter.visualize_results.py
-================================
+===========================
 
 .. automodule:: model_package.Filter.visualize_results
     :members:
@@ -234,7 +266,7 @@ Calibrate.build_calibration_map.py
 .. automodule:: model_package.Calibrate.build_calibration_map
     :members:
     :show-inheritance:
-    :synopsis: Create a yaml file to map calibration results
+    :synopsis: Create a file mapping calibration results for each macroscale element
 
 Calibrate.calibrate_element.py
 ==============================
@@ -251,6 +283,14 @@ Calibrate.calibrate_element_plastic.py
     :members:
     :show-inheritance:
     :synopsis: Calibrate micromorphic elastoplasticity on a single filter domain (i.e. macroscale element)
+
+Calibrate.calibrate_qp.py
+=========================
+
+.. automodule:: model_package.Calibrate.calibrate_qp
+    :members:
+    :show-inheritance:
+    :synopsis: Calibrate micromorphic linear elasticity on a single filter domain (i.e. macroscale element) and quadrature point
 
 Calibrate.calibration_tools.py
 ==============================

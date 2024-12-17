@@ -1,7 +1,25 @@
 #! /usr/bin/env python
 
-""" TODO
-
+"""Workflow for performing a dynamic Abaqus/Standard DNS of an elastic cylinder
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``DNS_Abaqus_abspath`` - String absolute path to model_package/DNS_Abaqus
+  * ``filter_source_abspath`` - String absolute path to model_package/Filter
+* ``workflow_name`` - The name of the workflow calling this SConscript
+* ``model`` - The name of the model
+* ``params`` - Parameter dictionary with the following required keys
+  * ``diam`` - The diameter (mm) of the cylindrical geometry
+  * ``height`` - The height (mm) of the cylindrical geometry
+  * ``seed`` - The approximate element size (mm) for the DNS mesh
+  * ``material_E`` - The elastic modulus (MPa) of the DNS material
+  * ``material_nu`` - The Poisson ratio of the DNS material
+  * ``material_rho`` - The density (Mg/mm^3) of the DNS material
+  * ``total_force`` - The total compressive force to apply to the top cylinder face
+  * ``duration`` - The duration of the Abaqus simulation
+  * ``num_steps`` - The number of time steps to simulate
+  * ``finite_rise`` - The number of timesteps over which to ramp "total_force" at the beginning of the simulation
+  * ``field_frame`` - Integer specifying the frame number to extract Cauchy 33 stress contour plot, optional
+  * ``block_name`` - The name of the Abaqus part corresponding to the H5 path to extract data from
 """
 
 import pathlib

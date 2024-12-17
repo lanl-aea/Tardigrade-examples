@@ -28,6 +28,18 @@ DNS_Abaqus.build_elastic_cylinder.py
 .. argparse::
     :ref: model_package.DNS_Abaqus.build_elastic_cylinder.get_parser
 
+DNS_Abaqus.convert_tess.py
+==========================
+
+.. argparse::
+    :ref: model_package.DNS_Abaqus.convert_tess.get_parser
+
+DNS_Abaqus.convert_tess_cylinder.py
+===================================
+
+.. argparse::
+    :ref: model_package.DNS_Abaqus.convert_tess_cylinder.get_parser
+
 DNS_Abaqus.dynamic_analytical_comparison.py
 ===========================================
 
@@ -57,6 +69,18 @@ DNS_Abaqus.ODBextract_to_XDMF.py
 
 .. argparse::
     :ref: model_package.DNS_Abaqus.ODBextract_to_XDMF.get_parser
+
+DNS_Abaqus.parse_sets_from_inp.py
+=================================
+
+.. argparse::
+    :ref: model_package.DNS_Abaqus.parse_sets_from_inp.get_parser
+
+DNS_Abaqus.write_section_file.py
+================================
+
+.. argparse::
+    :ref: model_package.DNS_Abaqus.write_section_file.get_parser
 
 DNS_GEOS.plot_force_displacement.py
 ===================================
@@ -183,6 +207,12 @@ Calibrate.calibrate_element_plastic.py
 
 .. argparse::
     :ref: model_package.Calibrate.calibrate_element_plastic.get_parser
+
+Calibrate.calibrate_qp.py
+=========================
+
+.. argparse::
+    :ref: model_package.Calibrate.calibrate_qp.get_parser
 
 Calibrate.identify_z_boundary_elements.py
 =========================================
