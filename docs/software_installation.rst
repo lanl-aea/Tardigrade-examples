@@ -441,7 +441,7 @@ One may test if neper has been installed using:
 
 This command will provide the path to the Neper program.
 If Neper is not found, one may try installing it into the Python environment
-using ``conda install neper``.
+using :code:`conda install neper`.
 
 Add Neper to software configuration path
 =========================================
