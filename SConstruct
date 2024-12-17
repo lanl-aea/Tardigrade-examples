@@ -296,6 +296,12 @@ def tardigrade_builder_select():
     else:
         return tardigrade_solver
 
+# Neper
+neper_tesselate = Builder(
+    action=["cd ${TARGET.dir.abspath} && \
+             neper -T -n ${num_grains} -o ${output_name} ${arguments} \
+             > ${stdout_file}"])
+
 # # Custom Paraview image generator
 # env['paraview'] = waves.scons_extensions.find_program(program_paths['filter'], env)
 # if env['paraview']:
@@ -384,13 +390,16 @@ env.Append(BUILDERS={
     "AbaqusJournal": waves.scons_extensions.abaqus_journal(program=env["abaqus"]),
     "AbaqusSolver": waves.scons_extensions.abaqus_solver(program=env["abaqus"]),
     "AbaqusExtract": waves.scons_extensions.abaqus_extract(program=env["abaqus"]),
+    "NeperTesselate": neper_tesselate,
     "PythonScript": python_script,
     "CondaEnvironment": waves.scons_extensions.conda_environment(),
     "RatelSolver": ratel_builder_select(),
     "TardigradeSolver": tardigrade_builder_select(),
     #"ParaviewImage": paraview_image,
     "SphinxBuild": waves.scons_extensions.sphinx_build(program=env["sphinx_build"], options="-W"),
-    "SphinxPDF": waves.scons_extensions.sphinx_latexpdf(program=env["sphinx_build"], options="-W")
+    "SphinxPDF": waves.scons_extensions.sphinx_latexpdf(program=env["sphinx_build"], options="-W"),
+    "AbaqusSolverOverride": waves.scons_extensions.abaqus_solver(program=env["abaqus"],
+        action_suffix="> ${stdout_file} || true && cd ${TARGET.dir.abspath} && grep -i 'COMPLETED' ${search}"),
 })
 env.Append(SCANNERS=waves.scons_extensions.sphinx_scanner())
 
@@ -453,6 +462,9 @@ workflow_configurations = [
     "Tardigrade_Brazilian_disk_platens",
     "Tardigrade_Brazilian_disk_platens_eighth_symmetry",
     "Abaqus_Brazilian_disk_platens_eighth_symmetry",
+    #Neper studies
+    "neper_cube",
+    "neper_cylinder",
 ]
 for workflow in workflow_configurations:
     build_dir = str(variant_dir_base / workflow)
