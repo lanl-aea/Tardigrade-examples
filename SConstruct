@@ -74,7 +74,7 @@ AddOption(
     dest="macro",
     default=False,
     action="store_true",
-    help="Boolean speciyfing whether or not to run plastic macro simulation in Tardigrade-MOOSE."\
+    help="Boolean speciyfing whether or not to run macro simulation(s) in Tardigrade-MOOSE."\
          " (default: '%default')"
 )
 AddOption(
@@ -99,7 +99,7 @@ AddOption(
     default=False,
     action="store_true",
     help="Boolean speciyfing whether or not to run macro simulation in Tardigrade-MOOSE"\
-         " with an 'averaged' material card for boundary elements(default: '%default')"
+         " with an 'averaged' material card for boundary elements. (default: '%default')"
 )
 AddOption(
     "--summary",
