@@ -6,6 +6,12 @@ Requires the following ``Sconscript(..., exports=[])``
   * ``DNS_Ratel_abspath`` - String absolute path to model_package/DNS_Ratel
   * ``filter_source_abspath`` - String absolute path to model_package/Filter
   * ``peta_data_copy_abspath`` - String absolute path to peta_data_copy
+  * ``cubit`` - String absolute path to Cubit Python intepreter, optional
+  * ``selected_parameter_sets`` - Optional string of space separated integers specifying which parameters sets should be considered for filtering, calibrating, and performing macroscale simulations
+  * ``filter`` - Boolean speciyfing whether or not to run micromorphic filter for a particular upscaling study
+  * ``calibrate`` - Boolean speciyfing whether or not to run calibration for a particular upscaling study
+  * ``macro`` - Boolean speciyfing whether or not to run macro simulation(s) in Tardigrade-MOOSE
+  * ``summary`` - Boolean speciyfing whether or not to run summary post-processing for multi-domain studies
 """
 
 import pathlib
@@ -27,7 +33,6 @@ peta_data_copy_abspath = pathlib.Path(env["peta_data_copy_abspath"])
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)
 workflow_name = build_directory.name
-workflow_configuration = [env["project_configuration"], workflow_name]
 output_file_type = "h5"
 model = "F83"
 params = simulation_variables_nominal.F83
@@ -155,7 +160,6 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
             SConscript("tardigrade_moose.scons", variant_dir=variant_dir,
                        exports=["env", "parameters", "workflow_name", "model", "params", "tardi_sim_name", "calibration_map"],
                        duplicate=False))
-
 
 # ---------- Collect Results across Studies ------------------------------------
 # Run common post-processing sconscript
