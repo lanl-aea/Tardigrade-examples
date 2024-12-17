@@ -10,11 +10,6 @@ import matplotlib.pyplot
 import pandas
 import scipy
 
-sys.path.append(r'/projects/tea/tardigrade_GED/tardigrade_micromorphic_element/src/python')
-sys.path.append(r'/projects/tea/tardigrade-examples/model_package')
-sys.path.append(r'/projects/tea/tardigrade-examples/model_package/Calibrate')
-sys.path.append(f'/projects/tea/tardigrade_GED/tardigrade_micromorphic_linear_elasticity/src/python')
-
 import calibrate_element
 import calibration_tools
 import micromorphic
@@ -360,7 +355,8 @@ def calibrate_qp(input_file, output_file, case, Emod, nu, L, element=0, qp=0, in
     output_dict['obj_func_value'] = f"{res.fun}"
     with open(output_filename, 'w') as f:
         yaml.dump(output_dict, f)
-    return
+
+    return 0
 
 
 def get_parser():
