@@ -8,6 +8,9 @@ import numpy
 
 
 def parse_sets_from_inp(input_file, output_file):
+    """Extract element IDs associated with element sets from Abaqus input file
+
+    """
 
     # Read input file
     with open(input_file, 'r') as f:
