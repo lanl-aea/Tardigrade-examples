@@ -427,3 +427,25 @@ Add MPI to software configuration path
 Either using :code:`scons --config-software` or manually, add
 :code:`/path/to/mpiexec`
 to the :code:`config_software.yml` entry for "mpi".
+
+*****
+Neper
+*****
+
+Neper should be installed to the Python environment discussed in :ref:`build`.
+One may test if neper has been installed using:
+
+   .. code-block:: console
+
+      $ which neper
+
+This command will provide the path to the Neper program.
+If Neper is not found, one may try installing it into the Python environment
+using ``conda install neper``.
+
+Add Neper to software configuration path
+=========================================
+
+Either using :code:`scons --config-software` or manually, add
+:code:`/path/to/neper`
+to the :code:`config_software.yml` entry for "Neper".
