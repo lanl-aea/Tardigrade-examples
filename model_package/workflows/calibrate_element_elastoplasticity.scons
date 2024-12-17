@@ -1,13 +1,30 @@
 #! /usr/bin/env python
+
+""" Common workflow for calibrating micromorphic elastoplasticity
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``calibrate_source_abspath`` - String absolute path to model_package/Calibrate
+  * ``filter_source_abspath`` - String absolute path to model_package/Filter
+* ``parameters`` - WAVES CustomStudy parameter dictionary with the following required kyes
+  * ``num_domains`` - The number of macroscale filtering domains
+  * ``seed_size`` - The approximate element size (mm) for creating macroscale meshes in Cubit
+* ``workflow_name`` - The name of the workflow calling this SConscript
+* ``model`` - The name of the model
+* ``params`` - Parameter dictionary with the following required keys
+  * ``filter_file`` - XDMF file containing Micromorphic Filter results
+  * ``material_E`` - The elastic modulus (MPa) of the DNS material
+  * ``material_nu`` - The Poisson ratio of the DNS material
+  * ``calibration_increment_elastic`` - An optional list of one or more increments to perform elastic calibration
+  * ``calibration_increment_plastic`` - An optional list of one or more increments to perform plastic calibration
+  * ``plastic_calibration_case`` - Integer specifying the plastic calibration case
 """
-    TODO
-"""
+
 import pathlib
 import os
 
 import waves
 import numpy
-import yaml
+
 
 # Inherit the parent construction environment
 Import("env")
@@ -22,7 +39,6 @@ filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
 
 # workflow variables
 build_directory = pathlib.Path(Dir(".").abspath)
-workflow_configuration = [env["project_configuration"], workflow_name]
 domain_number = parameters['num_domains']
 seed_size = parameters['seed_size']
 filter_file = params['filter_file']
