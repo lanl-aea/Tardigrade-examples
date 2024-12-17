@@ -4,14 +4,16 @@ import argparse
 import pathlib
 import re
 
-#sys.path.append(r"/apps/Cubit-16.16/bin")
-
 import numpy
 import cubit
 import pandas
 
+
 def parse_contents(input_file):
-    
+    """Parse content of Neper output
+
+    """
+
     lines = []
     vertex_index = []
     edge_index = []
@@ -78,6 +80,9 @@ def parse_contents(input_file):
 
 
 def create_geometry(vertices, edges, faces, bounds, polyhedra, stl_file):
+    """Create geometry from Neper output
+
+    """
 
     cubit.init(['cubit', '-noecho', '-nojournal', '-nographics', '-batch'])
     cubit.cmd('new')
@@ -111,6 +116,9 @@ def create_geometry(vertices, edges, faces, bounds, polyhedra, stl_file):
 
 
 def create_mesh(stl_file, mesh_file, polyhedra, sidesets):
+    """Create mesh from Neper output
+
+    """
 
     cubit.init(['cubit', '-noecho', '-nojournal', '-nographics', '-batch'])
     cubit.cmd('new')
@@ -143,6 +151,9 @@ def create_mesh(stl_file, mesh_file, polyhedra, sidesets):
 
 
 def convert_tess(input_file, stl_file=None, mesh_file=None, seed_size=1.0):
+    """Convert a tesslation file output by Neper for a cylindrical geometry to STL and create Abaqus mesh
+
+    """
 
     vertices, edges, faces, bounds, polyhedra = parse_contents(input_file)
     print(vertices)
@@ -170,7 +181,7 @@ def get_parser():
 
     script_name = pathlib.Path(__file__)
     prog = f"python {script_name.name} "
-    cli_description = "Convert a tesslation file output by Neper to STL and create Abaqus mesh"
+    cli_description = "Convert a tesslation file output by Neper for a cylindrical geometry to STL and create Abaqus mesh"
 
     parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument("--input-file", type=str, required=True,
