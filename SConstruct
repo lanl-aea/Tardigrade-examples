@@ -201,6 +201,10 @@ env["abaqus"] = env.AddProgram(program_paths['Abaqus'] + abaqus_windows)
 #env["cubit"] = env.AddCubitPython(program_paths['Cubit'])
 env["cubit"] = env.AddCubitPython(["/apps/Cubit-16.16/cubit","cubit"])
 
+# Neper
+neper_location = program_paths['Neper']
+env["neper"] = waves.scons_extensions.find_program(env, neper_location)
+
 # Ratel
 ratel_location = program_paths['Ratel']
 env['Ratel'] = waves.scons_extensions.find_program(env, ratel_location)
@@ -466,10 +470,20 @@ workflow_configurations = [
     "neper_cube",
     "neper_cylinder",
 ]
+
 for workflow in workflow_configurations:
-    build_dir = str(variant_dir_base / workflow)
-    workflow_sconscript = pathlib.Path(f"{workflow_dir}/{workflow}")
-    SConscript(workflow_sconscript, variant_dir=build_dir, exports="env", duplicate=False)
+    if ("neper" in workflow.lower()) and (not env['neper']):
+        print(f"Neper program not found! Skipping '{workflow}' workflow.")
+    elif ("abaqus" in workflow.lower()) and (not env['abaqus']):
+        print(f"Abaqus program not found! Skipping '{workflow}' workflow.")
+    elif ("ratel_elastic" in workflow.lower()) and (not env['Ratel']):
+        print(f"Ratel program not found! Skipping '{workflow}' workflow.")
+    elif ("tardigrade" in workflow.lower()) and (not env['Tardigrade']):
+        print(f"Tardigrade program not found! Skipping '{workflow}' workflow.")
+    else:
+        build_dir = str(variant_dir_base / workflow)
+        workflow_sconscript = pathlib.Path(f"{workflow_dir}/{workflow}")
+        SConscript(workflow_sconscript, variant_dir=build_dir, exports="env", duplicate=False)
 
 # Update local copies of Peta data
 import model_package.peta
