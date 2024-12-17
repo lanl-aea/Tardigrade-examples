@@ -1,23 +1,18 @@
 #! /usr/bin/env python
 
-""" elastic_cylinder compression workflow in Abaqus/Standard
+""" Upscaling workflow for running and single domain upscaling of an Abaqus/Standard DNS of a bonded grain cylindrical geometry generated using Neper
 Requires the following ``Sconscript(..., exports=[])``
 * ``env`` - The SCons construction environment with the following required keys
-  * ``abaqus_source_abspath`` - String absolute path to the Abaqus journal files
-  * ``abaqus`` - String path for the Abaqus executable
-  * ``Tardigrade-filter`` - String path for the Micromorphic Filter
-  * ``Tardigrade-MOOSE`` - String path for the Tardigrade-MOOSE application
-  * ``project_name`` - String project name
-  * ``version`` - String project version
-TODO! Finish this docstrings
+  * ``DNS_Abaqus_abspath`` - String absolute path to model_package/DNS_Abaqus
+  * ``filter_source_abspath`` - String absolute path to model_package/Filter
+  * ``cubit`` - String absolute path to Cubit Python intepreter, optional
+  * ``filter`` - Boolean speciyfing whether or not to run micromorphic filter for a particular upscaling study
 """
 
 import pathlib
 
-import waves
-import xarray
-
 from model_package.DNS_Abaqus import simulation_variables_nominal
+
 
 # Inherit the parent construction environment
 Import('env')
@@ -25,15 +20,10 @@ Import('env')
 # set project-wide paths with os-agnostic path separators
 DNS_Abaqus_abspath = pathlib.Path(env["DNS_Abaqus_abspath"])
 filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
-calibrate_source_abspath = pathlib.Path(env["calibrate_source_abspath"])
-Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
-model_package_abspath = pathlib.Path(env["model_package_abspath"])
-project_dir_abspath = pathlib.Path(env["project_dir"])
 
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)
 workflow_name = build_directory.name
-workflow_configuration = [env["project_configuration"], workflow_name]
 output_file_type = "h5"
 model = "neper_cylinder"
 params = simulation_variables_nominal.neper_cylinder
@@ -109,8 +99,8 @@ params['section_file'] = section_file
 # Set up simulation
 main_input_file = "neper_cylinder.inp"
 abaqus_source_list = [
-    DNS_Abaqus_abspath / f"{main_input_file}.in",
-    DNS_Abaqus_abspath / "material_props.inc",
+    DNS_Abaqus_abspath / "neper" / f"{main_input_file}.in",
+    DNS_Abaqus_abspath / "neper" / "material_props.inc",
     ]
 
 abaqus_source_list = [pathlib.Path(source_file) for source_file in abaqus_source_list]
@@ -152,100 +142,71 @@ workflow.extend(env.PythonScript(
     script_options=script_options
     ))
 
-# Extract to XDMF filter input
-main_XDMF_name = f"FILTER_INPUT_{model}"
-filter_inputs = [f"{str(build_directory / main_XDMF_name)}.{ext}" for ext in ['xdmf', 'h5']]
-script_options = f"--output-file {str(build_directory / main_XDMF_name)}"
-cauchy_stresses = "DNS_all_33_stresses.csv"
-XDMF_script = "ODBextract_to_XDMF.py"
-script_options += f" --input-file {job_name}_datasets.h5"
-script_options += f" --elem-path {params['block_name']}/FieldOutputs/ALL_ELEMENTS"
-script_options += f" --node-path {params['block_name']}/FieldOutputs/ALL_NODES"
-script_options += f" --mesh-path {params['block_name']}/Mesh"
-script_options += f" --ref-density {params['material_rho']}"
-script_options += f" --collocation-option center"
-script_options += f" --dump-all-33-stresses {cauchy_stresses}"
-script_options += f" --element-type C3D4"
-script_options += f" --init-ref yes"
-script_options += f" --sets-file {set_file}"
-workflow.extend(env.PythonScript(
-    target = filter_inputs + [cauchy_stresses],
-    source = [f"{DNS_Abaqus_abspath / XDMF_script}", f"{job_name}.h5"],
-    script_options = script_options
-))
-params['filter_inputs'] = filter_inputs
-
-# Specify bounding information
-bounding_csv = f"{model}_bounds.csv"
-bounding_script = "force_bounds.py"
-script_options = f"--xmin 0 --xmax {params['diam']} --ymin 0 --ymax {params['diam']} --zmin 0.0 --zmax {params['height']}"
-script_options += f" --output-file {bounding_csv}"
-workflow.extend(env.PythonScript(
-    target=bounding_csv,
-    source=[str(filter_source_abspath / bounding_script)],
-    script_options=script_options))
-params['bounding_csv'] = bounding_csv
-
-# ---------- FILTER ------------------------------------------------------------
-## Default micro-averaging domains
-parameters = {'seed_size': params['height'],
-              'num_domains': 1,}
-filter_results = f"FILTER_RESULTS_{model}_default"
-filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
-params['filter_targs'] = filter_targs
-params['filter_config_basename'] = f"FILTER_config_{model}_default"
-print(params['filter_config_basename'])
-params['viz_targs'] = tuple((option, f'default_{target}') for option, target in viz_targs)
-# Run common filter sconscript
+# ---------- Filter ------------------------------------------------------------
 if env['filter']:
+    # Extract to XDMF filter input
+    main_XDMF_name = f"FILTER_INPUT_{model}"
+    filter_inputs = [f"{str(build_directory / main_XDMF_name)}.{ext}" for ext in ['xdmf', 'h5']]
+    script_options = f"--output-file {str(build_directory / main_XDMF_name)}"
+    cauchy_stresses = "DNS_all_33_stresses.csv"
+    XDMF_script = "ODBextract_to_XDMF.py"
+    script_options += f" --input-file {job_name}_datasets.h5"
+    script_options += f" --elem-path {params['block_name']}/FieldOutputs/ALL_ELEMENTS"
+    script_options += f" --node-path {params['block_name']}/FieldOutputs/ALL_NODES"
+    script_options += f" --mesh-path {params['block_name']}/Mesh"
+    script_options += f" --ref-density {params['material_rho']}"
+    script_options += f" --collocation-option center"
+    script_options += f" --dump-all-33-stresses {cauchy_stresses}"
+    script_options += f" --element-type C3D4"
+    script_options += f" --init-ref yes"
+    script_options += f" --sets-file {set_file}"
+    workflow.extend(env.PythonScript(
+        target = filter_inputs + [cauchy_stresses],
+        source = [f"{DNS_Abaqus_abspath / XDMF_script}", f"{job_name}.h5"],
+        script_options = script_options
+    ))
+    params['filter_inputs'] = filter_inputs
+
+    # Specify bounding information
+    bounding_csv = f"{model}_bounds.csv"
+    bounding_script = "force_bounds.py"
+    script_options = f"--xmin 0 --xmax {params['diam']} --ymin 0 --ymax {params['diam']} --zmin 0.0 --zmax {params['height']}"
+    script_options += f" --output-file {bounding_csv}"
+    workflow.extend(env.PythonScript(
+        target=bounding_csv,
+        source=[str(filter_source_abspath / bounding_script)],
+        script_options=script_options))
+    params['bounding_csv'] = bounding_csv
+
+    # ---------- FILTER ------------------------------------------------------------
+    ## Default micro-averaging domains
+    parameters = {'seed_size': params['height'],
+                  'num_domains': 1,}
+    filter_results = f"FILTER_RESULTS_{model}_default"
+    filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
+    params['filter_targs'] = filter_targs
+    params['filter_config_basename'] = f"FILTER_config_{model}_default"
+    print(params['filter_config_basename'])
+    params['viz_targs'] = tuple((option, f'default_{target}') for option, target in viz_targs)
+    # Run common filter sconscript
     workflow.extend(
         SConscript("filter.scons",
                    exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
                    duplicate=False))
 
-## micro-averaging domains by grains
-filter_results = f"FILTER_RESULTS_{model}_grain_domains"
-filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
-params['filter_targs'] = filter_targs
-params['viz_targs'] = tuple((option, f'sets_{target}') for option, target in viz_targs)
-params['filter_config_basename'] = f"FILTER_config_{model}_grain_domains"
-params['sets_file'] = set_file
-# Run common filter sconscript
-if env['filter']:
-    workflow.extend(
-        SConscript("filter.scons",
-                   exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
-                   duplicate=True))
-
-# # ---------- CALIBRATE ---------------------------------------------------------
-# # Run common calibration sconscript
-# case = params['calibration_case']
-# if env['calibrate']:
-    # filter_file = str(build_directory / filter_targs[0])
-    # params['filter_file'] = filter_file
-    # workflow.extend(
-        # SConscript("calibrate_element.scons",
-                   # exports=["env", "parameters", "workflow_name", "model", "params"],
-                   # duplicate=False))
-# params['parameter_sets'] = [f'calibrated_parameters_case_{case}_elem_0.yml']
-
-# # ---------- Tardigrade-MOOSE --------------------------------------------------
-# # Run common Tardigrade-MOOSE sconscript
-# if env['macro']:
-    # workflow.extend(
-        # SConscript("tardigrade_moose.scons",
-                   # exports=["env", "parameters", "workflow_name", "model", "params"],
-                   # duplicate=False))
-
-# ---------- ARCHIVE -----------------------------------------------------------
-# Archive
-archive_DNS = True
-if archive_DNS:
-    archive_name = f"{env['project_name']}-{env['version']}"
-    archive_target = env.Tar(
-        target=archive_name,
-        source=workflow + workflow_configuration)
+    ## micro-averaging domains by grains
+    filter_results = f"FILTER_RESULTS_{model}_grain_domains"
+    filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
+    params['filter_targs'] = filter_targs
+    params['viz_targs'] = tuple((option, f'sets_{target}') for option, target in viz_targs)
+    params['filter_config_basename'] = f"FILTER_config_{model}_grain_domains"
+    params['sets_file'] = set_file
+    # Run common filter sconscript
+    if env['filter']:
+        workflow.extend(
+            SConscript("filter.scons",
+                       exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
+                       duplicate=True))
 
 # Collector alias based on parent directory name
 env.Alias(workflow_name, workflow)
-env.Alias(f"{workflow_name}_archive", archive_target)
