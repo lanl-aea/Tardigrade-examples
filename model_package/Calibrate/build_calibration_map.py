@@ -160,7 +160,7 @@ def get_parser():
     script_name = pathlib.Path(__file__)
 
     prog = f"python {script_name.name} "
-    cli_description = "Create a yaml file to map calibration results"
+    cli_description = "Create a file mapping calibration results for each macroscale element"
     parser=argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('--output-file', type=str, required=True,
         help="The name of the output csv file")
