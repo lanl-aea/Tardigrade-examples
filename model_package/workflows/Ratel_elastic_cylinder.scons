@@ -31,6 +31,7 @@ import pathlib
 import waves
 import SCons.Defaults
 
+
 # Inherit the parent construction environment
 Import("env")
 Import("workflow_name")
@@ -46,7 +47,6 @@ mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)
 workflow_name = build_directory.name
-workflow_configuration = [env["project_configuration"], workflow_name]
 
 # Collect the target nodes to build a concise alias for all targets
 workflow = []
