@@ -29,7 +29,6 @@ mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)
 workflow_name = build_directory.name
-workflow_configuration = [env["project_configuration"], workflow_name]
 output_file_type = "h5"
 model = "elastic_convergence"
 params = simulation_variables_nominal.elastic_cylinder
