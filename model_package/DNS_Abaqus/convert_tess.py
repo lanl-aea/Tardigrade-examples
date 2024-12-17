@@ -11,7 +11,10 @@ import pandas
 
 
 def parse_contents(input_file):
-    
+    """Parse content of Neper output
+
+    """
+
     lines = []
     vertex_index = []
     edge_index = []
@@ -67,6 +70,9 @@ def parse_contents(input_file):
 
 
 def create_geometry(vertices, edges, faces, bounds, polyhedra, stl_file):
+    """Create geometry from Neper output
+
+    """
 
     cubit.init(['cubit', '-noecho', '-nojournal', '-nographics', '-batch'])
     cubit.cmd('new')
@@ -100,6 +106,9 @@ def create_geometry(vertices, edges, faces, bounds, polyhedra, stl_file):
 
 
 def create_mesh(stl_file, mesh_file, polyhedra, sidesets):
+    """Create mesh from Neper output
+
+    """
 
     cubit.init(['cubit', '-noecho', '-nojournal', '-nographics', '-batch'])
     cubit.cmd('new')
@@ -132,6 +141,9 @@ def create_mesh(stl_file, mesh_file, polyhedra, sidesets):
 
 
 def convert_tess(input_file, stl_file=None, mesh_file=None, seed_size=1.0):
+    """Convert a tesslation file output by Neper to STL and create Abaqus mesh
+
+    """
 
     vertices, edges, faces, bounds, polyhedra = parse_contents(input_file)
     print(vertices)
