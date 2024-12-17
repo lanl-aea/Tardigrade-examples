@@ -7,6 +7,9 @@ Requires the following ``Sconscript(..., exports=[])``
   * ``filter_source_abspath`` - String absolute path to model_package/Filter
   * ``model_package_abspath`` - String absolute path to model_package
   * ``peta_data_copy_abspath`` - String absolute path to peta_data_copy
+  * ``filter`` - Boolean speciyfing whether or not to run micromorphic filter for a particular upscaling study
+  * ``calibrate`` - Boolean speciyfing whether or not to run calibration for a particular upscaling study
+  * ``summary`` - Boolean speciyfing whether or not to run summary post-processing for multi-domain studies
 """
 
 import pathlib
@@ -29,7 +32,6 @@ peta_data_copy_abspath = pathlib.Path(env["peta_data_copy_abspath"])
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)
 workflow_name = build_directory.name
-workflow_configuration = [env["project_configuration"], workflow_name]
 output_file_type = "h5"
 model = "I41_02_elastic_single_domains"
 params = simulation_variables_nominal.I41_RVEs
