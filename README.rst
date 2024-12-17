@@ -20,6 +20,7 @@
 .. _MOOSE_parallel: https://mooseframework.inl.gov/getting_started/examples_and_tutorials/tutorial01_app_development/step07_parallel.html
 .. _PSAAP: https://micromorph.gitlab.io
 .. _RATEL: https://ratel.micromorph.org
+.. _gitlfs: https://git-lfs.com
 
 .. target-end-do-not-remove
 
@@ -164,7 +165,10 @@ In order to clone binary image and mesh files, make sure that git lfs is install
 
    .. code-block::
 
-      $ git lfs install --skip-smudge
+      $ git lfs install
+
+Including :code:`--skip-smudge` may be necessary.
+More information is available at https://git-lfs.com.
 
 .. software-requirements-description-end-do-not-remove
 

@@ -474,4 +474,4 @@ Tardigrade_MOOSE.write_plastic_material_card.py
 .. automodule:: model_package.Tardigrade_MOOSE.write_plastic_material_card
     :members:
     :show-inheritance:
-    :synopsis: Write elastoplastic Tardigrade-MOOSE input card (.yml)
+    :synopsis: Write elastoplastic Tardigrade-MOOSE input card

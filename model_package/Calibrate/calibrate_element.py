@@ -194,8 +194,11 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=No
         else:
             print('Specify valid objective!')
 
-    Xstore.append(numpy.copy(XX))
-    Lstore.append(obj)
+    try:
+        Xstore.append(numpy.copy(XX))
+        Lstore.append(obj)
+    except:
+        pass
 
     print(f'obj = {obj}')
     return obj

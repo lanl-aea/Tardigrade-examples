@@ -68,7 +68,7 @@ def average_quantities(quantities, type, elem):
 
 
 def isolate_element(quantities, type, elem):
-    '''Average tensor quantites over 8 quadrature points
+    '''Isolate the homogenized quantities for a specified element
 
     :param dict quantities: A 2nd or 3rd order tensor dictionary with keys for quadrature points and values storing an array where indices correspond to time, element number, and tensor components
     :param str type: A string specifying the type of tensor to average. Use "3" for a vector. Use "3x3" for a regular second order tensor. Use "9" for a flattened second order tensor. Use "3x3x3" for a third order tensor.
@@ -100,6 +100,43 @@ def isolate_element(quantities, type, elem):
             output[qp] = numpy.zeros((shapes[0], 1, shapes[2]))
             for i in range(3):
                 output[qp][:,0,i] = quantities[qp][:,elem,i]
+
+    return(output)
+
+
+def isolate_element_and_qp(quantities, type, elem, qp):
+    '''solate the homogenized quantities for a specified element and quadrature point
+
+    :param dict quantities: A 2nd or 3rd order tensor dictionary with keys for quadrature points and values storing an array where indices correspond to time, element number, and tensor components
+    :param str type: A string specifying the type of tensor to average. Use "3" for a vector. Use "3x3" for a regular second order tensor. Use "9" for a flattened second order tensor. Use "3x3x3" for a third order tensor.
+    :param int elem: The macro (filter) element to calibrate
+    :param int qp: The quadrature point of the macro (filter) element to calibrate
+
+    :returns: ``output`` dict with same indices as ``quantities`` and a single key
+    '''
+
+    output = {}
+    shapes = numpy.shape(quantities[0])
+
+    if type == '9':
+        output[0] = numpy.zeros((shapes[0], 1, shapes[2]))
+        for k in range(9):
+            output[0][:,0,k] = quantities[qp][:,elem,k]
+    elif type == '3x3':
+        output[0] = numpy.zeros((shapes[0], 1, shapes[2], shapes[3]))
+        for i in range(3):
+            for j in range(3):
+                output[0][:,0,i,j] = quantities[qp][:,elem,i,j]
+    elif type == '3x3x3':
+        output[0] = numpy.zeros((shapes[0], 1, shapes[2], shapes[3], shapes[4]))
+        for i in range(3):
+            for j in range(3):
+                for k in range(3):
+                    output[0][:,0,i,j,k] = quantities[qp][:,elem,i,j,k]
+    elif type == '3':
+        output[0] = numpy.zeros((shapes[0], 1, shapes[2]))
+        for i in range(3):
+            output[0][:,0,i] = quantities[qp][:,elem,i]
 
     return(output)
 
