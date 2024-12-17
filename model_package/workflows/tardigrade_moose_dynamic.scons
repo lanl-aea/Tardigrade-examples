@@ -25,7 +25,7 @@ Requires the following ``Sconscript(..., exports=[])``
   * ``mesh_copy_root`` - File root string for locating required DNS mesh in model_package/meshes if Cubit program is unavailable
   * ``macro_BC`` - The type of boundary condition to apply in the Tardigrade-MOOSE, either "slip" or "clamp" or "brazil"
   * ``total_force`` - The total compressive force to apply to the top cylinder face
-  * ``duration`` - The duration of hte Tardigrade-MOOSE simulation
+  * ``duration`` - The duration of the Tardigrade-MOOSE simulation
   * ``num_steps`` - The number of time steps to simulate
   * ``finite_rise`` - The number of timesteps over which to ramp "total_force" at the beginning of the simulation
   * ``material_rho`` - The density (Mg/mm^3) of the material
@@ -50,7 +50,6 @@ mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
 
 # workflow variables
 build_directory = pathlib.Path(Dir(".").abspath)
-workflow_configuration = [env["project_configuration"], workflow_name]
 domain_number = parameters['num_domains']
 seed_size = parameters['seed_size']
 bounding_csv = params['bounding_csv']

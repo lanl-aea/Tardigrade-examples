@@ -35,7 +35,6 @@ Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_absp
 
 # workflow variables
 build_directory = pathlib.Path(Dir(".").abspath)
-workflow_configuration = [env["project_configuration"], workflow_name]
 try:
     case = params['calibration_case']
 except:
