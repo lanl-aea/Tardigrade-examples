@@ -2,7 +2,10 @@
 
 """ Workflow for running and single domain upscaling of a Ratel DNS of an elastic cylinder under uni-axial stress in compression
 Requires the following ``Sconscript(..., exports=[])``
-* ``env`` - The SCons construction environment
+* ``env`` - The SCons construction environment with the following required keys
+  * ``filter`` - Boolean speciyfing whether or not to run micromorphic filter for a particular upscaling study
+  * ``calibrate`` - Boolean speciyfing whether or not to run calibration for a particular upscaling study
+  * ``macro`` - Boolean speciyfing whether or not to run macro simulation(s) in Tardigrade-MOOSE
 """
 
 import pathlib
@@ -16,7 +19,6 @@ Import('env')
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)
 workflow_name = build_directory.name
-workflow_configuration = [env["project_configuration"], workflow_name]
 output_file_type = "h5"
 model = "elastic_cylinder"
 params = simulation_variables_nominal.elastic_cylinder
