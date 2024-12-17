@@ -6,12 +6,13 @@ Requires the following ``Sconscript(..., exports=[])``
   * ``Tardigrade_MOOSE_source_abspath`` - String absolute path to model_package/Tardigrade-MOOSE
   * ``calibrate_source_abspath`` - String absolute path to model_package/Calibrate
   * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
+  * ``macro`` - Boolean speciyfing whether or not to run macro simulation(s) in Tardigrade-MOOSE
   * ``mpi`` - String absolute path to mpiexec program
   * ``LD_PATH`` - String absolute path(s) for shared libraries required to run Tardigrade
   * ``Tardigrade`` - String absolute path to tardigrade-opt program
   * ``solve_cpus`` - Integer specifying the number of processes to run Tardigrade-MOOSE, default=1
+  * ``summary`` - Boolean speciyfing whether or not to run summary post-processing for multi-domain studies
 """
-
 
 import pathlib
 
@@ -33,7 +34,6 @@ mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)
 workflow_name = build_directory.name
-workflow_configuration = [env["project_configuration"], workflow_name]
 output_file_type = "h5"
 model = "plastic_refinement_clamp_H-10percent_mu"
 params = simulation_variables_nominal.I41_02_clamp
