@@ -504,7 +504,7 @@ Either using :code:`scons --config-software` or manually, add
 
 * :code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_linear_elasticity-src/src/python`
   if using the :ref:`tardigrade_moose_installation` CMake build, or
-* :code:`/path/to/tardigrade_micromorphic_linear_elasticity/src/python`
+* :code:`/path/to/tardigrade_micromorphic_element/build/_deps/tardigrade_micromorphic_linear_elasticity-src/src/python`
   if using the :ref:`micromorphic_calibration_tool_installation` (option 2) CMake build
 
 to the :code:`config_software.yml` entry for "constraints".
