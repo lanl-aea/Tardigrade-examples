@@ -24,6 +24,8 @@ SCons Build System
    :start-after: build-start-do-not-remove
    :end-before: build-end-do-not-remove
 
+.. _peta_library:
+
 *********************
 PetaLibrary Data Copy
 *********************
