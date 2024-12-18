@@ -305,29 +305,23 @@ configuration, e.g. ``Abaqus_elastic_cylinder``.
      $ scons -h
      ...
 
-- Build default targets
-
-  .. code-block::
-
-     $ scons
-
-- Build *all* targets
-
-  .. code-block::
-
-     $ scons .
-
 - Build a specific target
 
   .. code-block::
 
      $ scons <target name>
 
-- Remove *all* build target artifacts
+- Remove build target artifacts for a specific workflow
 
   .. code-block::
 
-     $ scons . --clean
+     $ scons <target name> --clean
+
+- To get an explanation for why each build target is being constructed
+
+  .. code-block::
+
+     $ scons <target name> --debug=explain
 
 .. build-end-do-not-remove
 
