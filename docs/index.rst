@@ -53,6 +53,7 @@
    :caption: Heterogeneous Upscaling
 
    Ratel_I41_02_elastic
+   Ratel_I43_09_elastoplastic
 
 .. toctree::
    :maxdepth: 2

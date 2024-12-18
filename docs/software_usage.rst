@@ -7,7 +7,7 @@ Software Usage
 This section describes how software is used by the `WAVES`_ workflows, which use the
 `SCons`_ automated build system.
 It is assumed that the relevant software packages have been successfully installed
-and linked in the :code:`config.yml` file using :code:`scons --config-software`.
+and linked in the :code:`config_software.yml` file using :code:`scons --config-software`.
 See the :ref:`user_manual` section for description of basic `WAVES`_ and `SCons`_ commands.
 For a thorough understanding of how to use the `WAVES`_ computation workflow tool, consider
 exercising their provided tutorials.
@@ -18,15 +18,18 @@ The :code:`SConstruct` file is the main input that `SCons`_ reads to control wor
 The software described in :ref:`software_installation` is linked using "BUILDERS":
 
 .. literalinclude:: SConstruct.py
-   :lines: 373-385
+   :lines: 392-407
 
 Individual workflows are created in SConscript files. These SConscript files are
 stored in the :code:`model_package/workflows/` directory.
 They are linked as simulation targets in the main :code:`SConstruct` file.
-The current collection of workflows are as follows:
+The current collection of workflows are shown below which will be listed
+as "Target Aliases" after executing the :code:`scons -h` help command.
+If certain pieces of software are not installed, such as Abaqus, then
+certain workflows will be excluded from this list.
 
 .. literalinclude:: SConstruct.py
-   :lines: 412-446
+   :lines: 434-472
 
 Unless a user is adding another piece of software or creating a custom workflow,
 these files do not need to be modified.
@@ -102,7 +105,7 @@ file below. This is the basic builder for serial simulations. To use Ratel for p
 simulations, see the discussion in :ref:`serial_vs_parallel`.
 
 .. literalinclude:: SConstruct.py
-   :lines: 200-207
+   :lines: 213-220
 
 The options and mesh files are passsed to this Builder as input arguments.
 Output arguments are also specified for the VTK monitor file, which will contain the simulation
@@ -195,7 +198,7 @@ To use Tardigrade-MOOSE for parallel simulations, see the discussion in
 :ref:`serial_vs_parallel`.
 
 .. literalinclude:: SConstruct.py
-   :lines: 257-264
+   :lines: 270-277
 
 Setting up Tardigrade-MOOSE simulations
 =======================================
@@ -281,7 +284,7 @@ a method to configure the Tardigrade-MOOSE solver depending on the available
 resources, see here:
 
 .. literalinclude:: SConstruct.py
-   :lines: 282-288
+   :lines: 295-302
 
 **Auto-batch**
 
