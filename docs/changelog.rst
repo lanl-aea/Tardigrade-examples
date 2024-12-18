@@ -39,6 +39,8 @@ Documentation
 - Document plastic macroscale studies (:issue:`20`, :merge:`10`). By `Thomas Allard`_.
 - Document bonded neper spectral clustering workflow (:issue:`18`, :merge:`12`).
   By `Thomas Allard`_.
+- Wrap up documentation for version 0.2.0 release (:issue:`22`, :merge:`13`).
+  By `Thomas Allard`_.
 
 ******************
 0.1.0 (2024-06-21)
