@@ -7,7 +7,7 @@ Software Usage
 This section describes how software is used by the `WAVES`_ workflows, which use the
 `SCons`_ automated build system.
 It is assumed that the relevant software packages have been successfully installed
-and linked in the :code:`config.yml` file using :code:`scons --config-software`.
+and linked in the :code:`config_software.yml` file using :code:`scons --config-software`.
 See the :ref:`user_manual` section for description of basic `WAVES`_ and `SCons`_ commands.
 For a thorough understanding of how to use the `WAVES`_ computation workflow tool, consider
 exercising their provided tutorials.
@@ -23,7 +23,10 @@ The software described in :ref:`software_installation` is linked using "BUILDERS
 Individual workflows are created in SConscript files. These SConscript files are
 stored in the :code:`model_package/workflows/` directory.
 They are linked as simulation targets in the main :code:`SConstruct` file.
-The current collection of workflows are as follows:
+The current collection of workflows are shown below which will be listed
+as "Target Aliases" after executing the :code:`scons -h` help command.
+If certain pieces of software are not installed, such as Abaqus, then
+certain workflows will be excluded from this list.
 
 .. literalinclude:: SConstruct.py
    :lines: 434-472
