@@ -4,6 +4,31 @@
 Software Installation
 #####################
 
+*************************************
+Determining what software is required
+*************************************
+
+Some users do not need to install and link every piece of software
+depending on their use case.
+
+Verification workflows require installations of :ref:`abaqus_fem_installation`
+and/or :ref:`ratel_fem_installation`.
+Workflows for upscaling heterogeneous DNS use simulations stored on the
+PetaLibrary and can be accessed by following the instructions provided
+here: :ref:`peta_library`.
+
+All upscaling studies require the installation of the
+:ref:`micromorphic_filter_installation`.
+Several workflows only run Tardigrade-MOOSE simulations.
+
+All upscaling studies perform calibration of material models which
+require the installation of the
+:ref:`micromorphic_calibration_tool_installation` and
+:ref:`micromorphic_elastic_constraints_installation` tool.
+
+All macroscale and upscaling studies require the installation of
+:ref:`tardigrade_moose_installation`.
+
 ********************
 Activate environment
 ********************
@@ -14,6 +39,8 @@ per the instructions provided in :ref:`build`.
    .. code-block:: console
 
       $ conda activate -n tardigrade-examples-env
+
+.. _abaqus_fem_installation:
 
 **********
 Abaqus FEM
@@ -33,6 +60,8 @@ For most Windows installations,
 the path to the :code:`abaqus.bat` script may be specified. The default
 path is already added to the :code:`SConstruct` file assuming the program
 is installed in the default location.
+
+.. _ratel_fem_installation:
 
 *********
 Ratel FEM
@@ -169,6 +198,8 @@ Add Cubit to software configuration path
 Either using :code:`scons --config-software` or manually, add
 :code:`/path/to/cubit` to the :code:`config_software.yml` entry for "Cubit".
 
+.. _micromorphic_filter_installation:
+
 *******************
 Micromorphic Filter
 *******************
@@ -216,6 +247,8 @@ Either using :code:`scons --config-software` or manually, add
 The path to the Micromorphic Filter's :code:`src/python` directory needs to be inserted
 into the Python path whenever it is to be used. This is handled automatically by
 the SCons workflow.
+
+.. _tardigrade_moose_installation:
 
 ****************
 Tardigrade-MOOSE
@@ -315,22 +348,29 @@ Either using :code:`scons --config-software` or manually, add
 :code:`/path/to/tardigrade/build/tardigrade-opt` to the
 :code:`config_software.yml` entry for "Tardigrade".
 
+.. _micromorphic_calibration_tool_installation:
+
 *****************************
 Micromorphic Calibration Tool
 *****************************
 
 The micromorphic calibration tool is a shared Python library that can be
-built after building :code:`tardigrade_micromorphic_element`. If the
-Tardigrade-MOOSE build went smoothly then the directory containing the
+built after building :code:`tardigrade_micromorphic_element`.
+This tool may be installed either (1) using the repository cloned automatically
+by the :ref:`tardigrade_moose_installation` CMake build, or (2) after cloning
+the Micromorphic Element repository.
+
+Option 1. Build from repository cloned by Tardigrade-MOOSE
+==========================================================
+
+If the Tardigrade-MOOSE build went smoothly, then the
 calibration tool will be contained in the
 :code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-src/src/python`
-directory. Alternatively, :code:`tardigrade_micromorphic_element` may be built
-separately from Tardigrade-MOOSE. Be sure that the "tardigrade-examples-env"
-environment is activated.
+directory.
 
 .. note::
 
-   It is likely that the `setup.py` file will need to be modified!
+   It is likely that the :code:`setup.py` file will need to be modified!
 
 Set the :code:`library_dirs` in :code:`setup.py` to the following path:
 
@@ -347,13 +387,69 @@ The shared library may be built as follows:
       $ cd /path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-src/src/python
       $ python setup.py build_ext --inplace
 
+Option 2. Clone and build from Micromorphic Element Repository
+==============================================================
+
+Building Tardigrade-MOOSE can be challenging and unnecessary if a user is only performing
+workflows for homogenization and material model calibration without needing to run
+macroscale simulations.
+
+Clone Micromorphic Element
+--------------------------
+
+   .. code-block:: console
+
+      $ git clone https://github.com/UCBoulder/tardigrade_micromorphic_element
+      $ tardigrade_micromorphic_element
+
+CMake
+-----
+
+.. note::
+
+   It is likely that the `CMakeLists.txt` file will need to be modified!
+   Make sure that :code:`"tardigrade_stress_tools" "tardigrade_solver_tools" "tardigrade_hydra" "tardigrade_constitutive_tools"`
+   are added to the upstream packages list.
+
+Perform the CMake build.
+
+   .. code-block:: console
+
+      $ mkdir build
+      $ cd build
+      $ cmake .. -DTARDIGRADE_MICROMORPHIC_BUILD_PYTHON_BINDINGS=OFF
+      $ make -j 4
+
+Build Calibration Tool
+----------------------
+
+The calibration tool will be contained in the
+:code:`/path/to/tardigrade_micromorphic_element/src/python` directory.
+
+.. note::
+
+   It is likely that the :code:`setup.py` file will need to be modified!
+
+Set the :code:`library_dirs` in :code:`setup.py` to the following path:
+
+   .. code-block:: python
+
+      library_dirs = [os.path.abspath('../../build/src/cpp')]
+
+The LD_LIBRARY_PATH must be set according to the instuctions provided in :ref:`LD_PATH_NOTE`.
+
+The shared library may be built as follows:
+
+   .. code-block:: console
+
+      $ cd /path/to/tardigrade_micromorphic_element/src/python
+      $ python setup.py build_ext --inplace
+
 Test
 ====
 
 To test that the shared library is working correctly, one may start
-an interactive Python session
-(in the :code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-src/src/python`
-directory)
+an interactive Python session in the directory containing `setup.py`
 and use :code:`import micromorphic`. Similarly, an interactive session may be run
 from any directory, but the location of the micromorphic shared library must be
 appended to the Python path as follows:
@@ -371,12 +467,19 @@ Add Micromorphic Calibration Tool to software configuration path
 ================================================================
 
 Either using :code:`scons --config-software` or manually, add
-:code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-src/src/python`
+
+* :code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_element-src/src/python`
+  if using the :ref:`tardigrade_moose_installation` CMake build, or
+* :code:`/path/to/tardigrade_micromorphic_element/src/python`
+  if using the :ref:`micromorphic_calibration_tool_installation` (option 2) CMake build
+
 to the :code:`config_software.yml` entry for "micromorphic".
 
 The path to the :code:`micromorphic` shared library needs to be inserted
 into the Python path whenever it is to be used. This is handled automatically by
 the SCons workflow.
+
+.. _micromorphic_elastic_constraints_installation:
 
 ***************************************
 Micromorphic Linear Elastic Constraints
@@ -391,13 +494,19 @@ when determining linear elastic parameters.
 The :code:`linear_elastic_parameter_constraint_equations.py` script is provided in
 the :code:`tardigrade_micromorphic_linear_elasticity` repository to
 evluate these 13 constraints. This repository is automatically pulled
-during the Tardigrade-MOOSE CMake build.
+during the CMake builds for :ref:`tardigrade_moose_installation` or
+:ref:`micromorphic_calibration_tool_installation` (option 2).
 
 Add Micromorphic Linear Elastic Constraints to software configuration path
 ==========================================================================
 
 Either using :code:`scons --config-software` or manually, add
-:code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_linear_elasticity-src/src/python`
+
+* :code:`/path/to/tardigrade/build/_deps/tardigrade_micromorphic_linear_elasticity-src/src/python`
+  if using the :ref:`tardigrade_moose_installation` CMake build, or
+* :code:`/path/to/tardigrade_micromorphic_linear_elasticity/src/python`
+  if using the :ref:`micromorphic_calibration_tool_installation` (option 2) CMake build
+
 to the :code:`config_software.yml` entry for "constraints".
 
 The path to the :code:`linear_elastic_parameter_constraint_equations.py` script needs to be inserted
