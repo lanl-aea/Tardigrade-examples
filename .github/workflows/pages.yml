@@ -35,7 +35,7 @@ jobs:
           activate-environment: ""
       - name: Conda environment
         shell: bash -el {0}
-        run: conda install 'waves' 'scons >= 4' 'boost>=1.59' 'setuptools_scm' 'pytest' 'pytest-cov' 'pytest-mock' 'sphinx>=5.1' 'sphinx-argparse' 'sphinx_rtd_theme>=1' 'sphinxcontrib-bibtex' 'sphinx-subfigure' 'paraview' 'h5py' 'pyyaml' 'scipy' 'scikit-learn' 'seaborn' 'tqdm' 'meshio' --yes --channel conda-forge
+        run: conda install 'waves' 'scons >= 4' 'boost>=1.59' 'setuptools_scm' 'pytest' 'pytest-cov' 'pytest-mock' 'sphinx>=5.1' 'sphinx-argparse' 'sphinx_rtd_theme>=1' 'sphinxcontrib-bibtex' 'sphinx-subfigure' 'paraview' 'h5py' 'pyyaml' 'scipy' 'scikit-learn' 'seaborn' 'tqdm' 'meshio' --yes --channel conda-forge --solver=libmamba
       - name: Build documentation
         shell: bash -el {0}
         run: scons html
