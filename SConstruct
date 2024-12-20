@@ -483,8 +483,8 @@ for workflow in workflow_configurations:
         print(f"Ratel program not found! Skipping '{workflow}' workflow.")
     elif ("tardigrade" in workflow.lower()) and (not env['Tardigrade']):
         print(f"Tardigrade program not found! Skipping '{workflow}' workflow.")
-    elif ("neper" in workflow.lower()) and (not env['cubit']) or (not env['neper']):
-        print(f"Cubit of Neper program not found! Skipping '{workflow}' workflow.")
+    elif ("neper" in workflow.lower()) and ((not env['cubit']) or (not env['neper'])):
+        print(f"Cubit or Neper program not found! Skipping '{workflow}' workflow.")
     else:
         build_dir = str(variant_dir_base / workflow)
         workflow_sconscript = pathlib.Path(f"{workflow_dir}/{workflow}")
