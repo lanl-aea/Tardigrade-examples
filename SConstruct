@@ -460,6 +460,7 @@ workflow_configurations = [
     # Ratel I43_09 workflow
     "Ratel_I43_09_multi_domain",
     "Ratel_I43_09_damage_multi_domain",
+    "Ratel_I43_09_multi_domain_CGNS",
     # Tardigrade solo studies
     "Tardigrade_convergence",
     "Tardigrade_dynamic_convergence",
