@@ -30,3 +30,4 @@ tqdm
 compilers
 neper
 flake8
+pycgns
