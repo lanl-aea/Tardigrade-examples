@@ -10,6 +10,7 @@ import pandas
 import file_io.xdmf
 import calibrate_element
 
+
 def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_factor, ref_density, density_factor, damage):
     '''Write XDMF file of collected Ratel DNS results for Micromorphic Filter
 
