@@ -36,6 +36,14 @@ def unpack_CGNS_coordinates(tree, dist_factor):
 
 
 def unpack_diagnostic(tree, diagnostic_path, quantity):
+    '''Collect values of a diagnostic quantity from a CGNS tree
+
+    :params tree tree: A CGNS tree
+    :params str diagnostic_path: The root CGNS path for all diagnostic quantities in a given timestep
+    :params str quantity: The diagnostic quantity to extract
+
+    :returns: Array of diagnostic quantity data
+    '''
 
     array_out = CGU.getValueByPath(tree, f'{diagnostic_path}{quantity}')
 
@@ -191,7 +199,7 @@ def convert_CGNS_to_XDMF(input_files, output_file, dist_factor=1, stress_factor=
     # collect VTU results and convert to XDMF
     collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_factor, density_factor, damage)
 
-    # Dump Cauchy 33 stresses to csv
+    # TODO: Dump Cauchy 33 stresses to csv
     # if dump_all_33_stresses:
         # last_step = [key for key in results.keys()][-1]
         # cauchy33 = results[last_step]['Cauchy_stress_zz']
