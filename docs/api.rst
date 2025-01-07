@@ -140,6 +140,14 @@ DNS_Ratel.build_options_file.py
     :show-inheritance:
     :synopsis: Write Ratel options file
 
+DNS_Ratel.cgns_to_xdmf.py
+=========================
+
+.. automodule:: model_package.DNS_Ratel.cgns_to_xdmf
+    :members:
+    :show-inheritance:
+    :synopsis: Convert Ratel DNS results to XDMF format
+
 DNS_Ratel.plot_force_displacement.py
 ====================================
 

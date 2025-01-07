@@ -100,6 +100,12 @@ DNS_Ratel.build_options_file.py
 .. argparse::
     :ref: model_package.DNS_Ratel.build_options_file.get_parser
 
+DNS_Ratel.cgns_to_xdmf.py
+=========================
+
+.. argparse::
+    :ref: model_package.DNS_Ratel.cgns_to_xdmf.get_parser
+
 DNS_Ratel.plot_force_displacement.py
 ====================================
 
