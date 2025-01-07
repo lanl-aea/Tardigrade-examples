@@ -3,7 +3,6 @@ channels:
   - https://conda.software.inl.gov/public
 
 dependencies:
-  - moose-dev
   - waves
   - scons>=4
   - boost>=1.59,<=1.80
