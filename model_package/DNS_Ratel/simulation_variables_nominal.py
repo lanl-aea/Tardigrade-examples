@@ -217,3 +217,47 @@ I43_damage_coarse_finetime['DNS_files'] = [
     'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Monitor_000065.vtu',
     ]
 I43_damage_coarse_finetime['DNS_forces'] = 'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5/Forces_OUT_I43-09_BIN4_SM10_DF20_MI10_MD0.5.csv'
+
+I43_damage_CGNS = {
+    # DNS parameters
+    'diam': 5.059347391457650,
+    'height': 4.400976867675780,
+    'center': [2.529673695728830, 2.529673695728830, 2.200488433837890],
+    'material_E': 250.0,
+    'material_nu': 0.25,
+    'cut': True,
+    # Mesh file root to copy if Cubit is not found
+    'mesh_copy_root': 'Ratel_I43_09',
+    # parameters for micromorphic filter
+    'acceleration': False,
+    'velocity': False,
+    'filter_parallel': 8,
+    # parameters for elastic calibration
+    'plastic_calibration_case': 6,
+    'calibration_increment_elastic': [0, 1, 2, 3, 4],
+    'calibration_increment_plastic': [3, 5, 7, 9, 10, 11, 12, 13],
+    # parameters for plastic calibration
+    'cohesion_case': 1,
+    'cohesion_increment': [3, 4, 5],
+    # paramters for Tardigrade-MOOSE
+    'macro_disp': 0.210*0.72221649302258428, #timestep for Monitor_000124.vtu
+    'macro_duration': 1.0,
+    'macro_BC': 'clamp',
+}
+I43_damage_CGNS['DNS_files'] = [
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0000.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0005.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0010.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0015.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0020.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0025.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0030.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0035.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0040.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0045.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0050.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0055.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0060.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0065.cgns',
+    ]
+I43_damage_CGNS['DNS_forces'] = 'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Forces_OUT_I43-09_BIN4_SM10_DF20_MI10_MD0.5.csv'

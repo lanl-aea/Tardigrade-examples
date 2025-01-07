@@ -5,7 +5,20 @@ Changelog
 #########
 
 ******************
-0.2.0 (unreleased)
+0.3.0 (unreleased)
+******************
+
+New Features
+============
+- Create new script and workflow for converting Ratel DNS from CGNS to XDMF
+  format (:issue:`24`, :merge:`16`). By `Thomas Allard`_.
+
+Documentation
+=============
+- Reformat API and CLI by section (:issue:`24`, :merge:`16`). By `Thomas Allard`_.
+
+******************
+0.2.0 (2024-12-18)
 ******************
 
 New Features
