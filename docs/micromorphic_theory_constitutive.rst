@@ -4,6 +4,8 @@
 Constitutive Equations
 ######################
 
+.. _micromorphic_linear_elasticity_constitutive:
+
 ******************************
 Micromorphic Linear Elasticity
 ******************************
@@ -135,10 +137,12 @@ may be evaluated as follows:
 
    M_{IJK} = C_{JKILMN} \Gamma_{LMN}.
 
-Finaly, the elastic moduli tensors (equations :math:numref:`{number} <A>`, :math:numref:`{number} <B>`,
-:math:numref:`{number} <C>`, and :math:numref:`{number} <D>`) may be substituted into
-equations :math:numref:`{number} <PK2_2>`, :math:numref:`{number} <SIGMA_2>`, and :math:numref:`{number} <M_2>`
-to express the stresses as functions of the 18 elasticity parameters, resulting in:
+The above equations describe the full form of micromorphic linear elasticity.
+
+For a simplified description of the linear elasticity model as a function of the 18 elasticity
+parameters, one may assume that elastic strains are small (but rotations may be large)
+and quadratic terms ignored. 
+The second and third order stresses may be defined as follows:
 
 .. math::
    :label: PK2
@@ -171,7 +175,7 @@ to express the stresses as functions of the 18 elasticity parameters, resulting 
 
    &+ \tau_6^* \delta_{JI} \Gamma_{NKN}
       + \tau_7^* \Gamma_{JKI}
-      + \tau_8^* \left(\Gamma_{IJK} \Gamma_{KIJ}\right)
+      + \tau_8^* \left(\Gamma_{IJK} + \Gamma_{KIJ}\right)
       + \tau_9^* \Gamma_{JIK}
 
       &+ \tau_{10}^* \Gamma_{KJI}
@@ -181,6 +185,10 @@ which are the same as shown in equation :math:numref:`{number} <constitutive_cas
 (although here different indices are used) discussed in
 the :ref:`workflow_constitutive_linear_elasticity` section while describing the
 micromorphic upscaling workflow.
+It should be noted that no aspects of the Tardigrade toolchain
+(including the material point calibration library and Tardigrade-MOOSE)
+make use of these assumptions, however, these equations simplify the discussion
+and are more conceptually intuitive.
 
 .. _smith_conditions:
 
