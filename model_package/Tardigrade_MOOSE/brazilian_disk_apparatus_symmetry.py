@@ -10,7 +10,8 @@ import numpy
 import subprocess
 
 
-def brazilian_disk_apparatus(output_file, seed_size, height, width, chord, app_rad, app_dep, spec_rad, spec_dep, tol):
+def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
+                             height, width, chord, app_rad, app_dep, spec_rad, spec_dep, tol):
     '''Create a Brazilian Disk specimen and loading apparatus
 
     :param str output_file: The output filename
@@ -95,9 +96,14 @@ def brazilian_disk_apparatus(output_file, seed_size, height, width, chord, app_r
     cubit.cmd('nodeset 6 name "specimen_contact"')
 
     # Mesh
-    cubit.cmd('imprint volume all')
-    cubit.cmd(f'volume all size {seed_size}')
-    cubit.cmd('mesh volume all')
+    #cubit.cmd('imprint volume all')
+    #cubit.cmd(f'volume all size {seed_size}')
+    #cubit.cmd('mesh volume all')
+    cubit.cmd(f'volume 10 size {specimen_seed_size}')
+    cubit.cmd('mesh volume 10')
+    cubit.cmd(f'volume 3 size {platen_seed_size}')
+    cubit.cmd('mesh volume 3')
+
 
     # Output
     cubit.cmd(f'save as "{output_file}.cub" overwrite')
@@ -118,8 +124,10 @@ def get_parser():
                                      prog=prog)
     parser.add_argument('--output-file', type=str, required=True,
         help="The output filename")
-    parser.add_argument('--seed-size', type=float, required=True,
-        help='The approximate mesh size')
+    parser.add_argument('--specimen-seed-size', type=float, required=True,
+        help='The approximate mesh size for the specimen')
+    parser.add_argument('--platen-seed-size', type=float, required=True,
+        help='The approximate mesh size for the platen')
     parser.add_argument('--height', type=float, required=True,
         help='The height of a single Brazilian disk compression platen')
     parser.add_argument('--width', type=float, required=True,
@@ -144,7 +152,8 @@ if __name__ == '__main__':
     parser = get_parser()
     args = parser.parse_args()
     sys.exit(brazilian_disk_apparatus(output_file=args.output_file,
-                                      seed_size=args.seed_size,
+                                      specimen_seed_size=args.specimen_seed_size,
+                                      platen_seed_size=args.platen_seed_size,
                                       height=args.height,
                                       width=args.width,
                                       chord=args.chord,
