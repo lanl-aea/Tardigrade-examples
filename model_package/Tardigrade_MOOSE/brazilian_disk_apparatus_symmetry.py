@@ -15,7 +15,8 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     '''Create a Brazilian Disk specimen and loading apparatus
 
     :param str output_file: The output filename
-    :param float seed_size: The approximate mesh size
+    :param float specimen_seed_size: The approximate mesh size for the specimen
+    :param float platen_seed_size: The approximate mesh size for the platen
     :param float height: The height of a single Brazilian disk compression platen
     :param float width: The base width of a Brazilian disk compression platen
     :param float chord: The chord distance of the Brazilian disk compression platen
