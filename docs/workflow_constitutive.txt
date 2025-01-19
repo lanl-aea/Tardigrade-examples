@@ -7,7 +7,18 @@ Micromorphic Linear Elasticity
 The model of Micromorphic Linear elasticity intoduced by Eringen and
 Suhubi :cite:`eringen_nonlinear_1964` is defined in the reference
 configuration for the second Piola Kirchoff stress, symmetric micro
-stress, and couple stress as follows:
+stress, and couple stress.
+The full form of the micromorphic linear elasticity model is described
+in :ref:`micromorphic_linear_elasticity_constitutive`.
+If one assumes that elastic strains are small (but rotations may be large)
+and quadratic terms ignored, the stresses may be defined using the
+18 elasticity parameters as shown in Equation
+:math:numref:`{number} <constitutive_case_4>`.
+It should be noted that no aspects of the Tardigrade toolchain
+(including the material point calibration library and Tardigrade-MOOSE)
+make use of these assumptions,
+however, the following equations simplify the discussion
+and are more conceptually intuitive.
 
 .. math::
     :label: constitutive_case_4
@@ -34,7 +45,7 @@ stress, and couple stress as follows:
 
         &+ \tau_6^* \delta_{LK} \Gamma_{NMN}
         + \tau_7^* \Gamma_{LMK}
-        + \tau_8^* \left(\Gamma_{KLM} \Gamma_{MKL}\right)
+        + \tau_8^* \left(\Gamma_{KLM} + \Gamma_{MKL}\right)
         + \tau_9^* \Gamma_{LKM}
 
         &+ \tau_{10}^* \Gamma_{MLK}
@@ -44,8 +55,8 @@ If parameters :math:`\tau^*`, :math:`\sigma^*`, :math:`\eta^*`,
 :math:`\kappa^*`, :math:`\nu^*`, and :math:`\tau_1^*` through 
 :math:`\tau_{11}^*` are set to zero (with the exception of :math:`\tau_7^*`
 which must be non-zero to satisfy positive definiteness of the free energy
-function :cite:`smith_inequalities_1968`), then the constitutive equations
-reduce as follows.
+function :cite:`smith_inequalities_1968`), then Equation
+:math:numref:`{number} <constitutive_case_4>` reduces as follows.
 
 .. math::
     :label: constitutive_case_1
