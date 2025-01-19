@@ -8,7 +8,7 @@ import yaml
 
 def build_input(output_file, mesh_file, parameter_sets, disp, duration,
                 specimen_top_surface, specimen_bottom_surface, top_platen_contact, bottom_platen_contact,
-                top_platen_fixture, bottom_platen_fixture):
+                top_platen_fixture, bottom_platen_fixture, contact_type='frictionless'):
     '''Write Tardigrade-MOOSE input file for Brazilian disk simulation with platens
     
     :param str output_file: The name of Tardigrade-MOOSE file to write
@@ -23,6 +23,7 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
     :param str bottom_platen_contact: Specify the name of the bottom platen contact surface
     :param str top_platen_fixture: Specify the name of the top platen fixture surface
     :param str bottom_platen_fixture: Specify the name of the bottom platen fixture surface
+    :param str contact_type: The option for specifying contact, either "frictionless" or "friction"
 
     :returns: ``output_file``
     '''
@@ -35,7 +36,7 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
         f.write('[Mesh]\n')
         f.write('  type = FileMesh\n')
         f.write(f'  file = "{mesh_file}"\n')
-        f.write('  patch_update_strategy = auto\n')
+        f.write('  patch_update_strategy = iteration\n')
         f.write('[]\n')
         f.write('\n')
         f.write('[GlobalParams]\n')
@@ -770,45 +771,66 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
         f.write('[]\n')
         f.write('\n')
         # Contact
-        f.write('[Contact]\n')
-        f.write('  [./top_center_cont]\n')
-        f.write(f'    secondary = "{top_platen_contact}"\n')
-        f.write(f'    primary = "{specimen_top_surface}"\n')
-        f.write('    model = coulomb\n')
-        f.write('    formulation = tangential_penalty\n')
-        f.write('    friction_coefficient = "0.2"\n')
-        f.write('    penalty = 1e4\n')
-        f.write('    normalize_penalty = true\n')
-        f.write('    tangential_tolerance = 1.e-1\n')
-        f.write('    normal_smoothing_distance = 0.001\n')
-        f.write('  [../]\n')
-        f.write('  [./bottom_center_cont]\n')
-        f.write(f'    secondary = "{bottom_platen_contact}"\n')
-        f.write(f'    primary = "{specimen_bottom_surface}"\n')
-        f.write('    model = coulomb\n')
-        f.write('    formulation = tangential_penalty\n')
-        f.write('    friction_coefficient = "0.2"\n')
-        f.write('    penalty = 1e4\n')
-        f.write('    normalize_penalty = true\n')
-        f.write('    tangential_tolerance = 1.e-1\n')
-        f.write('    normal_smoothing_distance = 0.001\n')
-        f.write('  [../]\n')
-        f.write('[]\n')
-        f.write('\n')
-        f.write('[Dampers]\n')
-        f.write('  [./contact_slip_top]\n')
-        f.write('    type = ContactSlipDamper\n')
-        f.write(f'    secondary = "{top_platen_contact}"\n')
-        f.write(f'    primary = "{specimen_top_surface}"\n')
-        f.write('    min_damping_factor = 1.e-2\n')
-        f.write('  [../]\n')
-        f.write('  [./contact_slip_bottom]\n')
-        f.write('    type = ContactSlipDamper\n')
-        f.write(f'    secondary = "{bottom_platen_contact}"\n')
-        f.write(f'    primary = "{specimen_bottom_surface}"\n')
-        f.write('    min_damping_factor = 1.e-2\n')
-        f.write('  [../]\n')
-        f.write('[]\n')
+        if contact_type == 'frictionless':
+            f.write('[Contact]\n')
+            f.write('  [./top_center_cont]\n')
+            f.write(f'    primary = "{top_platen_contact}"\n')
+            f.write(f'    secondary = "{specimen_top_surface}"\n')
+            f.write('    penalty = 1e3\n')
+            f.write('    normalize_penalty = true\n')
+            f.write('    tangential_tolerance = 1.e-3\n')
+            f.write('  [../]\n')
+            f.write('  [./bottom_center_cont]\n')
+            f.write(f'    primary = "{bottom_platen_contact}"\n')
+            f.write(f'    secondary = "{specimen_bottom_surface}"\n')
+            f.write('    penalty = 1e3\n')
+            f.write('    normalize_penalty = true\n')
+            f.write('    tangential_tolerance = 1.e-3\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+        elif contact_type == 'friction':
+            f.write('[Contact]\n')
+            f.write('  [./top_center_cont]\n')
+            f.write(f'    secondary = "{top_platen_contact}"\n')
+            f.write(f'    primary = "{specimen_top_surface}"\n')
+            f.write('    model = coulomb\n')
+            f.write('    formulation = tangential_penalty\n')
+            f.write('    friction_coefficient = "0.2"\n')
+            f.write('    penalty = 1e9\n')
+            f.write('    normalize_penalty = true\n')
+            f.write('    tangential_tolerance = 1.e-3\n')
+            f.write('    normal_smoothing_distance = 0.001\n')
+            f.write('  [../]\n')
+            f.write('  [./bottom_center_cont]\n')
+            f.write(f'    secondary = "{bottom_platen_contact}"\n')
+            f.write(f'    primary = "{specimen_bottom_surface}"\n')
+            f.write('    model = coulomb\n')
+            f.write('    formulation = tangential_penalty\n')
+            f.write('    friction_coefficient = "0.2"\n')
+            f.write('    penalty = 1e9\n')
+            f.write('    normalize_penalty = true\n')
+            f.write('    tangential_tolerance = 1.e-3\n')
+            f.write('    normal_smoothing_distance = 0.001\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+            f.write('\n')
+            f.write('[Dampers]\n')
+            f.write('  [./contact_slip_top]\n')
+            f.write('    type = ContactSlipDamper\n')
+            f.write(f'    secondary = "{top_platen_contact}"\n')
+            f.write(f'    primary = "{specimen_top_surface}"\n')
+            f.write('    min_damping_factor = 1.e-2\n')
+            f.write('  [../]\n')
+            f.write('  [./contact_slip_bottom]\n')
+            f.write('    type = ContactSlipDamper\n')
+            f.write(f'    secondary = "{bottom_platen_contact}"\n')
+            f.write(f'    primary = "{specimen_bottom_surface}"\n')
+            f.write('    min_damping_factor = 1.e-2\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+            f.write('\n')
+        else:
+            print('Specify a valid contact_type!')
         # Materials
         f.write('[Materials]\n')
         # Load in parameter data for each filter domain / element
@@ -1027,6 +1049,8 @@ def get_parser():
         help='Specify the name of the top platen fixture surface')
     parser.add_argument('--bottom-platen-fixture', type=str, required=True,
         help='Specify the name of the bottom platen fixture surface')
+    parser.add_argument('--contact-type', type=str, required=False, default='frictionless',
+        help='The option for specifying contact, either "frictionless" or "friction"')
 
     return parser
 
@@ -1046,4 +1070,5 @@ if __name__ == '__main__':
                          bottom_platen_contact=args.bottom_platen_contact,
                          top_platen_fixture=args.top_platen_fixture,
                          bottom_platen_fixture=args.bottom_platen_fixture,
+                         contact_type=args.contact_type,
                          ))
