@@ -41,6 +41,7 @@ Brazilian_disk = {
     'spec_dep': 5.1,
     'tol': 0.0,
     'seed_size': 0.5,
+    'platen_seed_size': 1.0,
     # material_E
     'material_E': 833.75,
     'material_nu': 0.3625,
