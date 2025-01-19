@@ -10,7 +10,7 @@ import yaml
 def build_input(output_file, mesh_file, parameter_sets, disp, duration,
                 specimen_bottom_surface, bottom_platen_contact,
                 top_symmetry, back_symmetry, side_symmetry,
-                bottom_platen_fixture):
+                bottom_platen_fixture, contact_type='frictionless'):
     '''Write Tardigrade-MOOSE input file for eighth symmetry Brazilian disk simulation with platens
     
     :param str output_file: The name of Tardigrade-MOOSE file to write
@@ -24,6 +24,7 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
     :param str back_symmetry: The name of the back symmetry surface(s)
     :param str side_symmetry: The name of the side symmetry surface(s)
     :param str bottom_platen_fixture: The name of the bottom platen fixture surface
+    :param str contact_type: The option for specifying contact, either "frictionless" or "friction"
 
     :returns: ``output_file``
     '''
@@ -676,28 +677,42 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
         f.write('[]\n')
         f.write('\n')
         # Contact
-        f.write('[Contact]\n')
-        f.write('  [./bottom_center_cont]\n')
-        f.write(f'    secondary = "{bottom_platen_contact}"\n')
-        f.write(f'    primary = "{specimen_bottom_surface}"\n')
-        f.write('    model = coulomb\n')
-        f.write('    formulation = tangential_penalty\n')
-        f.write('    friction_coefficient = "0.2"\n')
-        f.write('    penalty = 1e4\n')
-        f.write('    normalize_penalty = true\n')
-        f.write('    tangential_tolerance = 1.e-1\n')
-        f.write('    normal_smoothing_distance = 0.001\n')
-        f.write('  [../]\n')
-        f.write('[]\n')
-        f.write('\n')
-        f.write('[Dampers]\n')
-        f.write('  [./contact_slip_bottom]\n')
-        f.write('    type = ContactSlipDamper\n')
-        f.write(f'    secondary = "{bottom_platen_contact}"\n')
-        f.write(f'    primary = "{specimen_bottom_surface}"\n')
-        f.write('    min_damping_factor = 1.e-2\n')
-        f.write('  [../]\n')
-        f.write('[]\n')
+        if contact_type == 'frictionless':
+            f.write('[Contact]\n')
+            f.write('  [./bottom_center_cont]\n')
+            f.write(f'    primary = "{bottom_platen_contact}"\n')
+            f.write(f'    secondary = "{specimen_bottom_surface}"\n')
+            f.write('    penalty = 1e3\n')
+            f.write('    normalize_penalty = true\n')
+            f.write('    tangential_tolerance = 1.e-3\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+        elif contact_type == 'friction':
+            f.write('[Contact]\n')
+            f.write('  [./bottom_center_cont]\n')
+            f.write(f'    secondary = "{bottom_platen_contact}"\n')
+            f.write(f'    primary = "{specimen_bottom_surface}"\n')
+            f.write('    model = coulomb\n')
+            f.write('    formulation = tangential_penalty\n')
+            f.write('    friction_coefficient = "0.2"\n')
+            f.write('    penalty = 1e9\n')
+            f.write('    normalize_penalty = true\n')
+            f.write('    tangential_tolerance = 1.e-3\n')
+            f.write('    normal_smoothing_distance = 0.001\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+            f.write('\n')
+            f.write('[Dampers]\n')
+            f.write('  [./contact_slip_bottom]\n')
+            f.write('    type = ContactSlipDamper\n')
+            f.write(f'    secondary = "{bottom_platen_contact}"\n')
+            f.write(f'    primary = "{specimen_bottom_surface}"\n')
+            f.write('    min_damping_factor = 1.e-2\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+            f.write('\n')
+        else:
+            print('Specify a valid contact_type!')
         # Materials
         f.write('[Materials]\n')
         # Load in parameter data for each filter domain / element
@@ -917,6 +932,8 @@ def get_parser():
         help='Specify the name of the side symmetry surface(s)')
     parser.add_argument('--bottom-platen-fixture', type=str, required=True,
         help='Specify the name of the bottom platen fixture surface')
+    parser.add_argument('--contact-type', type=str, required=False, default='frictionless',
+        help='The option for specifying contact, either "frictionless" or "friction"')
 
     return parser
 
@@ -936,4 +953,5 @@ if __name__ == '__main__':
                          back_symmetry=args.back_symmetry,
                          side_symmetry=args.side_symmetry,
                          bottom_platen_fixture=args.bottom_platen_fixture,
+                         contact_type=args.contact_type,
                          ))
