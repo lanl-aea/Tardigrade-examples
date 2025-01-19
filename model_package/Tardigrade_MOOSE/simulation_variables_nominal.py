@@ -42,7 +42,7 @@ Brazilian_disk = {
     'tol': 0.0,
     'seed_size': 0.5,
     'platen_seed_size': 1.0,
-    'mesh_copy_root': 'brazilian_disk_apparatus'
+    'mesh_copy_root': 'brazilian_disk_apparatus',
     # material_E
     'material_E': 833.75,
     'material_nu': 0.3625,
