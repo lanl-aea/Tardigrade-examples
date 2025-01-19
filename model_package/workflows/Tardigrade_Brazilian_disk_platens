@@ -35,21 +35,30 @@ workflow = []
 mesh_script = 'brazilian_disk_apparatus.py'
 tardi_mesh_name = 'brazilian_disk_apparatus'
 tardi_mesh = f'{tardi_mesh_name}.e'
-script_options = f"--output-file {tardi_mesh_name}"
-script_options += f" --seed-size {params['seed_size']}"
-script_options += f" --height {params['height']}"
-script_options += f" --width {params['width']}"
-script_options += f" --chord {params['chord']}"
-script_options += f" --app-rad {params['app_rad']}"
-script_options += f" --app-dep {params['app_dep']}"
-script_options += f" --spec-rad {params['spec_rad']}"
-script_options += f" --spec-dep {params['spec_dep']}"
-script_options += f" --tol {params['tol']}"
-workflow.extend(env.PythonScript(
-    target=[f'{tardi_mesh_name}.e'],
-    source=[str(Tardigrade_MOOSE_source_abspath / mesh_script)],
-    script_options=script_options
-    ))
+if env['cubit']:
+    script_options = f"--output-file {tardi_mesh_name}"
+    script_options += f" --specimen-seed-size {params['seed_size']}"
+    script_options += f" --platen-seed-size {params['platen_seed_size']}"
+    script_options += f" --height {params['height']}"
+    script_options += f" --width {params['width']}"
+    script_options += f" --chord {params['chord']}"
+    script_options += f" --app-rad {params['app_rad']}"
+    script_options += f" --app-dep {params['app_dep']}"
+    script_options += f" --spec-rad {params['spec_rad']}"
+    script_options += f" --spec-dep {params['spec_dep']}"
+    script_options += f" --tol {params['tol']}"
+    workflow.extend(env.PythonScript(
+        target=[f'{tardi_mesh_name}.e'],
+        source=[str(Tardigrade_MOOSE_source_abspath / mesh_script)],
+        script_options=script_options
+        ))
+else:
+    mesh_copy = f"{params['mesh_copy_root']}.e"
+    workflow.extend(env.Command(
+        target=[tardi_mesh],
+        source=[f"{mesh_templates_abspath}/{mesh_copy}"],
+        action=SCons.Defaults.Copy("${TARGET}", "${SOURCE}", False)
+        ))
 
 # Write material card
 material_script = 'write_plastic_material_card.py'
