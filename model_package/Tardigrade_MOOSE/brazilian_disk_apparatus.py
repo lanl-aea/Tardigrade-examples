@@ -33,6 +33,7 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     print(perp_dist)
     bottom_spec = height - perp_dist
     gap = 2*(spec_rad - perp_dist)
+    offset = (app_dep - spec_dep)/2
 
     width_2 = (width - chord)/2.
 
@@ -58,7 +59,7 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
 
     # Specimen
     cubit.cmd(f'create curve arc radius {spec_rad} center location {width/2} {bottom_spec+spec_rad+tol} \
-                0 normal 0 0 1 start angle 0 stop angle 360')
+                {offset} normal 0 0 1 start angle 0 stop angle 360')
     cubit.cmd('create surface curve 37')
     cubit.cmd(f'sweep surface 17  vector 0 0 1  distance {spec_dep}')
 
@@ -73,10 +74,11 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     cubit.cmd('block 2 name "top_platen"')
     cubit.cmd('block 3 add volume 3 6 7 8')
     cubit.cmd('block 3 name "specimen"')
+    ## sidesets
     cubit.cmd('sideset 1 add surface 23 27')
-    cubit.cmd('sideset 1 name "bottom"')
+    cubit.cmd('sideset 1 name "bottom_platen_bottom"')
     cubit.cmd('sideset 2 add surface 33 37')
-    cubit.cmd('sideset 2 name "top"')
+    cubit.cmd('sideset 2 name "top_platen_top"')
     cubit.cmd('sideset 3 add surface 53 55 60 66')
     cubit.cmd('sideset 3 name "back"')
     cubit.cmd('sideset 4 add surface 31 38')
@@ -87,6 +89,37 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     cubit.cmd('sideset 6 name "specimen_top"')
     cubit.cmd('sideset 7 add surface 46 57')
     cubit.cmd('sideset 7 name "specimen_bottom"')
+    cubit.cmd('sideset 8 add surface 2')
+    cubit.cmd('sideset 8 name "bottom_platen_side"')
+    cubit.cmd('sideset 9 add surface 9')
+    cubit.cmd('sideset 9 name "top_platen_side"')
+    cubit.cmd('sideset 10 add surface 22 29')
+    cubit.cmd('sideset 10 name "bottom_platen_back"')
+    cubit.cmd('sideset 11 add surface 34 36')
+    cubit.cmd('sideset 11 name "top_platen_back"')
+    ## nodesets
+    cubit.cmd('nodeset 1 add surface 23 27')
+    cubit.cmd('nodeset 1 name "bottom_platen_bottom"')
+    cubit.cmd('nodeset 2 add surface 33 37')
+    cubit.cmd('nodeset 2 name "top_platen_top"')
+    cubit.cmd('nodeset 3 add surface 53 55 60 66')
+    cubit.cmd('nodeset 3 name "back"')
+    cubit.cmd('nodeset 4 add surface 31 38')
+    cubit.cmd('nodeset 4 name "top_platen_contact"')
+    cubit.cmd('nodeset 5 add surface 21 28')
+    cubit.cmd('nodeset 5 name "bottom_platen_contact"')
+    cubit.cmd('nodeset 6 add surface 47 50')
+    cubit.cmd('nodeset 6 name "specimen_top"')
+    cubit.cmd('nodeset 7 add surface 46 57')
+    cubit.cmd('nodeset 7 name "specimen_bottom"')
+    cubit.cmd('nodeset 8 add surface 2')
+    cubit.cmd('nodeset 8 name "bottom_platen_side"')
+    cubit.cmd('nodeset 9 add surface 9')
+    cubit.cmd('nodeset 9 name "top_platen_side"')
+    cubit.cmd('nodeset 10 add surface 22 29')
+    cubit.cmd('nodeset 10 name "bottom_platen_back"')
+    cubit.cmd('nodeset 11 add surface 34 36')
+    cubit.cmd('nodeset 11 name "top_platen_back"')
 
     # Mesh
     #cubit.cmd('imprint volume all')
@@ -99,12 +132,13 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     cubit.cmd('mesh volume 1 4')
     cubit.cmd(f'volume 2 5 size {platen_seed_size}')
     cubit.cmd('mesh volume 2 5')
-    #cubit.cmd(f'volume all size {seed_size}')
-    #cubit.cmd('mesh volume all')
 
     # Export
     cubit.cmd(f'save as "{output_file}.cub" overwrite')
     cubit.cmd(f'export mesh "{output_file}.e"  overwrite')
+    cubit.cmd(f'export abaqus "{output_file}_bottom_platen.inp" block 1 source_csys 0 target_csys 0 partial dimension 3 overwrite')
+    cubit.cmd(f'export abaqus "{output_file}_top_platen.inp" block 2 source_csys 0 target_csys 0 partial dimension 3 overwrite')
+    cubit.cmd(f'export abaqus "{output_file}_specimen.inp" block 3 source_csys 0 target_csys 0 partial dimension 3 overwrite')
 
     return
 
