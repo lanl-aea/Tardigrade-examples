@@ -37,7 +37,8 @@ abq_mesh_name = 'brazilian_disk_apparatus_sym'
 abq_meshes = [f'{abq_mesh_name}_bottom_platen.inp',
               f'{abq_mesh_name}_specimen.inp']
 script_options = f"--output-file {abq_mesh_name}"
-script_options += f" --seed-size {params['seed_size']}"
+script_options += f" --specimen-seed-size {params['seed_size']}"
+script_options += f" --platen-seed-size {params['platen_seed_size']}"
 script_options += f" --height {params['height']}"
 script_options += f" --width {params['width']}"
 script_options += f" --chord {params['chord']}"
@@ -73,86 +74,28 @@ workflow.extend(env.AbaqusSolver(
     abaqus_options = abaqus_options
 ))
 
-# # Write material card
-# material_script = 'write_plastic_material_card.py'
-# material_card = 'plastic_material_card.yml'
-# script_options = f'--output-file {material_card}'
-# script_options += f' --lamb {params["lambda"]}'
-# script_options += f' --mu {params["mu"]}'
-# script_options += f' --eta {params["eta"]}'
-# script_options += f' --tau {params["tau"]}'
-# script_options += f' --kappa {params["kappa"]}'
-# script_options += f' --nu {params["nu"]}'
-# script_options += f' --sigma {params["sigma"]}'
-# script_options += f' --tau1 {params["tau1"]}'
-# script_options += f' --tau2 {params["tau2"]}'
-# script_options += f' --tau3 {params["tau3"]}'
-# script_options += f' --tau4 {params["tau4"]}'
-# script_options += f' --tau5 {params["tau5"]}'
-# script_options += f' --tau6 {params["tau6"]}'
-# script_options += f' --tau7 {params["tau7"]}'
-# script_options += f' --tau8 {params["tau8"]}'
-# script_options += f' --tau9 {params["tau9"]}'
-# script_options += f' --tau10 {params["tau10"]}'
-# script_options += f' --tau11 {params["tau11"]}'
-# script_options += f' --cu0 {params["cu0"]}'
-# script_options += f' --fraction {params["fraction"]}'
-# workflow.extend(env.PythonScript(
-    # target = [material_card],
-    # source = [f"{Tardigrade_MOOSE_source_abspath / material_script}"],
-    # script_options = script_options
-# ))
+# Extract Abaqus
+extract_source_list = [f"{job_name}.odb"]
+workflow.extend(env.AbaqusExtract(
+    target = [f"{job_name}.h5", f"{job_name}_datasets.h5"],
+    source = extract_source_list,
+))
 
-# # build input file
-# tardigrade_input_script = "build_plastic_Tardigrade_input_deck_brazil_disk_platens_symmetry.py"
-# tardi_sim_name = f'TARDIGRADE-MOOSE_{model}'
-# tardigrade_build_targs = f"{tardi_sim_name}.i"
-# script_options = f"--output-file {tardigrade_build_targs}"
-# script_options += f" --parameter-sets {' '.join([material_card])}"
-# script_options += f" --mesh {tardi_mesh}"
-# script_options += f" --disp {params['macro_disp']}"
-# script_options += f" --duration {params['macro_duration']}"
-# script_options += " --specimen-bottom-surface specimen_contact"
-# script_options += " --bottom-platen-contact platen_contact"
-# script_options += " --top-symmetry top_sym"
-# script_options += " --back-symmetry back_sym"
-# script_options += " --side-symmetry side_sym"
-# script_options += " --bottom-platen-fixture bottom"
-# workflow.extend(env.PythonScript(
-    # target = [tardigrade_build_targs],
-    # source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh, material_card],
-    # script_options = script_options
-# ))
-
-# # run Tardigrade-MOOSE
-# if env['mpi']:
-    # mpi_location = env["mpi"]
-# else:
-    # mpi_location = []
-# tardigrade_moose_targs = [str(set_name / targ) for targ in [f'{tardi_sim_name}_out.e', f'{tardi_sim_name}_out.csv']]
-# workflow.extend(env.TardigradeSolver(
-    # target = tardigrade_moose_targs,
-    # source = tardigrade_build_sources,
-    # LD_LIBRARY_PATH = env['LD_PATH'],
-    # tardigrade_program = env['Tardigrade'],
-    # tardigrade_input = tardigrade_build_targs,
-    # tardigrade_cpus =  solve_cpus,
-    # stdout_file = f"{tardi_sim_name}_out.e.stdout",
-    # mpi_location = mpi_location,
-    # ))
-
-# # plot force vs displacement
-# plot_script = "plot_force_displacement.py"
-# plot_targets = [f"{tardi_sim_name}_force_displacement.png", f"{tardi_sim_name}_force_displacement.csv"]
-# script_options = f"--csv-file {tardigrade_moose_targs[1].split('/')[-1]}"
-# script_options += f" --output-file {plot_targets[0]}"
-# script_options += f" --output-csv {plot_targets[1]}"
-# script_options += f" --final-disp {params['macro_disp']}"
-# workflow.extend(env.PythonScript(
-    # target=[str(set_name / targ) for targ in plot_targets],
-    # source=[str(Tardigrade_MOOSE_source_abspath / plot_script), tardigrade_moose_targs[-1]],
-    # script_options=script_options,
-    # ))
+# Post-processing step #1 - force vs. displacement
+plot_name = f"{job_name}_force_displacement"
+plot_script = "extract_history.py"
+post_processing_source = [f"{job_name}_datasets.h5"]
+script_options = "--input-file " + " ".join(str(path) for path in post_processing_source)
+script_options += " --output-file ${TARGET.file} --x-units 'mm' --y-units 'N'"
+script_options += " --x-path 'A/HistoryOutputs/LOAD_HERE/U2'"
+script_options += " --y-path 'A/HistoryOutputs/LOAD_HERE/RF2'"
+script_options += " --x-label 'Displacement' --y-label 'Force'"
+script_options += f" --csv_file {plot_name}.csv"
+workflow.extend(env.PythonScript(
+    target = [f"{plot_name}.png", f"{plot_name}.csv"],
+    source = [f"{DNS_Abaqus_abspath / plot_script}"] + post_processing_source,
+    script_options = script_options
+))
 
 # Collector alias based on parent directory name
 env.Alias(workflow_name, workflow)
