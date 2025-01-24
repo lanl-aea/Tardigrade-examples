@@ -55,6 +55,7 @@ workflow.extend(env.PythonScript(
 
 params['platen_mesh_file'] = abq_meshes[0]
 params['specimen_mesh_file'] = abq_meshes[1]
+params['macro_disp'] = params['macro_disp']/2
 abaqus_source_list = [
     DNS_Abaqus_abspath / "brazil_disk" / "input_symmetry.inp.in",
 ]
@@ -65,7 +66,7 @@ workflow.extend(env.CopySubstfile(
 ))
 # Abaqus Solve
 solve_source_list = [source_file.name.rstrip('.in') for source_file in abaqus_source_list]
-job_name = pathlib.Path(solve_source_list[0]).stem
+job_name = model
 abaqus_options = '-double both'
 workflow.extend(env.AbaqusSolver(
     target = [f"{job_name}.sta"],
