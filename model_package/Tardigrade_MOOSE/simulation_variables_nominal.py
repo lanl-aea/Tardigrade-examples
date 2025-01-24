@@ -46,6 +46,8 @@ Brazilian_disk = {
     # material_E
     'material_E': 833.75,
     'material_nu': 0.3625,
+    'platen_E': 210000.,
+    'platen_nu': 0.30,
     'cu0': 3.0,
     'fraction': 0.1,
     # macro_BC
