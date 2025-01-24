@@ -870,6 +870,7 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
         f.write('  petsc_options_value = "lu     superlu_dist NONZERO"\n')
         f.write('  line_search = none\n')
         f.write('  automatic_scaling = true\n')
+        f.write('  compute_scaling_once = true\n')
         f.write('  nl_rel_tol = 1e-5\n')
         f.write('  nl_abs_tol = 1e-5\n')
         f.write('  l_tol = 5e-3\n')
