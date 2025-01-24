@@ -469,6 +469,7 @@ workflow_configurations = [
     "Tardigrade_Brazilian_disk",
     "Tardigrade_Brazilian_disk_platens",
     "Tardigrade_Brazilian_disk_platens_eighth_symmetry",
+    "Abaqus_Brazilian_disk_platens",
     "Abaqus_Brazilian_disk_platens_eighth_symmetry",
     #Neper studies
     "neper_cube",
