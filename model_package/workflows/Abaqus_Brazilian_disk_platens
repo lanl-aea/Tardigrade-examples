@@ -99,5 +99,22 @@ workflow.extend(env.PythonScript(
     script_options = script_options
 ))
 
+# Post-processing step #2 - normalized force and displacements
+plot_script = "Brazil_disk_normalized_force_vs_displacements.py"
+csv_input = f"{plot_name}.csv"
+plot_name = f"{job_name}_force_displacement_normalized"
+script_options = f"--input-file {csv_input}"
+script_options += f" --radius {params['spec_rad']}"
+script_options += f" --thickness {params['spec_dep']}"
+script_options += " --force-factor -1"
+script_options += " --disp-factor -1"
+script_options += f" --plot-file {plot_name}.png"
+script_options += f" --csv-file {plot_name}.csv"
+workflow.extend(env.PythonScript(
+    target = [f"{plot_name}.png", f"{plot_name}.csv"],
+    source = [f"{Tardigrade_MOOSE_source_abspath / plot_script}", csv_input],
+    script_options = script_options
+))
+
 # Collector alias based on parent directory name
 env.Alias(workflow_name, workflow)
