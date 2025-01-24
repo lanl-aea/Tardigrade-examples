@@ -12,6 +12,8 @@ Requires the following ``Sconscript(..., exports=[])``
 
 import pathlib
 
+import SCons.Defaults
+
 from model_package.Tardigrade_MOOSE import simulation_variables_nominal
 
 
@@ -20,6 +22,7 @@ Import('env')
 
 # set project-wide paths with os-agnostic path separators
 Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
 
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)
