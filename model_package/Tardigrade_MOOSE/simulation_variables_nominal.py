@@ -50,10 +50,11 @@ Brazilian_disk = {
     'platen_nu': 0.30,
     'cu0': 3.0,
     'fraction': 0.1,
-    # macro_BC
+    # macro parameters
     'macro_BC': 'brazil',
     'macro_disp': 0.5,
     'macro_duration': 1.0,
+    'friction_coefficient': 0.1,
 }
 
 elastic_parameter_ordering = ['lambda', 'mu', 'eta', 'tau', 'kappa', 'nu', 'sigma',\
