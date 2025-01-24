@@ -61,10 +61,10 @@ load_here, 2, -1.
 **
 *Surface Interaction, name=CONTACT-PROP
 *Friction
-0.2
+@friction_coefficient@
 *Surface Behavior, pressure-overclosure=HARD
 **
-** Interaction: Top-platen-to-top-plunger
+** Interaction: platen_contact
 *Contact Pair, interaction=CONTACT-PROP, type=SURFACE TO SURFACE
 bottom_platen-1.platen_contact, specimen-1.specimen_contact
 **
