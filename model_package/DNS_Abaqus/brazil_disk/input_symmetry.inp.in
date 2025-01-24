@@ -48,7 +48,7 @@ load_here, 2, -1.
 *DENSITY
 2.8E-9
 *ELASTIC
-200000.0, 0.33
+@platen_E@, @platen_nu@
 *MATERIAL, NAME=mock
 *DENSITY
 2.0E-9
