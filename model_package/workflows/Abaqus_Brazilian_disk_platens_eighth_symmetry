@@ -8,6 +8,7 @@ Requires the following ``Sconscript(..., exports=[])``
   * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
 """
 
+import copy
 import pathlib
 
 from model_package.Tardigrade_MOOSE import simulation_variables_nominal
@@ -53,16 +54,17 @@ workflow.extend(env.PythonScript(
     script_options=script_options
     ))
 
-params['platen_mesh_file'] = abq_meshes[0]
-params['specimen_mesh_file'] = abq_meshes[1]
-params['macro_disp'] = params['macro_disp']/2
+all_params = copy.deepcopy(params)
+all_params['platen_mesh_file'] = abq_meshes[0]
+all_params['specimen_mesh_file'] = abq_meshes[1]
+all_params['macro_disp'] = params['macro_disp']/2
 abaqus_source_list = [
     DNS_Abaqus_abspath / "brazil_disk" / "input_symmetry.inp.in",
 ]
 
 workflow.extend(env.CopySubstfile(
     abaqus_source_list,
-    substitution_dictionary=env.SubstitutionSyntax(params),
+    substitution_dictionary=env.SubstitutionSyntax(all_params),
 ))
 # Abaqus Solve
 solve_source_list = [source_file.name.rstrip('.in') for source_file in abaqus_source_list]
