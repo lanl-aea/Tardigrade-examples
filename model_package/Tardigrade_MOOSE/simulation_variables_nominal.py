@@ -36,7 +36,7 @@ Brazilian_disk = {
     'width': 36.,
     'chord': 22.,
     'app_rad': 12.5,
-    'app_dep': 5.5,
+    'app_dep': 6.0,
     'spec_rad': 9.55,
     'spec_dep': 5.1,
     'tol': 0.0,
