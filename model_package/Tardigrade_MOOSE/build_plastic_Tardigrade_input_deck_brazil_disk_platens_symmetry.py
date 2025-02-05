@@ -7,11 +7,12 @@ import sys
 import yaml
 
 
-def build_input(output_file, mesh_file, parameter_sets, disp, duration,
+def build_input(output_file, mesh_file, material_E, material_nu, platen_E, platen_nu,
+                disp, duration,
                 specimen_bottom_surface, bottom_platen_contact,
                 top_symmetry, back_symmetry, side_symmetry,
                 bottom_platen_fixture, contact_type='frictionless'):
-    '''Write Tardigrade-MOOSE input file for eighth symmetry Brazilian disk simulation with platens
+    '''Write MOOSE input file for eighth symmetry Brazilian disk simulation with platens
     
     :param str output_file: The name of Tardigrade-MOOSE file to write
     :param str mesh_file: The name of the mesh file
