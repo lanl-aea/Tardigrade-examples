@@ -97,6 +97,10 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     cubit.cmd('sideset 10 name "bottom_platen_back"')
     cubit.cmd('sideset 11 add surface 34 36')
     cubit.cmd('sideset 11 name "top_platen_back"')
+    cubit.cmd('sideset 12 add surface 51 58 62 64')
+    cubit.cmd('sideset 12 name "specimen_front"')
+    cubit.cmd('sideset 13 add surface 53 55 60 66')
+    cubit.cmd('sideset 13 name "specimen_back"')
     ## nodesets
     cubit.cmd('nodeset 1 add surface 23 27')
     cubit.cmd('nodeset 1 name "bottom_platen_bottom"')
@@ -120,9 +124,12 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     cubit.cmd('nodeset 10 name "bottom_platen_back"')
     cubit.cmd('nodeset 11 add surface 34 36')
     cubit.cmd('nodeset 11 name "top_platen_back"')
+    cubit.cmd('nodeset 12 add surface 51 58 62 64')
+    cubit.cmd('nodeset 12 name "specimen_front"')
+    cubit.cmd('nodeset 13 add surface 53 55 60 66')
+    cubit.cmd('nodeset 13 name "specimen_back"')
 
     # Mesh
-    #cubit.cmd('imprint volume all')
     cubit.cmd('merge volume 3 6 7 8')
     cubit.cmd('merge volume 1 4')
     cubit.cmd('merge volume 2 5')
