@@ -221,13 +221,14 @@ def xdmf_3d_calculations(input_file, output_file, write_type, num_elements=None,
 
     num_increments = xdmf_file_in.getNumIncrements()
     incs = list(range(0, num_increments))
-    times = [xdmf_file_in.getIncrementTime(i)[0] for i in incs]
+
 
     reference_positions = xdmf_file_in.getIncrementReferenceNodePositions(0)[0][0]
     connectivity = xdmf_file_in.getIncrementConnectivity(0)[0][0].reshape((1,-1))
 
     if write_type == 'filter_stress_measures':
         assert num_elements != None, "num_elements must be specified!"
+        times = [xdmf_file_in.getIncrementTime(i)[0] for i in incs]
         filter_stress_measures(xdmf_file_in, xdmf_file_out, incs, times, num_elements,
                                reference_positions, connectivity)
     elif write_type == 'calibration':
