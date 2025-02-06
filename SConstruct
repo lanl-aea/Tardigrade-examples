@@ -146,6 +146,15 @@ AddOption(
     action="store_true",
     help="Boolean to parse errors from Micromorphic Filter standard output. (default: '%default')"
 )
+AddOption(
+    "--uniform-refine",
+    dest="uniform_refine",
+    default=0,
+    nargs=1,
+    type="int",
+    action="store",
+    help="Integer specifying uniform refinement level for macro simulations. 0: no refinement, 1: refine by 1 level (each hex element is split into 8), 2: refinement by 2 levels (each hex element is split into 27). Currently only used with '--macro-damage' option. (default: '%default')"
+)
 # Inherit user's full environment and set project options
 env = waves.scons_extensions.WAVESEnvironment(
     ENV=os.environ.copy(),
@@ -166,6 +175,7 @@ env = waves.scons_extensions.WAVESEnvironment(
     use_sbatch=GetOption("use_sbatch"),
     selected_parameter_sets=GetOption("selected_parameter_sets"),
     parse_filter_errors=GetOption("parse_filter_errors"),
+    uniform_refine=GetOption("uniform_refine"),
     TARFLAGS="-c -j",
     TARSUFFIX=".tar.bz2"
 )
