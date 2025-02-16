@@ -4,7 +4,6 @@ import pathlib
 import sys
 
 import matplotlib.pyplot
-import numpy
 import pandas
 
 from finite_stVK_calculation import finite_stVK_calculation
