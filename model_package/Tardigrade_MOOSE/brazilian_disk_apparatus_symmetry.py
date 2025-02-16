@@ -5,13 +5,12 @@ import pathlib
 import sys
 
 import cubit
-import pandas
 import numpy
-import subprocess
 
 
 def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
-                             height, width, chord, app_rad, app_dep, spec_rad, spec_dep, tol):
+                             height, width, chord, app_rad, app_dep, spec_rad, spec_dep, tol,
+                             symmetry='eighth'):
     '''Create a Brazilian Disk specimen and loading apparatus
 
     :param str output_file: The output filename
@@ -59,52 +58,96 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     cubit.cmd('create surface curve 19')
     cubit.cmd(f'sweep surface 9  vector 0 0 1  distance {spec_dep}')
 
-
     # Cut for symmetry
     cubit.cmd('webcut volume all with general plane location curve 2 fraction 0.5 from vertex 1 direction on curve 2 location last')
     cubit.cmd('webcut volume all with general plane location curve 48 fraction 0.5 from vertex 35 direction on curve 48 location last')
     cubit.cmd('webcut volume all with general plane location curve 47 fraction 0.5 from vertex 34 direction on curve 47 location last')
-    cubit.cmd('delete volume 1 2 4 5 6 7 8 9 11 12')
+    if symmetry == 'eighth':
+        cubit.cmd('delete volume 1 2 4 5 6 7 8 9 11 12')
+    elif symmetry == 'quarter':
+        cubit.cmd('delete volume 2 4 5 6 7 8 11 12')
+    else:
+        print('Specify a valid type of symmetry!')
 
     # Blocks and sets
-    cubit.cmd('block 1 add volume 3')
-    cubit.cmd('block 1 name "bottom_platen"')
-    cubit.cmd('block 2 add volume 10')
-    cubit.cmd('block 2 name "specimen"')
-    cubit.cmd('sideset 1 add surface 53')
-    cubit.cmd('sideset 1 name "bottom"')
-    cubit.cmd('sideset 2 add surface 82')
-    cubit.cmd('sideset 2 name "top_sym"')
-    cubit.cmd('sideset 3 add surface 51 84')
-    cubit.cmd('sideset 3 name "back_sym"')
-    cubit.cmd('sideset 4 add surface 54 85')
-    cubit.cmd('sideset 4 name "side_sym"')
-    cubit.cmd('sideset 5 add surface 56')
-    cubit.cmd('sideset 5 name "platen_contact"')
-    cubit.cmd('sideset 6 add surface 83')
-    cubit.cmd('sideset 6 name "specimen_contact"')
-    cubit.cmd('nodeset 1 add surface 53')
-    cubit.cmd('nodeset 1 name "bottom"')
-    cubit.cmd('nodeset 2 add surface 82')
-    cubit.cmd('nodeset 2 name "top_sym"')
-    cubit.cmd('nodeset 3 add surface 51 84')
-    cubit.cmd('nodeset 3 name "back_sym"')
-    cubit.cmd('nodeset 4 add surface 54 85')
-    cubit.cmd('nodeset 4 name "side_sym"')
-    cubit.cmd('nodeset 5 add surface 56')
-    cubit.cmd('nodeset 5 name "platen_contact"')
-    cubit.cmd('nodeset 6 add surface 83')
-    cubit.cmd('nodeset 6 name "specimen_contact"')
+    if symmetry == 'eighth':
+        cubit.cmd('block 1 add volume 3')
+        cubit.cmd('block 1 name "bottom_platen"')
+        cubit.cmd('block 2 add volume 10')
+        cubit.cmd('block 2 name "specimen"')
+        cubit.cmd('sideset 1 add surface 53')
+        cubit.cmd('sideset 1 name "bottom"')
+        cubit.cmd('sideset 2 add surface 82')
+        cubit.cmd('sideset 2 name "top_sym"')
+        cubit.cmd('sideset 3 add surface 51 84')
+        cubit.cmd('sideset 3 name "back_sym"')
+        cubit.cmd('sideset 4 add surface 54 85')
+        cubit.cmd('sideset 4 name "side_sym"')
+        cubit.cmd('sideset 5 add surface 56')
+        cubit.cmd('sideset 5 name "platen_contact"')
+        cubit.cmd('sideset 6 add surface 83')
+        cubit.cmd('sideset 6 name "specimen_contact"')
+        cubit.cmd('nodeset 1 add surface 53')
+        cubit.cmd('nodeset 1 name "bottom"')
+        cubit.cmd('nodeset 2 add surface 82')
+        cubit.cmd('nodeset 2 name "top_sym"')
+        cubit.cmd('nodeset 3 add surface 51 84')
+        cubit.cmd('nodeset 3 name "back_sym"')
+        cubit.cmd('nodeset 4 add surface 54 85')
+        cubit.cmd('nodeset 4 name "side_sym"')
+        cubit.cmd('nodeset 5 add surface 56')
+        cubit.cmd('nodeset 5 name "platen_contact"')
+        cubit.cmd('nodeset 6 add surface 83')
+        cubit.cmd('nodeset 6 name "specimen_contact"')
+    elif symmetry == 'quarter':
+        cubit.cmd('block 1 add volume 1 3')
+        cubit.cmd('block 1 name "bottom_platen"')
+        cubit.cmd('block 2 add volume 9 10')
+        cubit.cmd('block 2 name "specimen"')
+        cubit.cmd('sideset 1 add surface 36 53')
+        cubit.cmd('sideset 1 name "bottom"')
+        cubit.cmd('sideset 2 add surface 73 82')
+        cubit.cmd('sideset 2 name "top_sym"')
+        cubit.cmd('sideset 3 add surface 31 51 75 84')
+        cubit.cmd('sideset 3 name "back_sym"')
+        cubit.cmd('sideset 5 add surface 33 56')
+        cubit.cmd('sideset 5 name "platen_contact"')
+        cubit.cmd('sideset 6 add surface 46 83')
+        cubit.cmd('sideset 6 name "specimen_contact"')
+        cubit.cmd('sideset 7 add surface 52')
+        cubit.cmd('sideset 7 name "platen_side"')
+        cubit.cmd('nodeset 1 add surface 36 53')
+        cubit.cmd('nodeset 1 name "bottom"')
+        cubit.cmd('nodeset 2 add surface 73 82')
+        cubit.cmd('nodeset 2 name "top_sym"')
+        cubit.cmd('nodeset 3 add surface 31 51 75 84')
+        cubit.cmd('nodeset 3 name "back_sym"')
+        cubit.cmd('nodeset 5 add surface 33 56')
+        cubit.cmd('nodeset 5 name "platen_contact"')
+        cubit.cmd('nodeset 6 add surface 46 83')
+        cubit.cmd('nodeset 6 name "specimen_contact"')
+        cubit.cmd('nodeset 7 add surface 52')
+        cubit.cmd('nodeset 7 name "platen_side"')
+    else:
+        print('Specify a valid type of symmetry!')
 
     # Mesh
-    #cubit.cmd('imprint volume all')
-    #cubit.cmd(f'volume all size {seed_size}')
-    #cubit.cmd('mesh volume all')
-    cubit.cmd(f'volume 10 size {specimen_seed_size}')
-    cubit.cmd('mesh volume 10')
-    cubit.cmd(f'volume 3 size {platen_seed_size}')
-    cubit.cmd('mesh volume 3')
-
+    if symmetry == 'eighth':
+        cubit.cmd(f'volume 10 size {specimen_seed_size}')
+        cubit.cmd('mesh volume 10')
+        cubit.cmd(f'volume 3 size {platen_seed_size}')
+        cubit.cmd('mesh volume 3')
+    elif symmetry == 'quarter':
+        cubit.cmd('imprint volume 9 10')
+        cubit.cmd('merge volume 9 10')
+        cubit.cmd(f'volume 9 10 size {specimen_seed_size}')
+        cubit.cmd('mesh volume 9 10')
+        cubit.cmd('imprint volume 1 3')
+        cubit.cmd('merge volume 1 3')
+        cubit.cmd(f'volume 1 3 size {platen_seed_size}')
+        cubit.cmd('mesh volume 1 3')
+    else:
+        print('Specify a valid type of symmetry!')
 
     # Output
     cubit.cmd(f'save as "{output_file}.cub" overwrite')
@@ -112,6 +155,7 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     cubit.cmd(f'export abaqus "{output_file}_bottom_platen.inp" block 1 source_csys 0 target_csys 0 partial dimension 3 overwrite')
     cubit.cmd(f'export abaqus "{output_file}_specimen.inp" block 2 source_csys 0 target_csys 0 partial dimension 3 overwrite')
     #cubit.cmd(f'export abaqus "{output_file}.inp" instance_per_block source_csys 0 target_csys 0 partial dimension 3 overwrite  everything')
+
     return
 
 
@@ -146,6 +190,8 @@ def get_parser():
     parser.add_argument('--tol', type=float, required=False, default=0.001,
         help='A tolerance / gap distance to insert between Brazilian disk \
               compression specimen and platens')
+    parser.add_argument('--symmetry', type=str, required=False, default='eighth',
+        help='Type of symmetry to create, either "eighth" or "quarter"')
     return parser
 
 
@@ -163,4 +209,5 @@ if __name__ == '__main__':
                                       spec_rad=args.spec_rad,
                                       spec_dep=args.spec_dep,
                                       tol=args.tol,
+                                      symmetry=args.symmetry,
                                       ))
