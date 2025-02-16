@@ -482,6 +482,7 @@ workflow_configurations = [
     "Tardigrade_Brazilian_disk_platens_elastic",
     "Tardigrade_Brazilian_disk_platens_eighth_symmetry_elastic",
     "Abaqus_Brazilian_disk_platens",
+    "Abaqus_Brazilian_disk_platens_quarter_symmetry",
     "Abaqus_Brazilian_disk_platens_eighth_symmetry",
     "MOOSE_Brazilian_disk_platens",
     "MOOSE_Brazilian_disk_platens_eighth_symmetry",
