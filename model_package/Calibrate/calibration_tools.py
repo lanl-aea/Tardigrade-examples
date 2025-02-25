@@ -27,7 +27,7 @@ def average_quantities(quantities, type, elem):
 
     output = {}
     shapes = numpy.shape(quantities[0])
-    
+
     if type == '9':
         output[0] = numpy.zeros((shapes[0], 1, shapes[2]))
         for k in range(9):
