@@ -10,11 +10,12 @@ import yaml
 def build_input(output_file, mesh_file, material_E, material_nu, platen_E, platen_nu,
                 disp, duration,
                 specimen_bottom_surface, bottom_platen_contact,
-                top_symmetry, back_symmetry, side_symmetry,
+                top_symmetry, back_symmetry, side_set,
                 bottom_platen_fixture,
-                contact_type='friction', friction_coefficient=None):
-    '''Write MOOSE input file for eighth symmetry Brazilian disk simulation with platens
-    
+                contact_type='friction', friction_coefficient=None,
+                symmetry='eighth'):
+    '''Write MOOSE input file for symmetric Brazilian disk simulation with platens
+
     :param str output_file: The name of Tardigrade-MOOSE file to write
     :param str mesh_file: The name of the mesh file
     :param float material_E: The elastic modulus of the specimen material
@@ -27,10 +28,11 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
     :param str bottom_platen_contact: The name of the bottom platen contact surface
     :param str top_symmetry: The name of the top symmetry surface(s)
     :param str back_symmetry: The name of the back symmetry surface(s)
-    :param str side_symmetry: The name of the side symmetry surface(s)
+    :param str side_set: The name of the side surface(s) to restrict motion in x-direction
     :param str bottom_platen_fixture: The name of the bottom platen fixture surface
     :param str contact_type: The option for specifying contact, either "frictionless" or "friction"
     :param float friction_coefficient: The friction coefficient if contact_type="friction"
+    :param str symmetry: Type of symmetry to enforce, either "eighth" or "quarter"
 
     :returns: ``output_file``
     '''
@@ -137,35 +139,68 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
         f.write('[]\n')
         f.write('\n')
         f.write('[BCs]\n')
-        f.write('  active = "top_symmetry back_symmetry side_symmetry bottom_y"\n')
-        f.write('  [./top_symmetry]\n')
-        f.write('    type = DirichletBC\n')
-        f.write('    variable = disp_y\n')
-        f.write(f'    boundary = "{top_symmetry}"\n')
-        f.write('    preset = true\n')
-        f.write('    value = 0\n')
-        f.write('  [../]\n')
-        f.write('  [./back_symmetry]\n')
-        f.write('    type = DirichletBC\n')
-        f.write('    variable = disp_z\n')
-        f.write(f'    boundary = "{back_symmetry}"\n')
-        f.write('    preset = true\n')
-        f.write('    value = 0\n')
-        f.write('  [../]\n')
-        f.write('  [./side_symmetry]\n')
-        f.write('    type = DirichletBC\n')
-        f.write('    variable = disp_x\n')
-        f.write(f'    boundary = "{side_symmetry}"\n')
-        f.write('    preset = true\n')
-        f.write('    value = 0\n')
-        f.write('  [../]\n')
-        f.write('  [./bottom_y]\n')
-        f.write('    type = FunctionDirichletBC\n')
-        f.write('    variable = disp_y\n')
-        f.write(f'    boundary = "{bottom_platen_fixture}"\n')
-        f.write('    #preset = true\n')
-        f.write('    function = top_bc\n')
-        f.write('  [../]\n')
+        if symmetry == 'eighth':
+            f.write('  active = "top_symmetry back_symmetry side_symmetry bottom_y"\n')
+            f.write('  [./top_symmetry]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = disp_y\n')
+            f.write(f'    boundary = "{top_symmetry}"\n')
+            f.write('    preset = true\n')
+            f.write('    value = 0\n')
+            f.write('  [../]\n')
+            f.write('  [./back_symmetry]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = disp_z\n')
+            f.write(f'    boundary = "{back_symmetry}"\n')
+            f.write('    preset = true\n')
+            f.write('    value = 0\n')
+            f.write('  [../]\n')
+            f.write('  [./side_symmetry]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = disp_x\n')
+            f.write(f'    boundary = "{side_set}"\n')
+            f.write('    preset = true\n')
+            f.write('    value = 0\n')
+            f.write('  [../]\n')
+            f.write('  [./bottom_y]\n')
+            f.write('    type = FunctionDirichletBC\n')
+            f.write('    variable = disp_y\n')
+            f.write(f'    boundary = "{bottom_platen_fixture}"\n')
+            f.write('    #preset = true\n')
+            f.write('    function = top_bc\n')
+            f.write('  [../]\n')
+        elif symmetry == 'quarter':
+            f.write('  active = "top_symmetry back_symmetry fix_side bottom_y"\n')
+            f.write('  [./top_symmetry]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = disp_y\n')
+            f.write(f'    boundary = "{top_symmetry}"\n')
+            f.write('    preset = true\n')
+            f.write('    value = 0\n')
+            f.write('  [../]\n')
+            f.write('  [./back_symmetry]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = disp_z\n')
+            f.write(f'    boundary = "{back_symmetry}"\n')
+            f.write('    preset = true\n')
+            f.write('    value = 0\n')
+            f.write('  [../]\n')
+            f.write('  [./fix_side]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = disp_x\n')
+            f.write(f'    boundary = "{side_set}"\n')
+            f.write('    preset = true\n')
+            f.write('    value = 0\n')
+            f.write('  [../]\n')
+            f.write('  [./bottom_y]\n')
+            f.write('    type = FunctionDirichletBC\n')
+            f.write('    variable = disp_y\n')
+            f.write(f'    boundary = "{bottom_platen_fixture}"\n')
+            f.write('    #preset = true\n')
+            f.write('    function = top_bc\n')
+            f.write('  [../]\n')
+        else:
+            print('Specify a valid type of symmetry!')
         f.write('[]\n')
         f.write('\n')
         # Loading function
@@ -317,14 +352,16 @@ def get_parser():
         help='Specify the name of the top symmetry surface(s)')
     parser.add_argument('--back-symmetry', type=str, required=True,
         help='Specify the name of the back symmetry surface(s)')
-    parser.add_argument('--side-symmetry', type=str, required=True,
-        help='Specify the name of the side symmetry surface(s)')
+    parser.add_argument('--side-set', type=str, required=True,
+        help='Specify the name of the side surface(s) to restrict motion in x-direction')
     parser.add_argument('--bottom-platen-fixture', type=str, required=True,
         help='Specify the name of the bottom platen fixture surface')
     parser.add_argument('--contact-type', type=str, required=False, default='friction',
         help='The option for specifying contact, either "frictionless" or "friction"')
     parser.add_argument('--friction-coefficient', type=float, required=False, default=None,
-        help='The fricition coefficient if contact_type="friction"')
+        help='The friction coefficient if contact_type="friction"')
+    parser.add_argument('--symmetry', type=str, required=False, default='eighth',
+        help='Type of symmetry to enforce, either "eighth" or "quarter"')
 
     return parser
 
@@ -345,8 +382,9 @@ if __name__ == '__main__':
                          bottom_platen_contact=args.bottom_platen_contact,
                          top_symmetry=args.top_symmetry,
                          back_symmetry=args.back_symmetry,
-                         side_symmetry=args.side_symmetry,
+                         side_set=args.side_set,
                          bottom_platen_fixture=args.bottom_platen_fixture,
                          contact_type=args.contact_type,
                          friction_coefficient=args.friction_coefficient,
+                         symmetry=args.symmetry,
                          ))
