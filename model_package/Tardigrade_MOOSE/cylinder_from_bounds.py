@@ -58,6 +58,13 @@ def mesh(rad, height, x0, y0, z0, seed_size, output_file, cut=False, brazil_line
             cubit.cmd('nodeset 5 name "brazil_load"')
             cubit.cmd('nodeset 6 add curve 51 57')
             cubit.cmd('nodeset 6 name "brazil_fix"')
+        # center points
+        cubit.cmd('nodeset 7 add node 72')
+        cubit.cmd('nodeset 7 name "top_center"')
+        cubit.cmd('undo group end')
+        cubit.cmd('undo group begin')
+        cubit.cmd('nodeset 8 add node 15')
+        cubit.cmd('nodeset 8 name "bottom_center"')
         # Export
         cubit.cmd(f'export mesh "{output_file}.e" block 9 overwrite')
     else:
