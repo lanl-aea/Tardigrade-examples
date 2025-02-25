@@ -25,6 +25,7 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     :param float spec_dep: The extrusion depth of the Brazilian disk compression specimen
     :param float tol: A tolerance / gap distance to insert between Brazilian disk \
                       compression specimen and platens
+    :param str symmetry: Type of symmetry to create, either "eighth" or "quarter"
 
     :returns: ``output_file``
     '''
@@ -192,6 +193,7 @@ def get_parser():
               compression specimen and platens')
     parser.add_argument('--symmetry', type=str, required=False, default='eighth',
         help='Type of symmetry to create, either "eighth" or "quarter"')
+
     return parser
 
 
