@@ -106,7 +106,7 @@ script_options += " --specimen-bottom-surface specimen_contact"
 script_options += " --bottom-platen-contact platen_contact"
 script_options += " --top-symmetry top_sym"
 script_options += " --back-symmetry back_sym"
-script_options += " --side-symmetry side_sym"
+script_options += " --side-set side_sym"
 script_options += " --bottom-platen-fixture bottom"
 workflow.extend(env.PythonScript(
     target = [tardigrade_build_targs],
