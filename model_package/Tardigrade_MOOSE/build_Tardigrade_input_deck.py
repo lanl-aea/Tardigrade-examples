@@ -615,8 +615,8 @@ def build_input(output_file, mesh_file, BCs, disp, duration, calibration_map, di
         dt = duration / 10
         f.write('  num_steps = 10\n')
         f.write(f'  dt        = {dt}\n')
-        f.write('#  solve_type = "PJFNK"\n')
-        f.write('  solve_type = "NEWTON"\n')
+        f.write('  solve_type = "PJFNK"\n')
+        f.write('#  solve_type = "NEWTON"\n')
         f.write('  nl_rel_tol = 1e-8\n')
         f.write('  nl_abs_tol = 1e-8\n')
         f.write('  nl_max_its = 100\n')
