@@ -57,7 +57,7 @@ def build_input(output_file, mesh_file, calibration_map, BCs, disp, duration):
     :param str output_file: The name of Tardigrade-MOOSE file to write
     :param str mesh_file: The name of the mesh file
     :param str calibration_map: CSV file containing calibration data
-    :param str BCs: The type of boundary conditions, either "slip", "clamp", or "brazil"
+    :param str BCs: The type of boundary conditions, either "slip", "slip_plane", "clamp", or "brazil"
     :param float disp: The compressive displacement to be applied
     :param float duration: The duration of the simulation
 
@@ -626,6 +626,24 @@ def build_input(output_file, mesh_file, calibration_map, BCs, disp, duration):
             f.write('    function = top_bc\n')
             f.write('  [../]\n')
             f.write('[]\n')
+        elif BCs == 'slip_plane':
+            f.write('[BCs]\n')
+            f.write('  active = "bottom_z top_z"\n')
+            f.write('  [./bottom_z]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = disp_z\n')
+            f.write('    boundary = "bottom"\n')
+            f.write('    preset = true\n')
+            f.write('    value = 0\n')
+            f.write('  [../]\n')
+            f.write('  [./top_z]\n')
+            f.write('    type = FunctionDirichletBC\n')
+            f.write('    variable = disp_z\n')
+            f.write('    boundary = "top"\n')
+            f.write('    preset = true\n')
+            f.write('    function = top_bc\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
         elif BCs == 'clamp':
             f.write('[BCs]\n')
             f.write('  active = "bottom_x bottom_y bottom_z top_x top_y top_z"\n')
@@ -812,7 +830,7 @@ def build_input(output_file, mesh_file, calibration_map, BCs, disp, duration):
         dt = duration / 20
         f.write('[Executioner]\n')
         f.write('  type = Transient\n')
-        f.write('  solve_type = NEWTON\n')
+        f.write('  solve_type = PJFNK\n')
         f.write('  petsc_options_iname = "-pc_type -pc_factor_mat_solver_package"\n')
         f.write('  petsc_options_value = "lu       superlu_dist                 "\n')
         f.write('  line_search = none\n')
@@ -861,7 +879,7 @@ def get_parser():
     parser.add_argument('--calibration-map', type=str, required=True,
         help='CSV file containing calibration data')
     parser.add_argument('--BCs', type=str, required=True,
-        help='Specify the type of boundary conditions, either "slip", "clamp", or "brazil"')
+        help='Specify the type of boundary conditions, either "slip", "slip_plane", "clamp", or "brazil"')
     parser.add_argument('--disp', type=float, required=True,
         help='Specify the compressive displacement to be applied')
     parser.add_argument('--duration', type=float, required=True,
