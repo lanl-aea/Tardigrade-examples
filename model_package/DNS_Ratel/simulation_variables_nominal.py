@@ -242,7 +242,7 @@ I43_damage_CGNS = {
     # paramters for Tardigrade-MOOSE
     'macro_disp': 0.210*0.72221649302258428, #timestep for Monitor_000124.vtu
     'macro_duration': 1.0,
-    'macro_BC': 'clamp',
+    'macro_BC': 'slip_plane',
 }
 I43_damage_CGNS['DNS_files'] = [
     'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0000.cgns',
