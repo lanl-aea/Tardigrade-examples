@@ -54,14 +54,14 @@ if env['cubit']:
         target=[f'{tardi_mesh_name}.e'],
         source=[str(Tardigrade_MOOSE_source_abspath / mesh_script)],
         script_options=script_options
-        ))
+    ))
 else:
     mesh_copy = f"{params['mesh_copy_root']}_sym.e"
     workflow.extend(env.Command(
         target=[tardi_mesh],
         source=[f"{mesh_templates_abspath}/{mesh_copy}"],
         action=SCons.Defaults.Copy("${TARGET}", "${SOURCE}", False)
-        ))
+    ))
 
 # build input file
 tardigrade_input_script = "build_elastic_MOOSE_input_deck_brazil_disk_platens_symmetry.py"
@@ -79,7 +79,7 @@ script_options += " --specimen-bottom-surface specimen_contact"
 script_options += " --bottom-platen-contact platen_contact"
 script_options += " --top-symmetry top_sym"
 script_options += " --back-symmetry back_sym"
-script_options += " --side-symmetry side_sym"
+script_options += " --side-set side_sym"
 script_options += " --bottom-platen-fixture bottom"
 script_options += " --contact-type friction"
 script_options += f" --friction-coefficient {params['friction_coefficient']}"
@@ -106,20 +106,39 @@ workflow.extend(env.TardigradeSolver(
     tardigrade_cpus =  env['solve_cpus'],
     stdout_file = f"{tardi_sim_name}_out.e.stdout",
     mpi_location = mpi_location,
-    ))
+))
 
-# plot force vs displacement
+# Post-processing step #1 - force vs. displacement
 plot_script = "plot_force_displacement.py"
-plot_targets = [f"{tardi_sim_name}_force_displacement.png", f"{tardi_sim_name}_force_displacement.csv"]
+plot_name = f"{tardi_sim_name}_force_displacement"
 script_options = f"--csv-file {tardigrade_moose_targs[1].split('/')[-1]}"
-script_options += f" --output-file {plot_targets[0]}"
-script_options += f" --output-csv {plot_targets[1]}"
-script_options += f" --final-disp {params['macro_disp']}"
+script_options += f" --output-file {f'{plot_name}.png'}"
+script_options += f" --output-csv {f'{plot_name}.csv'}"
+script_options += f" --final-disp {params['macro_disp']/2}"
+script_options += f" --force-field reaction_top"
 workflow.extend(env.PythonScript(
-    target=plot_targets,
+    target=[f"{plot_name}.png", f"{plot_name}.csv"],
     source=[str(Tardigrade_MOOSE_source_abspath / plot_script), tardigrade_moose_targs[-1]],
     script_options=script_options,
-    ))
+))
+
+# Post-processing step #2 - normalized force and displacements
+plot_script = "Brazil_disk_normalized_force_vs_displacements.py"
+csv_input = f"{plot_name}.csv"
+plot_name = f"{plot_name}_force_displacement_normalized"
+script_options = f"--input-file {csv_input}"
+script_options += f" --radius {params['spec_rad']}"
+script_options += f" --thickness {params['spec_dep']}"
+script_options += " --force-factor -2"
+script_options += " --disp-factor 2"
+script_options += f" --plot-file {plot_name}.png"
+script_options += f" --csv-file {plot_name}.csv"
+workflow.extend(env.PythonScript(
+    target = [f"{plot_name}.png", f"{plot_name}.csv"],
+    source = [f"{Tardigrade_MOOSE_source_abspath / plot_script}", csv_input],
+    script_options = script_options
+))
+
 
 # Collector alias based on parent directory name
 env.Alias(workflow_name, workflow)
