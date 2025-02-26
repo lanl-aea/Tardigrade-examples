@@ -4,7 +4,7 @@
 *ELASTIC
 68900.0, 0.33
 **
-** From https://www:osti:gov/biblio/1532690.
+** From https://www.osti.gov/biblio/1532690
 *SURFACE INTERACTION, NAME=BOND
 6.5
 **
