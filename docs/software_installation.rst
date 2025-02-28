@@ -160,7 +160,7 @@ following commands:
    .. code-block:: console
 
       $ cd $RATEL_DIR
-      $ ./bin/ratel-quasistatic -options_file examples/ex02-quasistatic-elasticity-linear-platen.yml
+      $ ./bin/ratel-quasistatic -options_file examples/ymls/ex02-quasistatic-elasticity-linear-platen.yml
 
 Many other examples can be found in the :code:`$RATEL_DIR/examples` directory.
 
@@ -223,7 +223,7 @@ following link:
 https://oit.colorado.edu/services/business-services/github-enterprise
 
 The Conda Environment for this repo includes all of the same packages
-included in the Micrormophic Filter repository to guarantee that this
+included in the Micromophic Filter repository to guarantee that this
 software functions appropriately.
 
 Test
