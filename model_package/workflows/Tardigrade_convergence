@@ -140,7 +140,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
         script_options=script_options,
         ))
 
-# Summarize force vs displacements and lateral displacemens
+# Summarize force vs displacements and lateral displacements
 force_csvs, lateral_csvs, element_labels = [], [], []
 for set_name, parameters in parameter_generator.parameter_study_to_dict().items():
     elements = parameters['elements']
