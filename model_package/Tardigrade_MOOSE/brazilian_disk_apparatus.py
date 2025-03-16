@@ -8,9 +8,12 @@ import pandas
 import numpy
 import subprocess
 
+from misc_utilities import str2bool
+
 
 def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
-                             height, width, chord, app_rad, app_dep, spec_rad, spec_dep, tol):
+                             height, width, chord, app_rad, app_dep, spec_rad, spec_dep, tol,
+                             x0=0., y0=0., z0=0., export_platens=True):
     '''Create a Brazilian Disk specimen and loading apparatus
 
     :param str output_file: The output filename
@@ -25,8 +28,12 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     :param float spec_dep: The extrusion depth of the Brazilian disk compression specimen
     :param float tol: A tolerance / gap distance to insert between Brazilian disk \
                       compression specimen and platens
+    :param float x0: The x-location to move geometry for the center of the Brazil Disk'
+    :param float y0: The y-location to move geometry for the center of the Brazil Disk
+    :param float z0: The z-location to move geometry for the center of the Brazil Dis
+    :param bool export_platens: Flag to export platen meshes of the brazilian disk apparatus
 
-    :returns: ``output_file``
+    :returns: ``output_file``.cub, ``output_file``_specimen.inp, and optionally ``output_file``_bottom_platen.inp and ``output_file``_top_platen.inp
     '''
 
     perp_dist = app_rad - numpy.sqrt((app_rad**2 - (0.5*chord)**2))
@@ -66,6 +73,12 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     # Partition
     cubit.cmd('webcut volume all with general plane curve 18')
     cubit.cmd('webcut volume 3 6 with general plane curve 75')
+
+    # Move
+    move_x = width/2
+    move_y = bottom_spec+spec_rad+tol
+    move_z = offset + spec_dep/2
+    cubit.cmd(f'move Volume all x {x0 - move_x} y {y0 - move_y} z {z0 - move_z} include_merged')
 
     # Blocks and sets
     cubit.cmd('block 1 add volume 1 4')
@@ -143,8 +156,9 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     # Export
     cubit.cmd(f'save as "{output_file}.cub" overwrite')
     cubit.cmd(f'export mesh "{output_file}.e"  overwrite')
-    cubit.cmd(f'export abaqus "{output_file}_bottom_platen.inp" block 1 source_csys 0 target_csys 0 partial dimension 3 overwrite')
-    cubit.cmd(f'export abaqus "{output_file}_top_platen.inp" block 2 source_csys 0 target_csys 0 partial dimension 3 overwrite')
+    if export_platens == True:
+        cubit.cmd(f'export abaqus "{output_file}_bottom_platen.inp" block 1 source_csys 0 target_csys 0 partial dimension 3 overwrite')
+        cubit.cmd(f'export abaqus "{output_file}_top_platen.inp" block 2 source_csys 0 target_csys 0 partial dimension 3 overwrite')
     cubit.cmd(f'export abaqus "{output_file}_specimen.inp" block 3 source_csys 0 target_csys 0 partial dimension 3 overwrite')
 
     return
@@ -181,6 +195,14 @@ def get_parser():
     parser.add_argument('--tol', type=float, required=False, default=0.001,
         help='A tolerance / gap distance to insert between Brazilian disk \
               compression specimen and platens')
+    parser.add_argument('--x0', type=float, required=False, default=0.,
+        help='The x-location to move geometry for the center of the Brazil Disk')
+    parser.add_argument('--y0', type=float, required=False, default=0.,
+        help='The y-location to move geometry for the center of the Brazil Disk')
+    parser.add_argument('--z0', type=float, required=False, default=0.,
+        help='The z-location to move geometry for the center of the Brazil Disk')
+    parser.add_argument('--export-platens', type=str, required=False, default='True',
+        help='Flag to export platen meshes of the brazilian disk apparatus')
     return parser
 
 
@@ -198,4 +220,8 @@ if __name__ == '__main__':
                                       spec_rad=args.spec_rad,
                                       spec_dep=args.spec_dep,
                                       tol=args.tol,
+                                      x0=args.x0,
+                                      y0=args.y0,
+                                      z0=args.z0,
+                                      export_platens=str2bool(args.export_platens),
                                       ))
