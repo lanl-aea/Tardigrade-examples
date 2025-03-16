@@ -58,7 +58,7 @@ params['bottom_platen_mesh_file'] = abq_meshes[0]
 params['top_platen_mesh_file'] = abq_meshes[1]
 params['specimen_mesh_file'] = abq_meshes[2]
 abaqus_source_list = [
-    DNS_Abaqus_abspath / "brazil_disk" / "input.inp.in",
+    DNS_Abaqus_abspath / "brazil_disk" / "input_platens.inp.in",
 ]
 
 workflow.extend(env.CopySubstfile(
