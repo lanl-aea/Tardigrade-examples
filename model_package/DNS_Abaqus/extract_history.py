@@ -15,6 +15,10 @@ def plot(input_file, output_file, x_path, y_path, x_label, y_label, x_units, y_u
     :param str input_file: Relative or absolute path to h5netcdf file containing Xarray
         Datasets of Abaqus simulation results.
     :param str output_file: The plot file name. Relative or absolute path.
+    :param str x_path: The HDF5 path to the x data
+    :param str y_path: The HDF5 path to the y data
+    :param str x_label: The label (without units) for the x data
+    :param str y_label: The label (without units) for the y data
     :param str x_units: The independent (x-axis) units
     :param str y_units: The dependent (y-axis) units
     :param str csv_file: path-like or file-like object containing the CSV dataset to compare with the current
