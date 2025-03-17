@@ -84,12 +84,12 @@ specimen-1.specimen_bottom, bottom_platen-1.surface
 specimen-1.specimen_top, top_platen-1.surface
 **
 *Contact Initialization Data, name=CInit-1
-
+**
 *************************************************************
 ** I N I T I A L    B O U N D A R Y    C O N D I T I O N S
 *************************************************************
 **
-** Name: fix_bottom_platen_back Type: Displacement/Rotation
+** Name: fix_platen_reference_points Type: Displacement/Rotation
 *Boundary
 bottom_platen-1.RP, 1, 1
 bottom_platen-1.RP, 3, 3
