@@ -33,7 +33,7 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     :param float z0: The z-location to move geometry for the center of the Brazil Dis
     :param bool export_platens: Flag to export platen meshes of the brazilian disk apparatus
 
-    :returns: ``output_file``.cub, ``output_file``_specimen.inp, and optionally ``output_file``_bottom_platen.inp and ``output_file``_top_platen.inp
+    :returns: Write ``output_file``.cub, ``output_file``_specimen.inp, and optionally ``output_file``_bottom_platen.inp and ``output_file``_top_platen.inp
     '''
 
     perp_dist = app_rad - numpy.sqrt((app_rad**2 - (0.5*chord)**2))
@@ -154,11 +154,16 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     cubit.cmd('mesh volume 2 5')
 
     # Export
-    cubit.cmd(f'save as "{output_file}.cub" overwrite')
-    cubit.cmd(f'export mesh "{output_file}.e"  overwrite')
     if export_platens == True:
         cubit.cmd(f'export abaqus "{output_file}_bottom_platen.inp" block 1 source_csys 0 target_csys 0 partial dimension 3 overwrite')
         cubit.cmd(f'export abaqus "{output_file}_top_platen.inp" block 2 source_csys 0 target_csys 0 partial dimension 3 overwrite')
+    else:
+        cubit.cmd('delete block 1 2')
+        cubit.cmd('delete volume 1 2 4 5')
+        cubit.cmd('delete nodeset 1 2 4 5 8 9 10 11')
+        cubit.cmd('delete sideset 1 2 4 5 8 9 10 11')
+    cubit.cmd(f'save as "{output_file}.cub" overwrite')
+    cubit.cmd(f'export mesh "{output_file}.e"  overwrite')
     cubit.cmd(f'export abaqus "{output_file}_specimen.inp" block 3 source_csys 0 target_csys 0 partial dimension 3 overwrite')
 
     return
@@ -203,6 +208,7 @@ def get_parser():
         help='The z-location to move geometry for the center of the Brazil Disk')
     parser.add_argument('--export-platens', type=str, required=False, default='True',
         help='Flag to export platen meshes of the brazilian disk apparatus')
+
     return parser
 
 
