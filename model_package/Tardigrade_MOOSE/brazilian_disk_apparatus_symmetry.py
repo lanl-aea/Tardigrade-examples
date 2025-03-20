@@ -163,10 +163,17 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
         print('Specify a valid type of symmetry!')
 
     # Output
-    cubit.cmd(f'save as "{output_file}.cub" overwrite')
-    cubit.cmd(f'export mesh "{output_file}.e"  overwrite')
     if export_platens == True:
         cubit.cmd(f'export abaqus "{output_file}_bottom_platen.inp" block 1 source_csys 0 target_csys 0 partial dimension 3 overwrite')
+    else:
+        cubit.cmd('delete block 1')
+        cubit.cmd('delete nodeset 1 5 7')
+        cubit.cmd('delete sideset 1 5 7')
+        cubit.cmd('delete volume 3')
+        if symmetry == 'quarter':
+            cubit.cmd('delete volume 1')
+    cubit.cmd(f'save as "{output_file}.cub" overwrite')
+    cubit.cmd(f'export mesh "{output_file}.e"  overwrite')
     cubit.cmd(f'export abaqus "{output_file}_specimen.inp" block 2 source_csys 0 target_csys 0 partial dimension 3 overwrite')
 
     return
