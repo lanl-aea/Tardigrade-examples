@@ -411,11 +411,12 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         # Case 1 - Calibrate macro-plasticity initial cohesion parameter
         parameter_bounds = [[1.0, 10.]]
         param_est = [3.0]
+        workers = 1
         res = scipy.optimize.differential_evolution(func=opti_options_1,
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
                                                     x0=param_est,
-                                                    workers=1,
+                                                    workers=workers,
                                                     args=(Y, inputs, e_params, cal_norm, case, element, nqp, True, increment))
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
@@ -425,11 +426,12 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         cohesion = f_params[0]
         parameter_bounds = [[-1000., 1000.]]
         param_est = [-1.0]
+        workers = 1
         res = scipy.optimize.differential_evolution(func=opti_options_2,
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
                                                     x0=param_est,
-                                                    workers=num_workers,
+                                                    workers=workers,
                                                     args=(Y, cohesion, inputs, cal_norm, case, element, nqp, True, increment))
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
@@ -438,11 +440,12 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         # Case 3 - Calibrate micro-plasticity initial cohesion parameter
         parameter_bounds = [[1.0, 10.]]
         param_est = [3.0]
+        workers = 1
         res = scipy.optimize.differential_evolution(func=opti_options_3,
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
                                                     x0=param_est,
-                                                    workers=num_workers,
+                                                    workers=workers,
                                                     args=(Y, inputs, e_params, cal_norm, case, element, nqp, True, increment))
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
@@ -451,24 +454,26 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         # Case 4 - Calibrate macro-plasticity initial cohesion and hardening parameters
         parameter_bounds = [[1.0, 100.], [-100., 100]]
         param_est = [3.0, 1.e-8]
+        workers = 1
         res = scipy.optimize.differential_evolution(func=opti_options_4,
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
                                                     x0=param_est,
-                                                    workers=num_workers,
+                                                    workers=workers,
                                                     args=(Y, inputs, e_params, cal_norm, case, element, nqp, True, increment))
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
         params = opti_options_4(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
     elif case == 5:
         # Case 5 - Calibrate micro-plasticity initial cohesion and hardening parameters
-        parameter_bounds = [[0.0, 10.], [-100., 10]]
+        parameter_bounds = [[1.0, 20.], [1.e-8, 500.]]
         param_est = [3.0, 1.e-8]
+        workers = 1
         res = scipy.optimize.differential_evolution(func=opti_options_5,
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
                                                     x0=param_est,
-                                                    workers=num_workers,
+                                                    workers=workers,
                                                     args=(Y, inputs, e_params, cal_norm, case, element, nqp, True, increment))
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
@@ -477,24 +482,26 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         # Case 6 - Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters
         parameter_bounds = [[1.0, 20.], [1.e-8, 500.], [1.0, 20.], [1.e-8, 500.]]
         param_est = [3.0, 1.e-4, 3.0, 1.e-4]
+        workers = 2
         res = scipy.optimize.differential_evolution(func=opti_options_6,
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
                                                     x0=param_est,
-                                                    workers=num_workers,
+                                                    workers=workers,
                                                     args=(Y, inputs, e_params, cal_norm, case, element, nqp, True, increment))
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
         params = opti_options_6(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
     elif case == 7:
-        # Case 7 - Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters
+        # Case 7 - Calibrate macro-plasticity, micro-plasticity, and micro-gradient-plasticity initial cohesion and hardening parameters
         parameter_bounds = [[1.0, 20.], [1.e-8, 500.], [1.0, 20.], [1.e-8, 500.], [1.e-3, 20.], [1.e-8, 500.]]
         param_est = [3.0, 1.e-4, 3.0, 1.e-4, 0.1, 1.]
+        workers = 4
         res = scipy.optimize.differential_evolution(func=opti_options_7,
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
                                                     x0=param_est,
-                                                    workers=8,
+                                                    workers=workers,
                                                     args=(Y, inputs, e_params, cal_norm, case, element, nqp, True, increment))
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
