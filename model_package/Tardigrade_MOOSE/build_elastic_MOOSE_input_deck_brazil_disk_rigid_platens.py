@@ -37,9 +37,11 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_radius,
     if geometry == 'full':
         active_BCs = 'bottom_y top_y'
         react_surface = specimen_top_surface
+        stress_boundary = f'{specimen_bottom_surface} {specimen_top_surface}'
         assert specimen_top_surface != None, "Specimen top surface must be defined if 'geometry' = 'full'!"
     else:
         react_surface = top_symmetry
+        stress_boundary = f'{specimen_bottom_surface}'
         assert top_symmetry != None, "Specimen top symmetry must be defined if 'geometry' = 'quarter' or 'eighth'!"
         assert back_symmetry != None, "Specimen back symmetry must be defined if 'geometry' = 'quarter' or 'eighth'!"
         if geometry == 'quarter':
@@ -152,6 +154,8 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_radius,
         f.write('    penalty = 1000000.\n')
         f.write('  [../]\n')
         if geometry == 'full':
+            # cut displacement in half to share between top and bottom
+            disp = 0.5*disp
             f.write('  [./top_y]\n')
             f.write('    type = FunctionPenaltyDirichletBC\n')
             f.write('    variable = disp_y\n')
@@ -160,14 +164,14 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_radius,
             f.write('    penalty = 1000000.\n')
             f.write('  [../]\n')
         else:
-            f.write('  [./back_symmetry]\n')
+            f.write('  [./back_sym]\n')
             f.write('    type = DirichletBC\n')
             f.write('    variable = disp_z\n')
             f.write(f'    boundary = "{back_symmetry}"\n')
             f.write('    preset = true\n')
             f.write('    value = 0\n')
             f.write('  [../]\n')
-            f.write('  [./top_symmetry]\n')
+            f.write('  [./top_sym]\n')
             f.write('    type = DirichletBC\n')
             f.write('    variable = disp_y\n')
             f.write(f'    boundary = "{top_symmetry}"\n')
@@ -175,7 +179,7 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_radius,
             f.write('    value = 0\n')
             f.write('  [../]\n')
             if geometry == 'eighth':
-                f.write('  [./side_symmetry]\n')
+                f.write('  [./side_sym]\n')
                 f.write('    type = DirichletBC\n')
                 f.write('    variable = disp_x\n')
                 f.write(f'    boundary = "{side_symmetry}"\n')
@@ -185,14 +189,21 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_radius,
         f.write('[]\n')
         # Loading functions
         r_sq = platen_radius**2
+        # only include center x-position if it is non-zero, assume xc-top = xc_bot
+        if abs(xc_top) > 1.e-4:
+            top_load_string = f'({yc_top}-{disp}*t+sqrt({r_sq}-((x-{xc_top})*(x-{xc_top}))))'
+            bottom_load_string = f'({yc_bot}+{disp}*t-sqrt({r_sq}-((x-{xc_bot})*(x-{xc_bot}))))'
+        else:
+            top_load_string = f'({yc_top}-{disp}*t+sqrt({r_sq}-(x*x)))'
+            bottom_load_string = f'({yc_bot}+{disp}*t-sqrt({r_sq}-(x*x)))'
         f.write('[Functions]\n')
         f.write('  [./top_bc_y]\n')
         f.write('    type  = ParsedFunction\n')
-        f.write(f'    expression = if(y-({yc_top**2}-{disp}*t+sqrt({r_sq}-((x-{xc_top})*(x-{xc_top}))))<=0,0,-1*(y-({yc_top**2}-{disp}*t+sqrt({r_sq}-((x-{xc_top})*(x-{xc_top})))))\n')
+        f.write(f'    expression = if(y-{top_load_string}<=0,0,-1*(y-{top_load_string}))\n')
         f.write('  [../]\n')
         f.write('  [./bottom_bc_y]\n')
         f.write('    type  = ParsedFunction\n')
-        f.write(f'    expression = if((({yc_bot**2})+{disp}*t-sqrt({r_sq}-((x-{xc_bot})*(x-{xc_bot}))))-y<=0,0,(({yc_bot**2})+{disp}*t-sqrt({r_sq}-((x-{xc_bot})*(x-{xc_bot}))))-y)\n')
+        f.write(f'    expression = if({bottom_load_string}-y<=0,0,{bottom_load_string}-y)\n')
         f.write('  [../]\n')
         f.write('[]\n')
         # Materials
@@ -209,7 +220,7 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_radius,
         f.write('  [../]\n')
         f.write('  [stress]\n')
         f.write('    type=ComputeFiniteStrainElasticStress\n')
-        f.write(f'    boundary = "{specimen_bottom_surface} {specimen_top_surface}"\n')
+        f.write(f'    boundary = "{stress_boundary}"\n')
         f.write('  []\n')
         f.write('[]\n')
         # Execution and Timestepping
