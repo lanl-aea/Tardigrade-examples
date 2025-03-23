@@ -452,7 +452,7 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         params = opti_options_3(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
     elif case == 4:
         # Case 4 - Calibrate macro-plasticity initial cohesion and hardening parameters
-        parameter_bounds = [[1.0, 100.], [-100., 100]]
+        parameter_bounds = [[1.0, 20.], [1.e-8, 500.]]
         param_est = [3.0, 1.e-8]
         workers = 1
         res = scipy.optimize.differential_evolution(func=opti_options_4,
