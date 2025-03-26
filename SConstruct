@@ -481,6 +481,7 @@ workflow_configurations = [
     # Brazilian Disk Compression
     "Abaqus_Brazilian_disk_rigid_platens_study",
     "MOOSE_Brazilian_disk_rigid_platens_study",
+    "Tardigrade_Brazilian_disk_rigid_platens_study",
     #"Abaqus_Brazilian_disk_platens",
     #"Abaqus_Brazilian_disk_platens_quarter_symmetry",
     #"Abaqus_Brazilian_disk_platens_eighth_symmetry",
