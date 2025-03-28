@@ -8,7 +8,7 @@ import yaml
 def write_filter_config(output_file, job_name, dns_file, macro_file,
                         volume, density, displacement, cauchy_stress,
                         velocity=None, acceleration=None, damage=None,
-                        max_parallel=None):
+                        max_parallel=None, sets_file=None, spectral=None):
     '''Write the configuration file for the Micromorphic Filter
 
     :param str output_file: The output filename for filter configuration
@@ -23,11 +23,13 @@ def write_filter_config(output_file, job_name, dns_file, macro_file,
     :param str acceleration:  Optional string identifying acceleration quantities located in "dns-file"
     :param str damage: Optional string identifying damage quantities located in "dns-file"
     :param int max_parallel: Optional parameter defining the number of parallel processes for the Micromorphic Filter
+    :param str sets_file: Optional yaml file containing prescribed micro-averaging domains
 
     returns ``output_file``
     '''
 
     quantity_dict = {}
+    filter_dict = {}
 
     # required quantities
     quantity_dict["volume"] = volume
@@ -43,13 +45,27 @@ def write_filter_config(output_file, job_name, dns_file, macro_file,
     if damage:
         quantity_dict["damage"] = damage
 
+    # Prescribed or spectral domains
+    if (sets_file is not None) and (spectral is None):
+        filter_dict["micro_averaging_domains"] = 'prescribed'
+        stream = open(sets_file, 'r')
+        sets = yaml.load(stream, Loader=yaml.FullLoader)
+        stream.close()
+        quantity_dict["prescribed_micro_averaging_domains"] = list(sets.keys())
+    elif (sets_file is None) and (spectral is not None):
+        filter_dict["micro_averaging_domains"] = 'spectral'
+    elif (sets_file is None) and (spectral is None):
+        print('Using the default "nearest qpt" micro averaging domain method')
+    else:
+        print('Invalid configuration for "sets_file" and "spectral"')
+
     # assemble main dictionary
     data = {
         "files":{"output": job_name,\
                  "data": dns_file,\
                  "filter": macro_file},\
         "quantity_names":quantity_dict,\
-        "filter":{},}
+        "filter":filter_dict,}
 
     # max parallel
     if max_parallel:
@@ -99,6 +115,9 @@ def get_parser():
     parser.add_argument('--max-parallel', type=int, required=False, default=None,
         help='Optional parameter defining the number of parallel processes for the\
               Micromorphic Filter')
+    parser.add_argument('--sets-file', type=str, required=False, default=None,
+        help='Optional yaml file containing prescribed micro-averaging domains')
+
     # TODO: add non-required arguments for optional quantities
     return parser
 
@@ -119,4 +138,5 @@ if __name__ == '__main__':
                                  acceleration=args.acceleration,
                                  damage=args.damage,
                                  max_parallel=args.max_parallel,
+                                 sets_file=args.sets_file,
                                  ))
