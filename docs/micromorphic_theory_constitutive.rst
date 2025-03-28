@@ -48,29 +48,29 @@ are the elastic material moduli tensors, which may be calculated according to eq
 .. math::
    :label: B
 
-   B_{KMLN} = \left(\eta - \tau\right) \delta_{KL}\delta_{MN} + \left(\kappa - \sigma\right) \delta_{KM}\delta_{LN} + \left(\nu - \sigma \right) \delta_{KN}\delta_{LM}
+   B_{KLMN} = \left(\eta - \tau\right) \delta_{KL}\delta_{MN} + \left(\kappa - \sigma\right) \delta_{KM}\delta_{LN} + \left(\nu - \sigma \right) \delta_{KN}\delta_{LM}
 
 .. math::
    :label: C
 
-   C_{KLMNPQ} &=
-      \tau_1 \left(\delta_{KL}\delta_{MN}\delta_{PQ} + \delta_{KQ}\delta_{LM}\delta_{NP}\right) +
-      \tau_2 \left(\delta_{KL}\delta_{MP}\delta_{NQ} + \delta_{KM}\delta_{LQ}\delta_{NP}\right)
+   C_{LMKNPQ} &=
+      \tau_1 \left(\delta_{LM}\delta_{KN}\delta_{PQ} + \delta_{LQ}\delta_{MK}\delta_{NP}\right) +
+      \tau_2 \left(\delta_{LM}\delta_{KP}\delta_{NQ} + \delta_{LK}\delta_{MQ}\delta_{NP}\right)
 
    &+
-      \tau_3 \delta_{KL}\delta_{MQ}\delta_{NP} +
-      \tau_4 \delta_{KN}\delta_{LM}\delta_{PQ} +
-      \tau_5 \left(\delta_{KM}\delta_{LN}\delta_{PQ} + \delta_{KP}\delta_{LM}\delta_{NQ}\right)
+      \tau_3 \delta_{LM}\delta_{KQ}\delta_{NP} +
+      \tau_4 \delta_{LN}\delta_{MK}\delta_{PQ} +
+      \tau_5 \left(\delta_{LK}\delta_{MN}\delta_{PQ} + \delta_{LP}\delta_{MK}\delta_{NQ}\right)
 
    &+
-      \tau_6 \delta_{KM}\delta_{LP}\delta_{NQ} +
-      \tau_7 \delta_{KN}\delta_{LP}\delta_{MQ} +
-      \tau_8 \left(\delta_{KP}\delta_{LQ}\delta_{MN} + \delta_{KQ}\delta_{LN}\delta_{MP}\right)
+      \tau_6 \delta_{LK}\delta_{MP}\delta_{NQ} +
+      \tau_7 \delta_{LN}\delta_{MP}\delta_{KQ} +
+      \tau_8 \left(\delta_{LP}\delta_{MQ}\delta_{KN} + \delta_{LQ}\delta_{MN}\delta_{KP}\right)
 
    &+
-      \tau_9 \delta_{KN}\delta_{LQ}\delta_{MP} +
-      \tau_10 \delta_{KP}\delta_{LN}\delta_{MQ} +
-      \tau_{11} \delta_{KQ}\delta_{LP}\delta_{MN}
+      \tau_9 \delta_{LN}\delta_{MQ}\delta_{KP} +
+      \tau_10 \delta_{LP}\delta_{MN}\delta_{KQ} +
+      \tau_{11} \delta_{LQ}\delta_{MP}\delta_{KN}
 
 .. math::
    :label: D
