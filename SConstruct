@@ -497,6 +497,8 @@ workflow_configurations = [
     #Neper studies
     "neper_cube",
     "neper_cylinder",
+    #Filter convergence studies
+    "Filter_convergence_cylinder"
 ]
 
 for workflow in workflow_configurations:
