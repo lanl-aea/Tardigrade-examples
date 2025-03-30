@@ -5,18 +5,21 @@ import sys
 
 import numpy
 
-import file_io
+import file_io.xdmf
 
 
 def random_points_in_cylinder(npts, radius, height):
+    """Generate random points in a cylinder. The bottom of the cylinder is centered on the original
 
-    # Random radius: sqrt for uniform distribution over area
-    r = radius * numpy.sqrt(numpy.random.uniform(0, 1, npts))
-    
-    # Random angle
+    :params int npts: The number microfield points
+    :params float radius: The radius of the cylinder
+    :params float height: The height of the cylinder
+
+    :returns: x, y, and z points in the cylindrical domain    
+    """
+
+    r = radius * numpy.sqrt(numpy.random.uniform(0, 1, npts)) #sqrt for uniform distribution over area
     theta = numpy.random.uniform(0, 2 * numpy.pi, npts)
-    
-    # Random height
     z = numpy.random.uniform(0, height, npts)
     
     # Convert to Cartesian coordinates
@@ -27,6 +30,13 @@ def random_points_in_cylinder(npts, radius, height):
 
 
 def random_points_in_cube(npts, height):
+    """Generate random points in a cube. The bottom of the cube is centered on the original
+
+    :params int npts: The number microfield points
+    :params float height: The side length of the cube
+
+    :returns: x, y, and z points in the cylindrical domain    
+    """
 
     x = numpy.random.uniform(-0.5*height, 0.5*height, npts)
     y = numpy.random.uniform(-0.5*height, 0.5*height, npts)
@@ -36,6 +46,18 @@ def random_points_in_cube(npts, height):
 
 
 def calculate_cylinder_displacement_uniaxial_stress(coords, disp_z, disp_lat, height, rad, times):
+    """Calculate the displacement history for a cylinder subjected to uniaxial stress
+
+    :params array-like coords: The x, y, and z coordinates of points
+    :param float disp_z: The final displacement to prescribe in the z-direction
+    :param float disp_lat: The final displacement to prescribe in the x- and y-directions
+    :params float height: The height of the cylinder
+    :params float rad: The radius of the cylinder
+    :params array-like times: Array of time steps
+
+    :returns: list of displacement arrays for each micro point and time step
+    """
+
     all_disps = []
     for t in times:
         disps = numpy.zeros_like(coords)
@@ -49,6 +71,17 @@ def calculate_cylinder_displacement_uniaxial_stress(coords, disp_z, disp_lat, he
 
 
 def calculate_cube_displacement_uniaxial_stress(coords, disp_z, disp_lat, height, times):
+    """Calculate the displacement history for a cube subjected to uniaxial stress
+
+    :params array-like coords: The x, y, and z coordinates of points
+    :param float disp_z: The final displacement to prescribe in the z-direction
+    :param float disp_lat: The final displacement to prescribe in the x- and y-directions
+    :params float height: The side length of the cube
+    :params array-like times: Array of time steps
+
+    :returns: list of displacement arrays for each micro point and time step
+    """
+
     all_disps = []
     for t in times:
         disps = numpy.zeros_like(coords)
@@ -62,6 +95,14 @@ def calculate_cube_displacement_uniaxial_stress(coords, disp_z, disp_lat, height
 
 
 def calculate_uniaxial_stress(npts, final_stress, times):
+    """Calculate the uniaxial stress history
+
+    :params int npts: The number microfield points
+    :params float final_stress: The final stress to prescribe for the zz component
+    :params array-like times: Array of time steps
+
+    :returns: list of stress arrays for each micro point and time step
+    """
 
     all_stresses = []
     for t in times:
@@ -73,6 +114,19 @@ def calculate_uniaxial_stress(npts, final_stress, times):
 
 def generate_microfield_file(data_filename, times, npts, coords,
                              all_disps, all_stresses, volumes, densities):
+    """Generate the microfield .xdmf and .h5 files for a Micromorphic Filter study
+
+    :params str data_filename: The output filename for the h5 + XDMF file pair (no suffix)
+    :params array-like times: Array of time steps
+    :params int npts: The number microfield points
+    :params array-like coords: The x, y, and z coordinates of points
+    :params list all_disps: list of displacement arrays for each micro point and time step
+    :params list stresses: list of stress arrays for each micro point and time step
+    :params array-like volumes: The volumes associated with each micro point
+    :params array-like densities: The densities associated with each micro point
+
+    :returns: ``{output_file}.xdmf`` and ``{output_file}.h5``
+    """
 
     xdmf = file_io.xdmf.XDMF(output_filename=data_filename)
 
@@ -101,17 +155,15 @@ def build_microfield_study(output_file, npts, n_steps,
                            ):
     """Generate a microfield data file of either a cylinder or cube
 
-    :param str output_file: The output filename for the h5 + XDMF file pair (no suffix)
-    :param int npts: The number microfield points
-    :param int n_steps: The number of timesteps of data to generate
-    :param float disp_z: The final displacement to prescribe in the z-direction
-    :param float disp_lat: The final displacement to prescribe in the x- and y-directions
-    :param float final_stress: The final stress to prescribe for the zz component
-    :param str geometry: The geometry type to generate: either "cylinder" or "cube"
-    :param float radius: The radius of the cylinder if geometry type is "cylinder"
-    :param float height: The height of the cylinder if geometry type is "cylinder" or the side length of the cube if geometry type is "cube
-
-    :returns: ``{output_file}.xdmf`` and ``{output_file}.h5``
+    :params str output_file: The output filename for the h5 + XDMF file pair (no suffix)
+    :params int npts: The number microfield points
+    :params int n_steps: The number of timesteps of data to generate
+    :params float disp_z: The final displacement to prescribe in the z-direction
+    :params float disp_lat: The final displacement to prescribe in the x- and y-directions
+    :params float final_stress: The final stress to prescribe for the zz component
+    :params str geometry: The geometry type to generate: either "cylinder" or "cube"
+    :params float radius: The radius of the cylinder if geometry type is "cylinder"
+    :params float height: The height of the cylinder if geometry type is "cylinder" or the side length of the cube if geometry type is "cube
     """
 
     times = numpy.linspace(0, 1, n_steps)
