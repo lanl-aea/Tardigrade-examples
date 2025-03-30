@@ -60,7 +60,43 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     disp_lat = -1*nu*disp_z
     final_stress = (disp_z / height) * Emod
 
+    # make bounds csv
+    bounding_csv = f"{model}_forced_bounds.csv"
+    bounding_script = "force_bounds.py"
+    script_options = f"--output-file {bounding_csv}"
+    script_options += f" --xmin {-1*radius} --xmax {radius}"
+    script_options += f" --ymin {-1*radius} --ymax {radius}"
+    script_options += f" --zmin 0 --zmax {height}"
+    workflow.extend(env.PythonScript(
+        target=str(set_name / bounding_csv),
+        source=[str(filter_source_abspath / bounding_script)],
+        script_options=script_options))
+
     # create filter mesh
+    macro_file = f'{model_name}_MACRO'
+    macro_script = "cylinder_from_bounds.py"
+    mesh_targets = [f"{set_name}/{macro_file}_temp.e"]
+    script_options = f"--output-file {macro_file}_temp"
+    script_options += f" --bounds-file {bounding_csv}"
+    script_options += f" --seed-size {seed_size}"
+    if params['cut']:
+        script_options += f" --cut cut"
+    workflow.extend(env.PythonScript(
+        target=[mesh_targets],
+        source=[str(Tardigrade_MOOSE_source_abspath / macro_script), bounding_csv],
+        script_options=script_options
+        ))
+
+    # convert mesh to format needed by filter
+    convert_script = "xdmf_tomfoolery.py"
+    new_mesh_targets = [f"{set_name}/{macro_file}.{ext}" for ext in ['xdmf', 'h5']]
+    script_options = f"--output-file {macro_file}"
+    script_options += f" --input-file {macro_file}_temp.e"
+    workflow.extend(env.PythonScript(
+        target=[new_mesh_targets],
+        source=[str(filter_source_abspath / convert_script)] + mesh_targets,
+        script_options=script_options
+        ))
 
     # create microfield file
     microfield_script = 'build_microfield_study.py'
@@ -87,3 +123,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
 
 # Collector alias based on parent directory name
 env.Alias(workflow_name, workflow)
+
+if not env['cubit']:
+    print(f"Program 'cubit' was not found in construction environment. Ignoring '{workflow_name}' target(s)")
+    Ignore(['.', workflow_name], workflow)
