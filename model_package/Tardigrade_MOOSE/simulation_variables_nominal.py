@@ -17,6 +17,10 @@ elastic_cylinder = {
     'mesh_copy_root': 'cylinder_5_5',
 }
 
+elastic_cube = copy.deepcopy(elastic_cylinder)
+del elastic_cube['diam']
+del elastic_cube['mesh_copy_root']
+
 dynamic_elastic_cylinder = {
     'diam': 5.0,
     'height': 5.0,
