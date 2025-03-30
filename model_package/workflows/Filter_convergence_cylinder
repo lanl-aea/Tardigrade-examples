@@ -83,7 +83,8 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
         script_options += f" --cut cut"
     workflow.extend(env.PythonScript(
         target=[mesh_targets],
-        source=[str(Tardigrade_MOOSE_source_abspath / macro_script), bounding_csv],
+        source=[str(Tardigrade_MOOSE_source_abspath / macro_script),
+                f'{set_name}/{bounding_csv}'],
         script_options=script_options
         ))
 
