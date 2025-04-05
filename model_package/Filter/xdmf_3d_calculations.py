@@ -6,7 +6,7 @@ import argparse
 
 import numpy
 import pandas
-sys.path.append('/projects/tea/damage_tardigrade_filter/tardigrade_filter/src/python')
+
 import file_io.xdmf
 
 
