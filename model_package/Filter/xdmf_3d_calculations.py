@@ -6,7 +6,7 @@ import argparse
 
 import numpy
 import pandas
-
+sys.path.append('/projects/tea/damage_tardigrade_filter/tardigrade_filter/src/python')
 import file_io.xdmf
 
 
@@ -115,6 +115,8 @@ def average_over_quadrature(xdmf_file_in, type, qp_field_name, inc, num_elements
             out_all[qp, :, :] = two_pressure(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
         elif type == 'q':
             out_all[qp, :, :] = two_devnorm(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
+        elif type == 'v':
+            out_all[qp, :, :] = numpy.sqrt(3/2)*two_devnorm(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
         elif type == 'p3':
             out_all[qp, :, :] = three_pressure(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements, k)
         elif type == 'q3':
@@ -141,6 +143,8 @@ def filter_stress_measures(xdmf_file_in, xdmf_file_out, incs, times, num_element
 
     fields = (('p', 'cauchy_stress'),
               ('q', 'cauchy_stress'),
+              ('v', 'cauchy_stress'),
+              ('v', 'symmetric_micro_stress'),
               ('p', 'symmetric_micro_stress'),
               ('q', 'symmetric_micro_stress'),
               ('p3', 'higher_order_stress'),
