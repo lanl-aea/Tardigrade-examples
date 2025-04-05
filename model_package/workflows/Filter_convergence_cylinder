@@ -35,10 +35,10 @@ workflow = []
 
 parameter_schema = dict(
     parameter_samples = numpy.array([
-        [192, 1.0, 1000, '1k'],
+        [192, 1.0, 5000, '5k'],
         [960, 0.5, 10000, '10k'],
         [2520, 0.375, 50000, '50k'],
-        [7680, 0.25, 100000, '100k'],
+        [7680, 0.25, 200000, '200k'],
         ], dtype=object),
     parameter_names = numpy.array(["elements", "seed_size", "number_micro_points", "name"]))
 
@@ -118,6 +118,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
         source=[str(filter_source_abspath / microfield_script)],
         script_options=script_options
         ))
+
     # write config file
     filter_config_script = "build_filter_config.py"
     job_name = f"{model_name}_RESULTS.xdmf"
