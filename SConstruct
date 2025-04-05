@@ -498,7 +498,8 @@ workflow_configurations = [
     "neper_cube",
     "neper_cylinder",
     #Filter convergence studies
-    "Filter_convergence_cylinder"
+    "Filter_convergence_cylinder",
+    "Filter_convergence_cube",
 ]
 
 for workflow in workflow_configurations:
