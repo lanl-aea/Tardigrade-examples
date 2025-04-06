@@ -39,7 +39,8 @@ def unpack_elastic_parameter_csv(parameter_df, i):
     return mat_line_1, mat_line_2, mat_line_3, mat_line_4, element
 
 
-def build_input(output_file, mesh_file, BCs, disp, duration, calibration_map, disp_point=None):
+def build_input(output_file, mesh_file, BCs, disp, duration, disp_point=None, calibration_map=None,
+                elastic_material_card=None, phi_BC=None):
     '''Write a Tardigrade-MOOSE input file
 
     :param str output_file: The name of Tardigrade-MOOSE file to write
@@ -47,8 +48,10 @@ def build_input(output_file, mesh_file, BCs, disp, duration, calibration_map, di
     :param str BCs: The type of boundary conditions, either "slip" or "clamp"
     :param float disp: The compressive displacement to be applied
     :param float duration: The duration of the simulation
-    :param str calibration_map: CSV file containing calibration data
     :param str disp_point: Optional string of coordinates to query x-displacement
+    :param str calibration_map: CSV file containing calibration data, first method for specifying material parameters
+    :param str elastic_material_card: YML file containing elastic material parameters, second method for specifying material parameters
+    :param str phi_BC: Optional string specifying nodeset to force micro deformation components to be zero
 
     :returns: ``output_file``
     '''
@@ -56,8 +59,11 @@ def build_input(output_file, mesh_file, BCs, disp, duration, calibration_map, di
     assert os.path.exists(mesh_file), f"Mesh file not found: {mesh_file}"
 
     # load calibration map
-    parameter_df = pandas.read_csv(calibration_map)
-    parameter_df = parameter_df.sort_values(by='element')
+    if calibration_map is not None:
+        parameter_df = pandas.read_csv(calibration_map)
+        parameter_df = parameter_df.sort_values(by='element')
+    else:
+        assert elastic_material_card is not None, "Either calibration_map of elastic_material_card must be provided!"
 
     # Write input file
     with open(output_file, 'w') as f:
@@ -445,19 +451,18 @@ def build_input(output_file, mesh_file, BCs, disp, duration, calibration_map, di
         f.write('    type = NodalSum\n')
         f.write('    variable = force_z\n')
         f.write('    boundary = "top"\n')
-        f.write('  []\n')
+        f.write('  [../]\n')
         # Custom displacement query for disp_x
         if disp_point:
             f.write('  [lateral_disp]\n')
             f.write('    type = PointValue\n')
             f.write(f'    point = "{disp_point}"\n')
             f.write('    variable = disp_x\n')
-            f.write('  []\n')
+            f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
         if BCs == 'slip':
             f.write('[BCs]\n')
-            f.write('  active = "x_symm y_symm bottom_z top_z"\n')
             f.write('  [./x_symm]\n')
             f.write('    type = DirichletBC\n')
             f.write('    variable = disp_x\n')
@@ -486,10 +491,8 @@ def build_input(output_file, mesh_file, BCs, disp, duration, calibration_map, di
             f.write('    preset = true\n')
             f.write('    function = top_bc\n')
             f.write('  [../]\n')
-            f.write('[]\n')
         elif BCs == 'clamp':
             f.write('[BCs]\n')
-            f.write('  active = "bottom_x bottom_y bottom_z top_x top_y top_z"\n')
             f.write('  [./bottom_x]\n')
             f.write('    type = DirichletBC\n')
             f.write('    variable = disp_x\n')
@@ -532,9 +535,65 @@ def build_input(output_file, mesh_file, BCs, disp, duration, calibration_map, di
             f.write('    preset = true\n')
             f.write('    function = top_bc\n')
             f.write('  [../]\n')
-            f.write('[]\n')
         else:
             print('Specify a valid BC type!')
+        # Option to force Phis to be zero
+        if phi_BC is not None:
+            f.write('  [fix_phi_xx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_xz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_xy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+        f.write('[]\n')
         f.write('\n')
         f.write('[Functions]\n')
         f.write('  [./top_bc]\n')
@@ -545,13 +604,41 @@ def build_input(output_file, mesh_file, BCs, disp, duration, calibration_map, di
         f.write('\n')
         f.write('[Materials]\n')
         # Load in parameter data for each filter domain / element
-        if len(list(parameter_df.index)) > 1:
-            for index in parameter_df.index:
+        if calibration_map is not None:
+            if len(list(parameter_df.index)) > 1:
+                for index in parameter_df.index:
+                    # Unpack parameters
+                    mat_line_1, mat_line_2, mat_line_3, mat_line_4, element = unpack_elastic_parameter_csv(parameter_df, index)
+                    # Write in material info
+                    f.write(f'  [./linear_elastic_{element}]\n')
+                    f.write('    type = MicromorphicMaterial\n')
+                    f.write(f'    material_fparameters = "{mat_line_1}\n')
+                    f.write(f'                            {mat_line_2}\n')
+                    f.write(f'                            {mat_line_3}\n')
+                    f.write(f'                            {mat_line_4}"\n')
+                    f.write(f'    model_name = "LinearElasticity"\n')
+                    f.write('\n')
+                    f.write('    #Coupled variables\n')
+                    f.write('    u1     = "disp_x"\n')
+                    f.write('    u2     = "disp_y"\n')
+                    f.write('    u3     = "disp_z"\n')
+                    f.write('    phi_11 = "phi_xx"\n')
+                    f.write('    phi_22 = "phi_yy"\n')
+                    f.write('    phi_33 = "phi_zz"\n')
+                    f.write('    phi_23 = "phi_yz"\n')
+                    f.write('    phi_13 = "phi_xz"\n')
+                    f.write('    phi_12 = "phi_xy"\n')
+                    f.write('    phi_32 = "phi_zy"\n')
+                    f.write('    phi_31 = "phi_zx"\n')
+                    f.write('    phi_21 = "phi_yx"\n')
+                    f.write(f'    block = "element_{element}"\n')
+                    f.write('  [../]\n')
+            else:
                 # Unpack parameters
-                mat_line_1, mat_line_2, mat_line_3, mat_line_4, element = unpack_elastic_parameter_csv(parameter_df, index)
+                mat_line_1, mat_line_2, mat_line_3, mat_line_4, element = unpack_elastic_parameter_csv(parameter_df, 0)
                 # Write in material info
-                f.write(f'  [./linear_elastic_{element}]\n')
-                f.write('    type = MicromorphicMaterial\n')
+                f.write(f'  [./linear_elastic]\n')
+                f.write('    type = MicromorphicMaterial  \n')
                 f.write(f'    material_fparameters = "{mat_line_1}\n')
                 f.write(f'                            {mat_line_2}\n')
                 f.write(f'                            {mat_line_3}\n')
@@ -571,14 +658,19 @@ def build_input(output_file, mesh_file, BCs, disp, duration, calibration_map, di
                 f.write('    phi_32 = "phi_zy"\n')
                 f.write('    phi_31 = "phi_zx"\n')
                 f.write('    phi_21 = "phi_yx"\n')
-                f.write(f'    block = "element_{element}"\n')
                 f.write('  [../]\n')
-        else:
-            # Unpack parameters
-            mat_line_1, mat_line_2, mat_line_3, mat_line_4, element = unpack_elastic_parameter_csv(parameter_df, 0)
+        elif elastic_material_card is not None: 
+            # Load yaml file
+            stream = open(elastic_material_card, 'r')
+            UI = yaml.load(stream, Loader=yaml.FullLoader)
+            stream.close()
+            mat_line_1 = UI['line 1']
+            mat_line_2 = UI['line 2']
+            mat_line_3 = UI['line 3']
+            mat_line_4 = UI['line 4']
             # Write in material info
-            f.write(f'  [./linear_elastic]\n')
-            f.write('    type = MicromorphicMaterial  \n')
+            f.write('  [./linear_elastic]\n')
+            f.write('    type = MicromorphicMaterial\n')
             f.write(f'    material_fparameters = "{mat_line_1}\n')
             f.write(f'                            {mat_line_2}\n')
             f.write(f'                            {mat_line_3}\n')
@@ -599,6 +691,8 @@ def build_input(output_file, mesh_file, BCs, disp, duration, calibration_map, di
             f.write('    phi_31 = "phi_zx"\n')
             f.write('    phi_21 = "phi_yx"\n')
             f.write('  [../]\n')
+        else:
+            print('Uh oh! No valid material type has been provided!')
         f.write('[]\n')
         f.write('\n')
         f.write('[Preconditioning]\n')
@@ -646,16 +740,21 @@ def get_parser():
         help="The name of Tardigrade-MOOSE file to write")
     parser.add_argument('--mesh', type=str, required=True,
         help='The mesh file')
-    parser.add_argument('--calibration-map', type=str, required=True,
-        help='CSV file containing calibration data')
+
     parser.add_argument('--BCs', type=str, required=True,
         help='The type of boundary conditions, either "slip" or "clamp"')
     parser.add_argument('--disp', type=float, required=True,
         help='The compressive displacement to be applied')
     parser.add_argument('--duration', type=float, required=True,
         help='The duration of the simulation')
+    parser.add_argument('--calibration-map', type=str, required=False, default=None,
+        help='CSV file containing calibration data, first method for specifying material parameters')
+    parser.add_argument('--elastic-material-card', type=str, required=False, default=None,
+        help='YML file containing elastic material parameters, second method for specifying material parameters')
     parser.add_argument('--disp-point', type=str, required=False, default=None,
         help='Optional string of coordinates to query x-displacement')
+    parser.add_argument('--phi-BC', type=str, required=False, default=None,
+        help='Optional string specifying nodeset to force micro deformation components to be zero')
 
     return parser
 
@@ -670,5 +769,7 @@ if __name__ == '__main__':
                          disp=args.disp,
                          duration=args.duration,
                          calibration_map=args.calibration_map,
+                         elastic_material_card=args.elastic_material_card,
                          disp_point=args.disp_point,
+                         phi_BC=args.phi_BC,
                          ))
