@@ -460,6 +460,7 @@ workflow_configurations = [
     "GEOS_elastic_cylinder_multi_domain_fast",
     # GEOS I43.01
     "GEOS_I43_01",
+    "GEOS_I43_01_annular",
     # Ratel quasistatic elastic cylinder
     "Ratel_elastic_cylinder",
     "Ratel_elastic_cylinder_multi_domain",
