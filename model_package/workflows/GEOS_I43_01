@@ -83,7 +83,7 @@ workflow.extend(env.PythonScript(
     target=filter_inputs,
     source=[str(DNS_GEOS_abspath / XDMF_script), f'{DNS_fileroot}/{results_file}'],
     script_options=script_options))
-params['homogenize_damage'] = True
+#params['homogenize_damage'] = True
 
 # Get bounding information from DNS extents
 bounding_csv = f"{model}_bounds.csv"
@@ -159,6 +159,7 @@ if params['cut'] == False:
             [0.5, 837],
             [0.375, 1908],
             #[0.25, 6480],
+            [0.1, 105600],
             ], dtype=object),
         parameter_names = numpy.array(["seed_size", "num_domains"])
     )
@@ -173,6 +174,7 @@ elif params['cut'] == True:
             [0.55, 960],
             [0.4, 1680],
             #[0.25, 6912],
+            [0.1, 105600],
             ], dtype=object),
         parameter_names = numpy.array(["seed_size", "num_domains"])
     )
