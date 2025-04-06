@@ -56,6 +56,16 @@ def multi_blocks_to_array(field, particle_region_block, all_fields_dict, num_par
 
 
 def create_annulus(coord, rad, x0, y0, annulus_ratio):
+    '''Remove points except those within some fraction of the outer radius
+
+    :param array-like coord: Reference coordinates of points
+    :param float rad: The radius of the cylinder
+    :param float x0: The x-position of the cylinder axis
+    :param float y0: The y-position of the cylinder axis
+    :param float annulus_ratio: Fraction of the radius of points to keep in the final geometry
+
+    :returns: array of coordinates for points kept, mask of original array to produce final array
+    '''
 
     print('removing points')
     print(f'original number of points = {numpy.shape(coord)[0]}')
@@ -82,6 +92,7 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
     :param float stress_factor: Optional argument to scale DNS stresses, default=1
     :param float density_factor: Optional factor to scale current density (if provided in the DNS results\
                                  to Mg/tonne^3, default=1
+    :param float annulus_ratio: Optional fraction of the radius of points to keep in the final geometry
     :param str upscale_damage: Option to specify if damage will be upscaled
 
     :returns: ``{output_file}.xdmf`` and ``{outptu_file}.h5``
@@ -254,6 +265,7 @@ def convert_VTK_to_XDMF(input_file, file_root, output_file, dist_factor=1, stres
     :param float stress_factor: Optional argument to scale DNS stresses, default=1
     :param float density_factor: Optional factor to scale current density (if provided in the DNS results\
                                  to Mg/tonne^3, default=1
+    :param float annulus_ratio: Optional fraction of the radius of points to keep in the final geometry
     :param str upscale_damage: Option to specify if damage will be upscaled
     '''
     start_time = time.time()
