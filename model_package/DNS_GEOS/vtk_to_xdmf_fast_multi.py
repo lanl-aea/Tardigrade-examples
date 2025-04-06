@@ -36,12 +36,12 @@ def blocks_to_array(field, main_block, n, fields_dict):
     data = numpy.vstack([vtk_to_numpy(main_block.GetBlock(i).GetCellData().GetArray(id)) for i in range(n)])
     return data
 
-def multi_blocks_to_array(field, particle_region_block, all_fields_dict, stack='v'):
+def multi_blocks_to_array(field, particle_region_block, all_fields_dict, num_partitions=1000, stack='v'):
     data_out = []
     for key in all_fields_dict:
         if field in all_fields_dict[key].keys():
             id = all_fields_dict[key][field]
-            for j in range(1000):
+            for j in range(num_partitions):
                 data = vtk_to_numpy(particle_region_block.GetBlock(key).GetBlock(j).GetCellData().GetArray(id))
                 if len(data) > 0:
                     data_out.append(data)
@@ -54,7 +54,25 @@ def multi_blocks_to_array(field, particle_region_block, all_fields_dict, stack='
 
     return array_out
 
-def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file, dist_factor, stress_factor, density_factor):
+
+def create_annulus(coord, rad, x0, y0, annulus_ratio):
+
+    print('removing points')
+    print(f'original number of points = {numpy.shape(coord)[0]}')
+    r_min = (1. - annulus_ratio)*rad
+    r = numpy.sqrt((coord[:,0] - x0)**2 + (coord[:,1] - y0)**2)
+    mask = r >= r_min
+    new_coord = coord[mask]
+    new_indices = numpy.where(mask)[0]
+    print(mask)
+    print(f'new number of points = {numpy.shape(new_coord)[0]}')
+
+    return new_coord, new_indices
+
+
+def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
+                                dist_factor, stress_factor, density_factor, annulus_ratio,
+                                upscale_damage=None):
     '''Write XDMF file of collected GEOS DNS results for Micromorphic Filter
 
     :param dict results: dictionary of results
@@ -64,6 +82,7 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file, dist_fac
     :param float stress_factor: Optional argument to scale DNS stresses, default=1
     :param float density_factor: Optional factor to scale current density (if provided in the DNS results\
                                  to Mg/tonne^3, default=1
+    :param str upscale_damage: Option to specify if damage will be upscaled
 
     :returns: ``{output_file}.xdmf`` and ``{outptu_file}.h5``
     '''
@@ -116,11 +135,19 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file, dist_fac
             reference_positions = numpy.vstack([idox_reference_positions, binder_reference_positions])
             ndata = numpy.shape(reference_positions)[0]
 
+            # process reference positions
+            if annulus_ratio is not None:
+                xmin, xmax = numpy.min(reference_positions[:,0]), numpy.max(reference_positions[:,0])
+                ymin, ymax = numpy.min(reference_positions[:,1]), numpy.max(reference_positions[:,1])
+                x0, y0 = 0.5*(xmax - xmin) + xmin, 0.5*(ymax - ymin) + ymin
+                rad = numpy.mean([0.5*(xmax - xmin), 0.5*(ymax - ymin)])
+                reference_positions, mask = create_annulus(reference_positions, rad, x0, y0, annulus_ratio)
+
         ## initialization stuff
         grid = xdmf.addGrid(xdmf.output_timegrid, {})
         xdmf.addTime(grid, t)
         xdmf.addPoints(grid, reference_positions, duplicate=point_name)
-        xdmf.addConnectivity(grid, "POLYVERTEX", numpy.array([v for v in range(ndata)]).reshape((-1,1)), duplicate=conn_name)
+        xdmf.addConnectivity(grid, "POLYVERTEX", numpy.array([v for v in range(numpy.shape(reference_positions)[0])]).reshape((-1,1)), duplicate=conn_name)
 
         # get the unique displacements
         if i == 0:
@@ -130,6 +157,8 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file, dist_fac
             idox_positions = dist_factor*multi_blocks_to_array('particleCenter', particle_region_block, {1: particle_fields[1]})
             binder_positions = dist_factor*multi_blocks_to_array('particleCenter', particle_region_block, {2: particle_fields[2]})
             unique_positions = numpy.vstack([idox_positions, binder_positions])
+            if annulus_ratio is not None:
+                unique_positions = unique_positions[mask]
             unique_displacements = unique_positions - reference_positions
         print(f"shape of unique displacements = {numpy.shape(unique_displacements)}")
         xdmf.addData(grid, "disp", unique_displacements, "Node", dtype='d')
@@ -143,6 +172,8 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file, dist_fac
             idox_velocities = dist_factor*multi_blocks_to_array('particleVelocity', particle_region_block, {1: particle_fields[1]})
             binder_velocities = dist_factor*multi_blocks_to_array('particleVelocity', particle_region_block, {2: particle_fields[2]})
             unique_velocities = numpy.vstack([idox_velocities, binder_velocities])
+            if annulus_ratio is not None:
+                unique_velocities = unique_velocities[mask]
         else:
             unique_velocities = numpy.zeros(numpy.shape(unique_positions))
         print(f"shape of unique velocities = {numpy.shape(unique_velocities)}")
@@ -153,6 +184,8 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file, dist_fac
             idox_accelerations = dist_factor*multi_blocks_to_array('particleVelocity', particle_region_block, {1: particle_fields[1]})
             binder_accelerations = dist_factor*multi_blocks_to_array('particleVelocity', particle_region_block, {2: particle_fields[2]})
             unique_accelerations = numpy.vstack([idox_accelerations, binder_accelerations])
+            if annulus_ratio is not None:
+                unique_accelerations = unique_accelerations[mask]
         else:
             unique_accelerations = numpy.zeros(numpy.shape(unique_positions))
         print(f"shape of unique accelerations = {numpy.shape(unique_accelerations)}")
@@ -166,6 +199,8 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file, dist_fac
                                     stresses[:,5], stresses[:,1], stresses[:,3], #yx=xy, yy, yz
                                     stresses[:,4], stresses[:,3], stresses[:,2]])#zx=xz, zy=yz, zz         
         unique_stresses = unique_stresses.T
+        if annulus_ratio is not None:
+            unique_stresses = unique_stresses[mask]
         print(f"shape of stresses = {numpy.shape(unique_stresses)}")
         xdmf.addData(grid, "stress", unique_stresses, "Node", dtype='d')
 
@@ -176,8 +211,11 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file, dist_fac
         vol = total_volume / ndata
         unique_volumes = vol*numpy.ones(ndata)
         unique_volumes = unique_volumes.reshape((-1,1))
-        print(f"shape of vol = {numpy.shape(unique_volumes)}")
         print(f"total volume = {numpy.sum(unique_volumes)}")
+        if annulus_ratio is not None:
+            unique_volumes = unique_volumes[mask]
+            print(f"reduced volume = {numpy.sum(unique_volumes)}")
+        print(f"shape of vol = {numpy.shape(unique_volumes)}")
         xdmf.addData(grid, "volume", unique_volumes, "Node", dtype='d')
 
         # Get the densities
@@ -185,16 +223,19 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file, dist_fac
         binder_densities = density_factor*multi_blocks_to_array('EstaneMatrix_density', particle_region_block, {2: particle_fields[2]}, stack='h')
         unique_densities = numpy.hstack([idox_densities, binder_densities])
         unique_densities = unique_densities.reshape((-1,1))
+        if annulus_ratio is not None:
+            unique_densities = unique_densities[mask]
         print(f"shape of density = {numpy.shape(unique_densities)}")
         xdmf.addData(grid, "density", unique_densities, "Node", dtype='d')
 
         # Get the damages
-        idox_damage = multi_blocks_to_array('Idox_damage', particle_region_block, {1: particle_fields[1]}, stack='h')
-        binder_damage = multi_blocks_to_array('EstaneMatrix_damage', particle_region_block, {2: particle_fields[2]}, stack='h')
-        unique_damage = numpy.hstack([idox_damage, binder_damage])
-        unique_damage = unique_damage.reshape((-1,1))
-        print(f"shape of damage = {numpy.shape(unique_damage)}")
-        xdmf.addData(grid, "damage", unique_damage, "Node", dtype='d')
+        if upscale_damage is not None:
+            idox_damage = multi_blocks_to_array('Idox_damage', particle_region_block, {1: particle_fields[1]}, stack='h')
+            binder_damage = multi_blocks_to_array('EstaneMatrix_damage', particle_region_block, {2: particle_fields[2]}, stack='h')
+            unique_damage = numpy.hstack([idox_damage, binder_damage])
+            unique_damage = unique_damage.reshape((-1,1))
+            print(f"shape of damage = {numpy.shape(unique_damage)}")
+            xdmf.addData(grid, "damage", unique_damage, "Node", dtype='d')
 
     xdmf.write()
     print("XDMF file written!")
@@ -202,7 +243,8 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file, dist_fac
     return 0
 
 
-def convert_VTK_to_XDMF(input_file, file_root, output_file, dist_factor=1, stress_factor=1, density_factor=1):
+def convert_VTK_to_XDMF(input_file, file_root, output_file, dist_factor=1, stress_factor=1, density_factor=1,
+                        annulus_ratio=None, upscale_damage=None):
     '''Driving function to call functions for parsing GEOS VTK results and writing XDMF output
 
     :param str input_file: The main VTK PVD file containing GEOS DNS results
@@ -212,6 +254,7 @@ def convert_VTK_to_XDMF(input_file, file_root, output_file, dist_factor=1, stres
     :param float stress_factor: Optional argument to scale DNS stresses, default=1
     :param float density_factor: Optional factor to scale current density (if provided in the DNS results\
                                  to Mg/tonne^3, default=1
+    :param str upscale_damage: Option to specify if damage will be upscaled
     '''
     start_time = time.time()
 
@@ -219,7 +262,7 @@ def convert_VTK_to_XDMF(input_file, file_root, output_file, dist_factor=1, stres
     vtm_file_dict, increments = parse_VTP_file(input_file, file_root)
 
     # collect and convert to XDMF
-    collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file, dist_factor, stress_factor, density_factor)
+    collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file, dist_factor, stress_factor, density_factor, annulus_ratio, upscale_damage)
 
     end_time = time.time()
     print(f'executed in {end_time - start_time} seconds')
@@ -247,6 +290,10 @@ def get_parser():
     parser.add_argument('--density-factor', type=float, required=False, default=1,
          help='Optional factor to scale current density (if provided in the DNS results\
                to Mg/tonne^3')
+    parser.add_argument('--annulus-ratio', type=float, required=False, default=None,
+         help='Optional fraction of the radius of points to keep in the final geometry')
+    parser.add_argument('--upscale-damage', type=str, required=False, default=None,
+         help='Option to specify if damage will be upscaled')
 
     return parser
 
@@ -261,4 +308,6 @@ if __name__ == '__main__':
                                  dist_factor=args.dist_factor,
                                  stress_factor=args.stress_factor,
                                  density_factor=args.density_factor,
+                                 annulus_ratio=args.annulus_ratio,
+                                 upscale_damage=args.upscale_damage,
                                  ))
