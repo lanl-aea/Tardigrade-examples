@@ -62,6 +62,14 @@ AddOption(
          " (default: '%default')"
 )
 AddOption(
+    "--calibrate-softening",
+    dest="calibrate_softening",
+    default=False,
+    action="store_true",
+    help="Boolean speciyfing whether or not to run softening calibration for certain upscaling studies."\
+         " (default: '%default')"
+)
+AddOption(
     "--calibrate-qp",
     dest="calibrate_qp",
     default=False,
@@ -164,6 +172,7 @@ env = waves.scons_extensions.WAVESEnvironment(
     print_build_failures=GetOption("print_build_failures"),
     filter=GetOption("filter"),
     calibrate=GetOption("calibrate"),
+    calibrate_softening=GetOption("calibrate_softening"),
     calibrate_qp=GetOption("calibrate_qp"),
     macro=GetOption("macro"),
     macro_platen=GetOption("macro_platen"),
