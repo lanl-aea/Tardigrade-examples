@@ -128,7 +128,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     script_options += f" --dns-file {microfield_file}.xdmf"
     script_options += f" --macro-file {macro_file}.xdmf"
     script_options += " --volume volume --density density --cauchy-stress stress --displacement disp"
-    script_options += f" --max-parallel 8"
+    script_options += f" --max-parallel 1"
     workflow.extend(env.PythonScript(
         target = [f'{set_name}/{filter_config_file}'],
         source = [f"{filter_source_abspath / filter_config_script}"] + microfield_targets + new_mesh_targets,
