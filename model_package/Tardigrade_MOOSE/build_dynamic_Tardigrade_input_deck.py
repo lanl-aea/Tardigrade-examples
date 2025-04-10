@@ -10,7 +10,7 @@ import pandas
 def build_input(output_file, mesh_file, BCs, pressure, start, duration, dt, ref_density, height,
                 parameter_sets=None, calibration_map=None, phi_BC=None):
     '''Write a Tardigrade-MOOSE input file for dynamic simulation
-    
+
     :param str output_file: The name of Tardigrade-MOOSE file to write
     :param str mesh_file: The name of the mesh file
     :param str BCs: The type of boundary conditions, either "slip" or "clamp"

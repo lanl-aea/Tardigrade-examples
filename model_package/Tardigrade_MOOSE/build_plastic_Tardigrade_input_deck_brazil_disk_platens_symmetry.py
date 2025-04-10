@@ -12,7 +12,7 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
                 specimen_bottom_surface, bottom_platen_contact,
                 top_symmetry, back_symmetry, side_set,
                 bottom_platen_fixture, contact_type='frictionless',
-                symmetry='eighth'):
+                symmetry='eighth', phi_BC=None):
     '''Write MOOSE input file for symmetric Brazilian disk simulation with platens
 
     :param str output_file: The name of Tardigrade-MOOSE file to write
@@ -28,6 +28,7 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
     :param str bottom_platen_fixture: The name of the bottom platen fixture surface
     :param str contact_type: The option for specifying contact, either "frictionless" or "friction"
     :param str symmetry: Type of symmetry to enforce, either "eighth" or "quarter"
+    :param str phi_BC: Optional string specifying nodeset to force micro deformation components to be zero
 
     :returns: ``output_file``
     '''
@@ -702,6 +703,62 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
             f.write('  [../]\n')
         else:
             print('Specify a valid type of symmetry!')
+# Option to force Phis to be zero
+        if phi_BC is not None:
+            f.write('  [fix_phi_xx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_xz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_xy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
         # Loading function
@@ -973,6 +1030,8 @@ def get_parser():
         help='The option for specifying contact, either "frictionless" or "friction"')
     parser.add_argument('--symmetry', type=str, required=False, default='eighth',
         help='Type of symmetry to enforce, either "eighth" or "quarter"')
+    parser.add_argument('--phi-BC', type=str, required=False, default=None,
+        help='Optional string specifying nodeset to force micro deformation components to be zero')
 
     return parser
 
@@ -994,4 +1053,5 @@ if __name__ == '__main__':
                          bottom_platen_fixture=args.bottom_platen_fixture,
                          contact_type=args.contact_type,
                          symmetry=args.symmetry,
+                         phi_BC=args.phi_BC,
                          ))

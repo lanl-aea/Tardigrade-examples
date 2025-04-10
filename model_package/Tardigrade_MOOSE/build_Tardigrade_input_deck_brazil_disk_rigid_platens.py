@@ -10,8 +10,7 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
                 disp, duration, specimen_bottom_surface, specimen_top_surface=None, 
                 top_symmetry=None, back_symmetry=None, side_symmetry=None,
                 xc_bot=0., yc_bot=0., xc_top=0., yc_top=0., geometry='full',
-                material_type='elastic',
-                ):
+                material_type='elastic', phi_BC=None):
     '''Write Tardigrade-MOOSE input file for Brazilian disk simulation with platens
     
     :param str output_file: The name of Tardigrade-MOOSE file to write
@@ -33,6 +32,7 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
     :param float yc_top: The y-position of the center of the circular top surface arc
     :param str geometry: The geometry/symmetry type: "full," "quarter," or "eighth"
     :param str material_type: The material type, either "elastic" or "plastic"
+    :param str phi_BC: Optional string specifying nodeset to force micro deformation components to be zero
 
     :returns: ``output_file``
     '''
@@ -632,6 +632,62 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
                 f.write('    preset = true\n')
                 f.write('    value = 0\n')
                 f.write('  [../]\n')
+        # Option to force Phis to be zero
+        if phi_BC is not None:
+            f.write('  [fix_phi_xx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_xz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_xy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
         f.write('[]\n')
         # Loading functions
         r_sq = platen_radius**2
