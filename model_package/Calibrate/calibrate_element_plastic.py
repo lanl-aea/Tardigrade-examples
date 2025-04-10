@@ -2,6 +2,7 @@
 import argparse
 import pathlib
 import sys
+import time
 import yaml
 
 from itertools import compress
@@ -72,10 +73,28 @@ def objective(x0, Y, inputs, cal_norm, case, element, nqp, increment=None, stres
 
     # Enforce constraints on plastic parameters for certain cases
     penalty = 0.
+    cu0, Hu, cchi0, Hchi = XX[0], XX[1], XX[2], XX[3]
     if case == 10:
-        cu0, Hu, cchi0, Hchi = XX[0], XX[1], XX[2], XX[3]
+        # make sure one of the yield surfaces has softening
         if Hu*Hchi >= 0.:
             penalty += 1.e6 * (abs(Hu) + abs(Hchi) + 1.e-6)
+        # make sure the softening surface yields 2nd
+        if Hu < 0.:
+            # macro-plasticity is softening, make sure cu0 > cchi0
+            if cu0 <= cchi0:
+                penalty += 1.e6 * (cchi0 - cu0 + 1.e-6)
+        if Hchi < 0.:
+            # micro-plasticity is softening, make sure cchi0 > cu0
+            if cchi0 <= cu0:
+                penalty += 1.e6 * (cu0 - cchi0 + 1.e-6)
+    # Softening micro-plasticity
+    if (case == 8) or (case == 11):
+        if cu0 <= cchi0:
+            penalty += 1.e6 * (cchi0 - cu0 + 1.e-6)
+    # Softening macro-plasticity
+    if (case == 9) or (case == 12):
+        if cchi0 <= cu0:
+            penalty += 1.e6 * (cu0 - cchi0 + 1.e-6)
 
     # Evaluate stresses from DNS strain inputs
     ## If the solve fails, return objective of infinity
@@ -375,7 +394,7 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
     # Get times
     times = numpy.unique(data['time'])
     ninc = len(times)
-
+    start_time = time.time()
     if average == True:
         # average and isolate the quantities needed for calibration
         cauchy = calibration_tools.average_quantities(cauchy, '3x3', element)
@@ -552,7 +571,7 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         # Case 10 - Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters
         ## Allow macro-plasticity and micro-plasticity to flip-flop between softening and hardening
         parameter_bounds = [[1.0, 20.], [-500., 500.], [1.0, 20.], [-500., 500.]]
-        param_est = [3.0, -1.e-4, 3.0, -1.e-4]
+        param_est = [3.0, 1.e-8, 3.1, -1.e-8]
         workers = 2
         res = scipy.optimize.differential_evolution(func=opti_options_6,
                                                     bounds=parameter_bounds,
@@ -579,8 +598,26 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
         params = opti_options_6(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
+    elif case == 12:
+        # Case 12 - Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters
+        ## Ensure macro-plasticity is only softening and micro-plasticity is only hardening
+        ## Similar to case 9, used with average=True
+        parameter_bounds = [[3.5, 20.], [-500., -1.e-8], [1.0, 10.], [1.e-8, 500.]]
+        param_est = [4.0, -1.e-4, 2.5, 1.e-4]
+        workers = 2
+        res = scipy.optimize.differential_evolution(func=opti_options_6,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=workers,
+                                                    args=(Y, inputs, e_params, cal_norm, case, element, nqp, True, increment))
+        print(f"res = {res}")
+        print(f"fit params = {list(res.x)}")
+        params = opti_options_6(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
     else:
         print('Select valid calibration case!')
+    end_time = time.time()
+    print(f'Finished calibration in {end_time - start_time} seconds!')
 
     # plot resulting calibration
     if plot_file:
