@@ -8,7 +8,7 @@ import numpy
 import file_io.xdmf
 
 
-def random_points_in_cylinder(npts, radius, height):
+def random_points_in_cylinder(npts, radius, height, xoffset=0., yoffset=0., zoffset=0.):
     """Generate random points in a cylinder. The bottom of the cylinder is centered on the original
 
     :params int npts: The number microfield points
@@ -20,11 +20,11 @@ def random_points_in_cylinder(npts, radius, height):
 
     r = radius * numpy.sqrt(numpy.random.uniform(0, 1, npts)) #sqrt for uniform distribution over area
     theta = numpy.random.uniform(0, 2 * numpy.pi, npts)
-    z = numpy.random.uniform(0, height, npts)
+    z = numpy.random.uniform(0, height, npts) + zoffset
     
     # Convert to Cartesian coordinates
-    x = r * numpy.cos(theta)
-    y = r * numpy.sin(theta)
+    x = r * numpy.cos(theta) + xoffset
+    y = r * numpy.sin(theta) + yoffset
     
     return numpy.column_stack((x, y, z))
 
