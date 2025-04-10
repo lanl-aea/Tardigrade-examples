@@ -46,6 +46,7 @@ workflow = []
 
 # specify targets for visualizing Micromorphic Filter output
 viz_targs =  (
+    ('plot-cauchy-couple', 'cauchy_couple.png'),
     ('plot-stress-norms', 'stress_norms.png'),
     ('plot-better-stress-norms', 'better_stress_norms.png'),
     ('plot-best-stress-norms', 'best_stress_norms.png'),
@@ -62,6 +63,9 @@ viz_targs =  (
     ('csv-m', 'm_stress.csv'),
     ('csv-M', 'M_stress.csv'),
     ('csv-stress33-all', 'all_33_stresses.csv'),
+    ('plot-stress-diff', 'stress_diff.png'),
+    ('plot-rotation-diff', 'rotation_diff.png'),
+    ('plot-stretch-diff', 'stretch_diff.png'),
     )
 params['viz_targs'] = viz_targs
 
@@ -105,10 +109,11 @@ script_options += f" --output-csv {force_plot_targets[1]}"
 script_options += " --face-id 3"
 script_options += " --final-disp 0.210"
 script_options += " --header-row 0"
-script_options += " --filter-markers 0 5 10 15 20 25 30 35 40 45 50 55 60 65"
+script_options += " --force-factor 1.e-6"
+script_options += " --filter-markers 0 5 10 15 20 25 30 35 40 45 50 55 60 65 75 80 90 145"
 workflow.extend(env.PythonScript(
     target=[force_plot_targets],
-    source=[str(DNS_Ratel_abspath / plot_script)],
+    source=[str(DNS_Ratel_abspath / plot_script), force_results],
     script_options=script_options,
     ))
 
@@ -206,6 +211,15 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
                        exports=["env", "parameters", "workflow_name", "model", "params"],
                        duplicate=False))
     params['calibration_map'] = f'{build_directory}/{set_name}/Calibration_map_plastic_parameters_case_{case}_{domain_number}.csv'
+
+    soft_case = params['softening_plastic_calibration_case']
+    if env['calibrate_softening']:
+        variant_dir = build_directory / set_name
+        workflow.extend(
+            SConscript("calibrate_element_elastoplasticity_softening.scons", variant_dir=variant_dir,
+                       exports=["env", "parameters", "workflow_name", "model", "params"],
+                       duplicate=False))
+        params['calibration_map'] = f'{build_directory}/{set_name}/Calibration_map_plastic_parameters_case_{soft_case}_{domain_number}.csv'
 
     # ---------- Tardigrade-MOOSE --------------------------------------------------
     # Run common Tardigrade-MOOSE sconscript
