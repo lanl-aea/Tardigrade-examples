@@ -113,6 +113,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     input_options += f" --yc-top {top_platen_center_y}"
     input_options += f" --geometry {geometry.split('_')[0]}"
     input_options += " --material-type elastic"
+    input_options += f" --phi-BC specimen"
     ## conditionals
     if 'symmetry' in geometry:
         mesh_script = 'brazilian_disk_apparatus_symmetry.py'
