@@ -70,6 +70,13 @@ def objective(x0, Y, inputs, cal_norm, case, element, nqp, increment=None, stres
     else:
         max_inc = len(inputs[5])
 
+    # Enforce constraints on plastic parameters for certain cases
+    penalty = 0.
+    if case == 10:
+        cu0, Hu, cchi0, Hchi = XX[0], XX[1], XX[2], XX[3]
+        if Hu*Hchi >= 0.:
+            penalty += 1.e6 * (abs(Hu) + abs(Hchi) + 1.e-6)
+
     # Evaluate stresses from DNS strain inputs
     ## If the solve fails, return objective of infinity
     try:
@@ -141,6 +148,7 @@ def objective(x0, Y, inputs, cal_norm, case, element, nqp, increment=None, stres
     Xstore.append(numpy.copy(XX))
     Lstore.append(obj)
 
+    obj = obj + penalty
     print(f'obj = {obj}')
     return obj
 
@@ -278,7 +286,7 @@ def opti_options_5(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibra
 
 
 def opti_options_6(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
-    '''Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters. For case 6.
+    '''Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters. For case 6, 8, 9, and 10.
 
     :param array-like X: Array of micromorphic plasticity parameters to calibrate
     :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
@@ -369,6 +377,7 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
     ninc = len(times)
 
     if average == True:
+        # average and isolate the quantities needed for calibration
         cauchy = calibration_tools.average_quantities(cauchy, '3x3', element)
         symm = calibration_tools.average_quantities(symm, '3x3', element)
         PK2 = calibration_tools.average_quantities(PK2, '3x3', element)
@@ -383,6 +392,7 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         gradphi = calibration_tools.average_quantities(gradphi, '3x3x3', element)
         nqp = 1
     else:
+        # just isolate the quantities needed for calibration
         cauchy = calibration_tools.isolate_element(cauchy, '3x3', element)
         symm = calibration_tools.isolate_element(symm, '3x3', element)
         PK2 = calibration_tools.isolate_element(PK2, '3x3', element)
@@ -506,6 +516,69 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
         params = opti_options_7(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
+    elif case == 8:
+        # Case 8 - Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters
+        ## Ensure macro-plasticity is only hardening and micro-plasticity is only softening
+        parameter_bounds = [[1.0, 3.], [1.e-8, 500.], [3.5, 10.], [-500., -1.e-8]]
+        param_est = [2.5, 1.e-4, 4.0, -1.e-4]
+        workers = 2
+        res = scipy.optimize.differential_evolution(func=opti_options_6,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=workers,
+                                                    args=(Y, inputs, e_params, cal_norm, case, element, nqp, True, increment))
+        print(f"res = {res}")
+        print(f"fit params = {list(res.x)}")
+        params = opti_options_6(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
+    elif case == 9:
+        # Case 9 - Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters
+        ## Ensure macro-plasticity is only softening and micro-plasticity is only hardening
+        #parameter_bounds = [[1.0, 20.], [-500., -1.e-8], [1.0, 20.], [1.e-8, 500.]]
+        #param_est = [3.0, -1.e-4, 3.0, 1.e-4]
+        parameter_bounds = [[3.5, 20.], [-500., -1.e-8], [1.0, 5.], [1.e-8, 500.]]
+        param_est = [4.0, -1.e-4, 2.5, 1.e-4]
+        workers = 2
+        res = scipy.optimize.differential_evolution(func=opti_options_6,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=workers,
+                                                    args=(Y, inputs, e_params, cal_norm, case, element, nqp, True, increment))
+        print(f"res = {res}")
+        print(f"fit params = {list(res.x)}")
+        params = opti_options_6(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
+    elif case == 10:
+        # Case 10 - Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters
+        ## Allow macro-plasticity and micro-plasticity to flip-flop between softening and hardening
+        parameter_bounds = [[1.0, 20.], [-500., 500.], [1.0, 20.], [-500., 500.]]
+        param_est = [3.0, -1.e-4, 3.0, -1.e-4]
+        workers = 2
+        res = scipy.optimize.differential_evolution(func=opti_options_6,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=workers,
+                                                    args=(Y, inputs, e_params, cal_norm, case, element, nqp, True, increment))
+        print(f"res = {res}")
+        print(f"fit params = {list(res.x)}")
+        params = opti_options_6(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
+    elif case == 11:
+        # Case 11 - Calibrate macro-plasticity and micro-plasticity initial cohesion and hardening parameters
+        ## Ensure macro-plasticity is only hardening and micro-plasticity is only softening
+        ## Similar to case 8, used with average=True
+        parameter_bounds = [[1.0, 10.], [1.e-4, 500.], [3., 10.], [-500., -1.]]
+        param_est = [2.5, 1.e-3, 4.0, -2.]
+        workers = 2
+        res = scipy.optimize.differential_evolution(func=opti_options_6,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=workers,
+                                                    args=(Y, inputs, e_params, cal_norm, case, element, nqp, True, increment))
+        print(f"res = {res}")
+        print(f"fit params = {list(res.x)}")
+        params = opti_options_6(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
     else:
         print('Select valid calibration case!')
 
