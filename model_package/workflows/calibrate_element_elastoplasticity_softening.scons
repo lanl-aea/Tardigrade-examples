@@ -67,7 +67,7 @@ if domain_number == 1:
     script_options += f" --plot-file {plastic_plot_root}"
     script_options += f" --input-parameters {elastic_parameters}"
     script_options += f" --increment {' '.join(str(i) for i in params['calibration_increment_softening'])}"
-    if case == 11:
+    if (case == 11) or (case == 12):
         script_options += " --average True"
     workflow.extend(env.PythonScript(
         target = calibration_targs,
@@ -135,7 +135,7 @@ else:
         script_options += f" --plot-file {plastic_plot_root}"
         script_options += f" --input-parameters {elastic_parameters}"
         script_options += f" --increment {' '.join(str(i) for i in params['calibration_increment_softening'])}"
-        if case == 11:
+        if (case == 11) or (case == 12):
             script_options += " --average True"
         workflow.extend(env.PythonScript(
             target = [f'{calib_set}/{cali_targ}' for cali_targ in calibration_targs],
