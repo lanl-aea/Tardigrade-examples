@@ -58,7 +58,9 @@ test_docs:
     - scons -h
     - scons html
   tags:
-    - shell-aea
+    - shell
+    - aea
+    - linux
 
 # It MUST be called pages
 pages:
@@ -77,4 +79,6 @@ pages:
       # It MUST be called public
       - public
   tags:
-    - shell-aea
+    - shell
+    - aea
+    - linux
