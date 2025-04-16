@@ -243,7 +243,7 @@ I43_damage_CGNS = {
     'cohesion_case': 1,
     'cohesion_increment': [3, 4, 5],
     # paramters for Tardigrade-MOOSE
-    'macro_disp': 0.210*0.72221649302258428, #timestep for Monitor_000124.vtu
+    'macro_disp': 0.220*0.72221649302258428, #timestep for Monitor_000124.vtu
     'macro_duration': 1.0,
     'macro_BC': 'slip_plane',
 }
