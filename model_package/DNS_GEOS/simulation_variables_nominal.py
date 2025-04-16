@@ -52,7 +52,7 @@ I43_01 = {
     # parameters for micromorphic filter
     'acceleration': False,
     'velocity': False,
-    'filter_parallel': 8,
+    'filter_parallel': 1,
     # parameters for calibration
     'calibration_case': 3,
     'calibration_increment': [5],
@@ -64,5 +64,5 @@ I43_01 = {
 }
 
 I43_01['DNS_fileroot'] = 'GEOS_2025-03-02_I43-01_take2'
-I43_01['DNS_file'] = 'vtkOutput_good.pvd'
+I43_01['DNS_file'] = 'vtkOutput_short.pvd'
 I43_01['DNS_forces'] = 'reactionHistory.csv'
