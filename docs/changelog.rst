@@ -12,6 +12,10 @@ New Features
 ============
 - Create new script and workflow for converting Ratel DNS from CGNS to XDMF
   format (:issue:`24`, :merge:`16`). By `Thomas Allard`_.
+- Improve Brazil disk simulations. Plot Cauchy couple across domains. Add option to apply
+  BCs on micro displacements. Add objective functions to elastoplastic calibration for
+  softening plasticity. Write parser for ExodusII files (:issue:`29`, :merge:`18``).
+  By `Thomas Allard`_.
 
 Documentation
 =============
