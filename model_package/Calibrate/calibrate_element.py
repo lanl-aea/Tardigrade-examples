@@ -526,7 +526,6 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
 
     # calibrate!
     maxit = 2000
-    num_workers = 8
     if case == 1:
         # Case 1 - calibrate just lambda and mu
         print(f'Target Poisson ratio = {nu_targ}')
@@ -564,7 +563,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
                                                     x0=param_est,
-                                                    workers=num_workers,
+                                                    workers=4,
                                                     args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment, dev_norm_errors))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
@@ -582,7 +581,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
                                                     x0=param_est,
-                                                    workers=num_workers,
+                                                    workers=4,
                                                     args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment, dev_norm_errors))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
@@ -599,7 +598,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
                                                     x0=param_est,
-                                                    workers=num_workers,
+                                                    workers=8,
                                                     args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment, dev_norm_errors))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
@@ -617,7 +616,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
                                                     x0=param_est,
-                                                    workers=num_workers,
+                                                    workers=4,
                                                     args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment, dev_norm_errors))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
@@ -635,7 +634,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
                                                     x0=param_est,
-                                                    workers=num_workers,
+                                                    workers=5,
                                                     args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, second_order_params, True, increment, dev_norm_errors))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
@@ -658,7 +657,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
                                                     x0=param_est,
-                                                    workers=num_workers,
+                                                    workers=3,
                                                     args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, third_order_params, True, increment, dev_norm_errors))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
@@ -684,7 +683,7 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
                                                     x0=param_est,
-                                                    workers=num_workers,
+                                                    workers=8,
                                                     args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment, dev_norm_errors))
         print(f"res = {res}")
         print(f"fit params = {res.x}")
