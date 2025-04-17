@@ -17,6 +17,10 @@ elastic_cylinder = {
     'mesh_copy_root': 'cylinder_5_5',
 }
 
+elastic_cube = copy.deepcopy(elastic_cylinder)
+del elastic_cube['diam']
+del elastic_cube['mesh_copy_root']
+
 dynamic_elastic_cylinder = {
     'diam': 5.0,
     'height': 5.0,
@@ -36,20 +40,25 @@ Brazilian_disk = {
     'width': 36.,
     'chord': 22.,
     'app_rad': 12.5,
-    'app_dep': 5.5,
+    'app_dep': 6.0,
     'spec_rad': 9.55,
     'spec_dep': 5.1,
     'tol': 0.0,
     'seed_size': 0.5,
+    'platen_seed_size': 1.0,
+    'mesh_copy_root': 'brazilian_disk_apparatus',
     # material_E
     'material_E': 833.75,
     'material_nu': 0.3625,
+    'platen_E': 210000.,
+    'platen_nu': 0.30,
     'cu0': 3.0,
     'fraction': 0.1,
-    # macro_BC
+    # macro parameters
     'macro_BC': 'brazil',
     'macro_disp': 0.5,
     'macro_duration': 1.0,
+    'friction_coefficient': 0.1,
 }
 
 elastic_parameter_ordering = ['lambda', 'mu', 'eta', 'tau', 'kappa', 'nu', 'sigma',\

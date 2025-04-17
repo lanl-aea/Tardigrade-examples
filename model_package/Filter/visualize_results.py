@@ -143,33 +143,32 @@ def plot_axial_vector_mag(cauchy, times, average, output_name):
 
     colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
     
-    fig1 = matplotlib.pyplot.figure('axial', figsize=(3,5),dpi=300)
-    
-    for qp in cauchy.keys():
-        axial = []
-        for i,t in enumerate(times):
-            # skew symmetric 
-            sig = cauchy[qp][i,0,:,:]
-            sig_t = numpy.transpose(sig)
-            skew = 0.5*(sig - sig_t)
+    fig1 = matplotlib.pyplot.figure('axial', figsize=(5,5),dpi=300)
+    nel = numpy.shape(cauchy[0])[1]
+    for el in range(nel):
+        for qp in cauchy.keys():
+            axial = []
+            for i,t in enumerate(times):
+                # skew symmetric
+                sig = cauchy[qp][i,el,:,:]
+                sig_t = numpy.transpose(sig)
+                skew = 0.5*(sig - sig_t)
 
-            # off diagonals
-            ax = numpy.sqrt((skew[0][1]**2)+(skew[0][2]**2)+(skew[1][2]**2))
+                # off diagonals
+                ax = numpy.sqrt((skew[0][1]**2)+(skew[0][2]**2)+(skew[1][2]**2))
 
-            # Append results
-            axial.append(ax)
+                # Append results
+                axial.append(ax)
 
-        # Plot magnitude of axial vector
-        if average:
-            matplotlib.pyplot.plot(times, axial, '-o')
-        else:
-            matplotlib.pyplot.plot(times, axial, '-o', color=colors[qp], label=f'qp #{qp+1}')
+            # Plot magnitude of axial vector
+            if average:
+                matplotlib.pyplot.plot(times, axial)
+            else:
+                matplotlib.pyplot.plot(times, axial, color=colors[qp])
         
     matplotlib.pyplot.figure('axial')
     matplotlib.pyplot.xlabel('Simulation time (s)', fontsize=14)
     matplotlib.pyplot.ylabel('|$\omega^{\sigma}$| (MPa)', fontsize=14)
-    if average == False:
-        matplotlib.pyplot.legend()
     matplotlib.pyplot.tight_layout()
     matplotlib.pyplot.savefig(f'{output_name}')
 
@@ -193,24 +192,24 @@ def plot_stress_diffs(cauchy, symm, times, average, output_name):
 
     colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
-    for i in range(3):
-        for j in range(3):
-            ax1 = axes1[i][j]
-            
-            for qp in cauchy.keys():
-                sig = cauchy[qp][:,0,i,j]
-                sym = symm[qp][:,0,i,j]
-                diff = sig-sym
-                if average:
-                    ax1.plot(times, diff, '-o')
-                else:
-                    ax1.plot(times, diff, '-o', color=colors[qp], label=f'qp #{qp+1}')
+    nel = numpy.shape(cauchy[0])[1]
+    for el in range(nel):
+        for i in range(3):
+            for j in range(3):
+                ax1 = axes1[i][j]
+                
+                for qp in cauchy.keys():
+                    sig = cauchy[qp][:,el,i,j]
+                    sym = symm[qp][:,el,i,j]
+                    diff = sig-sym
+                    if average:
+                        ax1.plot(times, diff)
+                    else:
+                        ax1.plot(times, diff, color=colors[qp])
 
-            ax1.set_xlabel(r'Simulation time (s)', fontsize=14)
-            ax1.set_ylabel(r"($\sigma_{" + str(i+1) + str(j+1) + "}$ - $s_{" + str(i+1) + str(j+1) + "}$)", fontsize=14)
+                ax1.set_xlabel(r'Simulation time (s)', fontsize=14)
+                ax1.set_ylabel(r"($\sigma_{" + str(i+1) + str(j+1) + "}$ - $s_{" + str(i+1) + str(j+1) + "}$)", fontsize=14)
     ax1 = axes1[1][2]
-    if average == False:
-        ax1.legend(bbox_to_anchor=(1.2, 0.9))
     matplotlib.pyplot.figure('stress_diff')
     matplotlib.pyplot.tight_layout()
     matplotlib.pyplot.savefig(f'{output_name}')
@@ -231,25 +230,28 @@ def get_R_and_U(PK2, F, chi, times):
 
     R, U = {}, {}
     Rchi, Uchi = {}, {}
+    nel = numpy.shape(PK2[0])[1]
+    ntimes = len(times)
     for qp in PK2.keys():
-        Rs, Us = [], []
-        Rcs, Ucs = [], []
-        for i,t in enumerate(times):
-            #if i > 0:
-            Rr, Uu = polar(F[qp][i,0,:,:],side='left')
-            Rcr, Ucu = polar(chi[qp][i,0,:,:], side='left')
+        Rs, Us = numpy.zeros([ntimes,nel,3,3]), numpy.zeros([ntimes,nel,3,3])
+        Rcs, Ucs = numpy.zeros([ntimes,nel,3,3]), numpy.zeros([ntimes,nel,3,3])
+        for el in range(nel):
+            for i,t in enumerate(times):
+                #if i > 0:
+                Rr, Uu = polar(F[qp][i,el,:,:],side='left')
+                Rcr, Ucu = polar(chi[qp][i,el,:,:], side='left')
 
-            #check orthogonality
-            tol = 1.e-9
-            if (norm((numpy.dot(Rr,numpy.transpose(Rr)) - numpy.eye(3)),ord=2)) > tol:
-                print('Error!!! R is not orthogonal!')
-            if (norm((numpy.dot(Rcr,numpy.transpose(Rcr)) - numpy.eye(3)),ord=2)) > tol:
-                print('Error!!! Rc is not orthogonal!')
+                #check orthogonality
+                tol = 1.e-9
+                if (norm((numpy.dot(Rr,numpy.transpose(Rr)) - numpy.eye(3)),ord=2)) > tol:
+                    print('Error!!! R is not orthogonal!')
+                if (norm((numpy.dot(Rcr,numpy.transpose(Rcr)) - numpy.eye(3)),ord=2)) > tol:
+                    print('Error!!! Rc is not orthogonal!')
 
-            Rs.append(Rr)
-            Us.append(Uu)
-            Rcs.append(Rcr)
-            Ucs.append(Ucu)
+                Rs[i,el,:,:] = Rr
+                Us[i,el,:,:] = Uu
+                Rcs[i,el,:,:] = Rcr
+                Ucs[i,el,:,:] = Ucu
         R[qp] = Rs
         U[qp] = Us
         Rchi[qp] = Rcs
@@ -276,27 +278,24 @@ def plot_rot_diffs(PK2, times, R, Rchi, average, output_name):
 
     colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
-    for i in range(3):
-        for j in range(3):
-            ax1 = axes1[i][j]
-            
-            for qp in PK2.keys():
-                diffs = []
-                #for k in range(len(times)-1):
-                for k,t in enumerate(times):
-                    diff = R[qp][k][i][j]-Rchi[qp][k][i][j]
-                    diffs.append(diff)
-                if average:
-                    ax1.plot(times[:], diffs, '-o')
-                else:
-                    ax1.plot(times[:],diffs, '-o', color=colors[qp], label=f'qp #{qp+1}')
-                
-            ax1.set_xlabel(r'Simulation time (s)', fontsize=14)
-            ax1.set_ylabel(r"$R_{" + str(i+1) + str(j+1) + "}$ - $R^{\chi}_{" + str(i+1) + str(j+1) + "}$", fontsize=14)
-            ax1.ticklabel_format(axis='y',style='sci')
-    ax1 = axes1[1][2]
-    if average == False:
-        ax1.legend(bbox_to_anchor=(1.2, 0.9))
+    nel = numpy.shape(PK2[0])[1]
+    for el in range(nel):
+        for i in range(3):
+            for j in range(3):
+                ax1 = axes1[i][j]
+                for qp in PK2.keys():
+                    diffs = []
+                    for k,t in enumerate(times):
+                        diff = R[qp][k,el,i,j] - Rchi[qp][k,el,i,j]
+                        diffs.append(diff)
+                    if average:
+                        ax1.plot(times[:], diffs)
+                    else:
+                        ax1.plot(times[:], diffs, color=colors[qp])
+                    
+                ax1.set_xlabel(r'Simulation time (s)', fontsize=14)
+                ax1.set_ylabel(r"$R_{" + str(i+1) + str(j+1) + "}$ - $R^{\chi}_{" + str(i+1) + str(j+1) + "}$", fontsize=14)
+                ax1.ticklabel_format(axis='y',style='sci')
     matplotlib.pyplot.ticklabel_format(axis='y',style='sci')
     matplotlib.pyplot.figure('Rot_diff')
     matplotlib.pyplot.tight_layout()
@@ -323,27 +322,23 @@ def plot_stretch_diffs(PK2, times, U, Uchi, average, output_name):
 
     colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
-    for i in range(3):
-        for j in range(3):
-            ax1 = axes1[i][j]
-            
-            for qp in PK2.keys():
-                diffs = []
-                for k,t in enumerate(times):
-                    diff = U[qp][k][i][j]-Uchi[qp][k][i][j]
-                    diffs.append(diff)
-                if average:
-                    ax1.plot(times[:], diffs, '-o')
-                else:
-                    ax1.plot(times[:],diffs, '-o', color=colors[qp], label=f'qp #{qp+1}')
-
-                
-            ax1.set_xlabel(r'Simulation time (s)', fontsize=14)
-            ax1.set_ylabel(r"$U_{" + str(i+1) + str(j+1) + "}$ - $U^{\chi}_{" + str(i+1) + str(j+1) + "}$", fontsize=14)
-            ax1.ticklabel_format(axis='y',style='sci')
-    ax1 = axes1[1][2]
-    if average == False:
-        ax1.legend(bbox_to_anchor=(1.2, 0.9))
+    nel = numpy.shape(PK2[0])[1]
+    for el in range(nel):
+        for i in range(3):
+            for j in range(3):
+                ax1 = axes1[i][j]
+                for qp in PK2.keys():
+                    diffs = []
+                    for k,t in enumerate(times):
+                        diff = U[qp][k,el,i,j] - Uchi[qp][k,el,i,j]
+                        diffs.append(diff)
+                    if average:
+                        ax1.plot(times[:], diffs)
+                    else:
+                        ax1.plot(times[:],diffs, color=colors[qp])
+                ax1.set_xlabel(r'Simulation time (s)', fontsize=14)
+                ax1.set_ylabel(r"$U_{" + str(i+1) + str(j+1) + "}$ - $U^{\chi}_{" + str(i+1) + str(j+1) + "}$", fontsize=14)
+                ax1.ticklabel_format(axis='y',style='sci')
     matplotlib.pyplot.figure('U')
     matplotlib.pyplot.tight_layout()
     matplotlib.pyplot.savefig(f'{output_name}')

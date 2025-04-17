@@ -6,49 +6,43 @@ Brazilian disk eighth symmetry
 ** P A R T S 
 *************************************************************
 **
-*PART, NAME=bottom_platen
-*INCLUDE, INPUT=@platen_mesh_file@
-*SOLID SECTION, ELSET=bottom_platen, MATERIAL=steel
-*END PART
-**
 *PART, NAME=specimen
 *INCLUDE, INPUT=@specimen_mesh_file@
 *SOLID SECTION, ELSET=specimen, MATERIAL=mock
 *END PART
+**
+*Part, name=bottom_platen
+*End Part
 **
 *************************************************************
 ** A S S E M B L Y
 *************************************************************
 *ASSEMBLY,NAME=A
 **
-*INSTANCE, NAME=bottom_platen-1, PART=bottom_platen
- 0.0, 0.0, 0.0
-*END INSTANCE
-**
 *INSTANCE, NAME=specimen-1, PART=specimen
  0.0, 0.0, 0.0
 *END INSTANCE
 **
+*INSTANCE, NAME=bottom_platen-1, PART=bottom_platen
 *Node
-      1,           0.,         -10.,           0.
-*Nset, nset=load_here
- 1,
+      1, 0., @neg_app_rad@, 0.           
+*Nset, nset=bottom_platen_rp, internal
+1,
+*Nset, nset=RP
+1,
+*Surface, type=CYLINDER, name=surface
+START, @bottom_start_x@, @bottom_start_y@
+ CIRCL, @bottom_end_x@, @bottom_end_y@,           0.,           @platen_z_bot@
+*End Instance
+** 
 ** Constraint: Constraint-1
-*Equation
-2
-bottom_platen-1.bottom, 2, 1.
-load_here, 2, -1.
+*Rigid Body, ref node=bottom_platen-1.bottom_platen_rp, analytical surface=bottom_platen-1.surface
 *END ASSEMBLY
 **
 *************************************************************
 ** M A T E R I A L S
 *************************************************************
 **
-*MATERIAL, NAME=steel
-*DENSITY
-2.8E-9
-*ELASTIC
-200000.0, 0.33
 *MATERIAL, NAME=mock
 *DENSITY
 2.0E-9
@@ -61,23 +55,17 @@ load_here, 2, -1.
 **
 *Surface Interaction, name=CONTACT-PROP
 *Friction
-0.2
+0.,
 *Surface Behavior, pressure-overclosure=HARD
 **
-** Interaction: Top-platen-to-top-plunger
+** Interaction: bottom_platen_contact
 *Contact Pair, interaction=CONTACT-PROP, type=SURFACE TO SURFACE
-bottom_platen-1.platen_contact, specimen-1.specimen_contact
+specimen-1.specimen_contact, bottom_platen-1.surface
 **
 *************************************************************
 ** I N I T I A L    B O U N D A R Y    C O N D I T I O N S
 *************************************************************
 **
-** Name: fix_platen_back Type: Displacement/Rotation
-*Boundary
-BOTTOM_PLATEN-1.BACK_SYM, 3, 3
-** Name: fix_platen_side Type: Displacement/Rotation
-*Boundary
-BOTTOM_PLATEN-1.SIDE_SYM, 1, 1
 ** Name: fix_specimen_back Type: Displacement/Rotation
 *Boundary
 SPECIMEN-1.BACK_SYM, 3, 3
@@ -88,6 +76,14 @@ SPECIMEN-1.SIDE_SYM, 1, 1
 *Boundary
 SPECIMEN-1.TOP_SYM, 2, 2
 **
+** Name: fix_platen_reference_points Type: Displacement/Rotation
+*Boundary
+bottom_platen-1.RP, 1, 1
+bottom_platen-1.RP, 3, 3
+bottom_platen-1.RP, 4, 4
+bottom_platen-1.RP, 5, 5
+bottom_platen-1.RP, 6, 6
+**
 *************************************************************
 ** S T E P
 *************************************************************
@@ -96,13 +92,16 @@ SPECIMEN-1.TOP_SYM, 2, 2
 *Static
 0.1, 1.0, 0.000001, 0.1
 **
+** Contact Controls for Interaction: CONTACT-PROP-1
+*Contact Controls, main=bottom_platen-1.surface, secondary=specimen-1.specimen_contact, reset
+*Contact Controls, main=bottom_platen-1.surface, secondary=specimen-1.specimen_contact, stabilize=1.
 *************************************************************
 ** L O A D
 *************************************************************
 **
 ** Name: load Type: Displacement/Rotation
 *Boundary
-load_here, 2, 2, @macro_disp@
+bottom_platen-1.RP, 2, 2, @macro_disp@
 **
 *************************************************************
 ** O U T P U T    R E Q U E S T S
@@ -119,7 +118,7 @@ load_here, 2, 2, @macro_disp@
 ** HISTORY OUTPUT: H-Output-2
 **
 *Output, history
-*Node Output, nset=load_here
+*Node Output, nset=bottom_platen-1.RP
 RF1, RF2, RF3, TF1, TF2, TF3, U1, U2
 U3
 **

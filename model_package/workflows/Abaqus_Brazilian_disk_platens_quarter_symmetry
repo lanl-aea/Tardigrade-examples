@@ -1,0 +1,123 @@
+#! /usr/bin/env python
+
+""" Workflow for running an Abaqus/Standard simulation of a Brazilian disk indirect tension experiment with 1/4th symmetry with loading platens
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``DNS_Abaqus_abspath`` - String absolute path to the Abaqus journal files
+  * ``Tardigrade_MOOSE_source_abspath`` - String path for the Tardigrade-MOOSE application
+  * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
+"""
+
+import copy
+import pathlib
+
+from model_package.Tardigrade_MOOSE import simulation_variables_nominal
+
+
+# Inherit the parent construction environment
+Import('env')
+
+# set project-wide paths with os-agnostic path separators
+DNS_Abaqus_abspath = pathlib.Path(env["DNS_Abaqus_abspath"])
+Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
+
+# Simulation variables
+build_directory = pathlib.Path(Dir('.').abspath)
+workflow_name = build_directory.name
+output_file_type = "h5"
+model = "Brazil_disk_platens_quarter_symmetry"
+params = simulation_variables_nominal.Brazilian_disk_platens
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+
+# Build mesh
+mesh_script = 'brazilian_disk_apparatus_symmetry.py'
+abq_mesh_name = 'brazilian_disk_apparatus_sym'
+abq_meshes = [f'{abq_mesh_name}_bottom_platen.inp',
+              f'{abq_mesh_name}_specimen.inp']
+script_options = f"--output-file {abq_mesh_name}"
+script_options += f" --specimen-seed-size {params['seed_size']}"
+script_options += f" --platen-seed-size {params['platen_seed_size']}" #<-- needed better seed size...
+#script_options += f" --platen-seed-size {params['seed_size']}"
+script_options += f" --height {params['height']}"
+script_options += f" --width {params['width']}"
+script_options += f" --chord {params['chord']}"
+script_options += f" --app-rad {params['app_rad']}"
+script_options += f" --app-dep {params['app_dep']}"
+script_options += f" --spec-rad {params['spec_rad']}"
+script_options += f" --spec-dep {params['spec_dep']}"
+script_options += f" --tol {params['tol']}"
+script_options += f" --symmetry quarter"
+workflow.extend(env.PythonScript(
+    target=[abq_meshes],
+    source=[str(Tardigrade_MOOSE_source_abspath / mesh_script)],
+    script_options=script_options
+    ))
+
+all_params = copy.deepcopy(params)
+all_params['platen_mesh_file'] = abq_meshes[0]
+all_params['specimen_mesh_file'] = abq_meshes[1]
+all_params['macro_disp'] = params['macro_disp']/2
+abaqus_source_list = [
+    DNS_Abaqus_abspath / "brazil_disk" / "input_platens_quarter_symmetry.inp.in",
+]
+
+workflow.extend(env.CopySubstfile(
+    abaqus_source_list,
+    substitution_dictionary=env.SubstitutionSyntax(all_params),
+))
+# Abaqus Solve
+solve_source_list = [source_file.name.rstrip('.in') for source_file in abaqus_source_list] + abq_meshes
+job_name = model
+abaqus_options = '-double both'
+workflow.extend(env.AbaqusSolver(
+    target = [f"{job_name}.sta"],
+    source = solve_source_list,
+    job_name = job_name,
+    abaqus_options = abaqus_options
+))
+
+# Extract Abaqus
+extract_source_list = [f"{job_name}.odb"]
+workflow.extend(env.AbaqusExtract(
+    target = [f"{job_name}.h5", f"{job_name}_datasets.h5"],
+    source = extract_source_list,
+))
+
+# Post-processing step #1 - force vs. displacement
+plot_name = f"{job_name}_force_displacement"
+plot_script = "extract_history.py"
+post_processing_source = [f"{job_name}_datasets.h5"]
+script_options = "--input-file " + " ".join(str(path) for path in post_processing_source)
+script_options += " --output-file ${TARGET.file} --x-units 'mm' --y-units 'N'"
+script_options += " --x-path 'A/HistoryOutputs/LOAD_HERE/U2'"
+script_options += " --y-path 'A/HistoryOutputs/LOAD_HERE/RF2'"
+script_options += " --x-label 'Displacement' --y-label 'Force'"
+script_options += f" --csv_file {plot_name}.csv"
+workflow.extend(env.PythonScript(
+    target = [f"{plot_name}.png", f"{plot_name}.csv"],
+    source = [f"{DNS_Abaqus_abspath / plot_script}"] + post_processing_source,
+    script_options = script_options
+))
+
+# Post-processing step #2 - normalized force and displacements
+plot_script = "Brazil_disk_normalized_force_vs_displacements.py"
+csv_input = f"{plot_name}.csv"
+plot_name = f"{job_name}_force_displacement_normalized"
+script_options = f"--input-file {csv_input}"
+script_options += f" --radius {params['spec_rad']}"
+script_options += f" --thickness {params['spec_dep']}"
+script_options += " --force-factor -2"
+script_options += " --disp-factor -2"
+script_options += f" --plot-file {plot_name}.png"
+script_options += f" --csv-file {plot_name}.csv"
+workflow.extend(env.PythonScript(
+    target = [f"{plot_name}.png", f"{plot_name}.csv"],
+    source = [f"{Tardigrade_MOOSE_source_abspath / plot_script}", csv_input],
+    script_options = script_options
+))
+
+# Collector alias based on parent directory name
+env.Alias(workflow_name, workflow)

@@ -234,15 +234,18 @@ I43_damage_CGNS = {
     'filter_parallel': 8,
     # parameters for elastic calibration
     'plastic_calibration_case': 6,
+    'softening_plastic_calibration_case': 10,
     'calibration_increment_elastic': [0, 1, 2, 3, 4],
     'calibration_increment_plastic': [3, 5, 7, 9, 10, 11, 12, 13],
+    #'calibration_increment_softening': [3, 7, 10, 11, 12, 13, 14],
+    'calibration_increment_softening': [3, 5, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17],
     # parameters for plastic calibration
     'cohesion_case': 1,
     'cohesion_increment': [3, 4, 5],
     # paramters for Tardigrade-MOOSE
-    'macro_disp': 0.210*0.72221649302258428, #timestep for Monitor_000124.vtu
+    'macro_disp': 0.220*0.72221649302258428, #timestep for Monitor_000124.vtu
     'macro_duration': 1.0,
-    'macro_BC': 'clamp',
+    'macro_BC': 'slip_plane',
 }
 I43_damage_CGNS['DNS_files'] = [
     'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0000.cgns',
@@ -259,5 +262,9 @@ I43_damage_CGNS['DNS_files'] = [
     'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0055.cgns',
     'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0060.cgns',
     'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0065.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0075.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0080.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0090.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Monitor_0145.cgns',
     ]
 I43_damage_CGNS['DNS_forces'] = 'RatelDNS/IDOX-ESTANE/I43_09/BaseLine-BIN4_SM10_DF20_MI10_MD0.5_CGNS/Forces_OUT_I43-09_BIN4_SM10_DF20_MI10_MD0.5.csv'

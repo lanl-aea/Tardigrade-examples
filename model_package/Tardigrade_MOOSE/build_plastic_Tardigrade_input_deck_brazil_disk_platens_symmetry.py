@@ -7,12 +7,14 @@ import sys
 import yaml
 
 
-def build_input(output_file, mesh_file, parameter_sets, disp, duration,
+def build_input(output_file, mesh_file, material_E, material_nu, platen_E, platen_nu,
+                disp, duration,
                 specimen_bottom_surface, bottom_platen_contact,
-                top_symmetry, back_symmetry, side_symmetry,
-                bottom_platen_fixture):
-    '''Write Tardigrade-MOOSE input file for eighth symmetry Brazilian disk simulation with platens
-    
+                top_symmetry, back_symmetry, side_set,
+                bottom_platen_fixture, contact_type='frictionless',
+                symmetry='eighth', phi_BC=None):
+    '''Write MOOSE input file for symmetric Brazilian disk simulation with platens
+
     :param str output_file: The name of Tardigrade-MOOSE file to write
     :param str mesh_file: The name of the mesh file
     :param list parameter_sets: The list of yaml files containing calibration results
@@ -22,8 +24,11 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
     :param str bottom_platen_contact: The name of the bottom platen contact surface
     :param str top_symmetry: The name of the top symmetry surface(s)
     :param str back_symmetry: The name of the back symmetry surface(s)
-    :param str side_symmetry: The name of the side symmetry surface(s)
+    :param str side_set: The name of the side surface(s) to restrict motion in x-direction
     :param str bottom_platen_fixture: The name of the bottom platen fixture surface
+    :param str contact_type: The option for specifying contact, either "frictionless" or "friction"
+    :param str symmetry: Type of symmetry to enforce, either "eighth" or "quarter"
+    :param str phi_BC: Optional string specifying nodeset to force micro deformation components to be zero
 
     :returns: ``output_file``
     '''
@@ -636,35 +641,124 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
         f.write('\n')
         # BCs
         f.write('[BCs]\n')
-        f.write('  active = "top_symmetry back_symmetry side_symmetry bottom_y"\n')
-        f.write('  [./top_symmetry]\n')
-        f.write('    type = DirichletBC\n')
-        f.write('    variable = disp_y\n')
-        f.write(f'    boundary = "{top_symmetry}"\n')
-        f.write('    preset = true\n')
-        f.write('    value = 0\n')
-        f.write('  [../]\n')
-        f.write('  [./back_symmetry]\n')
-        f.write('    type = DirichletBC\n')
-        f.write('    variable = disp_z\n')
-        f.write(f'    boundary = "{back_symmetry}"\n')
-        f.write('    preset = true\n')
-        f.write('    value = 0\n')
-        f.write('  [../]\n')
-        f.write('  [./side_symmetry]\n')
-        f.write('    type = DirichletBC\n')
-        f.write('    variable = disp_x\n')
-        f.write(f'    boundary = "{side_symmetry}"\n')
-        f.write('    preset = true\n')
-        f.write('    value = 0\n')
-        f.write('  [../]\n')
-        f.write('  [./bottom_y]\n')
-        f.write('    type = FunctionDirichletBC\n')
-        f.write('    variable = disp_y\n')
-        f.write(f'    boundary = "{bottom_platen_fixture}"\n')
-        f.write('    preset = true\n')
-        f.write('    function = top_bc\n')
-        f.write('  [../]\n')
+        if symmetry == 'eighth':
+            f.write('  active = "top_symmetry back_symmetry side_symmetry bottom_y"\n')
+            f.write('  [./top_symmetry]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = disp_y\n')
+            f.write(f'    boundary = "{top_symmetry}"\n')
+            f.write('    preset = true\n')
+            f.write('    value = 0\n')
+            f.write('  [../]\n')
+            f.write('  [./back_symmetry]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = disp_z\n')
+            f.write(f'    boundary = "{back_symmetry}"\n')
+            f.write('    preset = true\n')
+            f.write('    value = 0\n')
+            f.write('  [../]\n')
+            f.write('  [./side_symmetry]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = disp_x\n')
+            f.write(f'    boundary = "{side_set}"\n')
+            f.write('    preset = true\n')
+            f.write('    value = 0\n')
+            f.write('  [../]\n')
+            f.write('  [./bottom_y]\n')
+            f.write('    type = FunctionDirichletBC\n')
+            f.write('    variable = disp_y\n')
+            f.write(f'    boundary = "{bottom_platen_fixture}"\n')
+            f.write('    preset = true\n')
+            f.write('    function = top_bc\n')
+            f.write('  [../]\n')
+        elif symmetry == 'quarter':
+            f.write('  active = "top_symmetry back_symmetry fix_side bottom_y"\n')
+            f.write('  [./top_symmetry]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = disp_y\n')
+            f.write(f'    boundary = "{top_symmetry}"\n')
+            f.write('    preset = true\n')
+            f.write('    value = 0\n')
+            f.write('  [../]\n')
+            f.write('  [./back_symmetry]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = disp_z\n')
+            f.write(f'    boundary = "{back_symmetry}"\n')
+            f.write('    preset = true\n')
+            f.write('    value = 0\n')
+            f.write('  [../]\n')
+            f.write('  [./fix_side]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = disp_x\n')
+            f.write(f'    boundary = "{side_set}"\n')
+            f.write('    preset = true\n')
+            f.write('    value = 0\n')
+            f.write('  [../]\n')
+            f.write('  [./bottom_y]\n')
+            f.write('    type = FunctionDirichletBC\n')
+            f.write('    variable = disp_y\n')
+            f.write(f'    boundary = "{bottom_platen_fixture}"\n')
+            f.write('    preset = true\n')
+            f.write('    function = top_bc\n')
+            f.write('  [../]\n')
+        else:
+            print('Specify a valid type of symmetry!')
+# Option to force Phis to be zero
+        if phi_BC is not None:
+            f.write('  [fix_phi_xx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_xz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_xy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
         # Loading function
@@ -676,28 +770,42 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
         f.write('[]\n')
         f.write('\n')
         # Contact
-        f.write('[Contact]\n')
-        f.write('  [./bottom_center_cont]\n')
-        f.write(f'    secondary = "{bottom_platen_contact}"\n')
-        f.write(f'    primary = "{specimen_bottom_surface}"\n')
-        f.write('    model = coulomb\n')
-        f.write('    formulation = tangential_penalty\n')
-        f.write('    friction_coefficient = "0.2"\n')
-        f.write('    penalty = 1e4\n')
-        f.write('    normalize_penalty = true\n')
-        f.write('    tangential_tolerance = 1.e-1\n')
-        f.write('    normal_smoothing_distance = 0.001\n')
-        f.write('  [../]\n')
-        f.write('[]\n')
-        f.write('\n')
-        f.write('[Dampers]\n')
-        f.write('  [./contact_slip_bottom]\n')
-        f.write('    type = ContactSlipDamper\n')
-        f.write(f'    secondary = "{bottom_platen_contact}"\n')
-        f.write(f'    primary = "{specimen_bottom_surface}"\n')
-        f.write('    min_damping_factor = 1.e-2\n')
-        f.write('  [../]\n')
-        f.write('[]\n')
+        if contact_type == 'frictionless':
+            f.write('[Contact]\n')
+            f.write('  [./bottom_center_cont]\n')
+            f.write(f'    primary = "{bottom_platen_contact}"\n')
+            f.write(f'    secondary = "{specimen_bottom_surface}"\n')
+            f.write('    penalty = 1e3\n')
+            f.write('    normalize_penalty = true\n')
+            f.write('    tangential_tolerance = 1.e-3\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+        elif contact_type == 'friction':
+            f.write('[Contact]\n')
+            f.write('  [./bottom_center_cont]\n')
+            f.write(f'    secondary = "{bottom_platen_contact}"\n')
+            f.write(f'    primary = "{specimen_bottom_surface}"\n')
+            f.write('    model = coulomb\n')
+            f.write('    formulation = tangential_penalty\n')
+            f.write('    friction_coefficient = "0.2"\n')
+            f.write('    penalty = 1e9\n')
+            f.write('    normalize_penalty = true\n')
+            f.write('    tangential_tolerance = 1.e-3\n')
+            f.write('    normal_smoothing_distance = 0.001\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+            f.write('\n')
+            f.write('[Dampers]\n')
+            f.write('  [./contact_slip_bottom]\n')
+            f.write('    type = ContactSlipDamper\n')
+            f.write(f'    secondary = "{bottom_platen_contact}"\n')
+            f.write(f'    primary = "{specimen_bottom_surface}"\n')
+            f.write('    min_damping_factor = 1.e-2\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+            f.write('\n')
+        else:
+            print('Specify a valid contact_type!')
         # Materials
         f.write('[Materials]\n')
         # Load in parameter data for each filter domain / element
@@ -855,6 +963,7 @@ def build_input(output_file, mesh_file, parameter_sets, disp, duration,
         f.write('  petsc_options_value = "lu     superlu_dist NONZERO"\n')
         f.write('  line_search = none\n')
         f.write('  automatic_scaling = true\n')
+        f.write('  compute_scaling_once = true\n')
         f.write('  nl_rel_tol = 1e-5\n')
         f.write('  nl_abs_tol = 1e-5\n')
         f.write('  l_tol = 5e-3\n')
@@ -913,10 +1022,16 @@ def get_parser():
         help='Specify the name of the top symmetry surface(s)')
     parser.add_argument('--back-symmetry', type=str, required=True,
         help='Specify the name of the back symmetry surface(s)')
-    parser.add_argument('--side-symmetry', type=str, required=True,
-        help='Specify the name of the side symmetry surface(s)')
+    parser.add_argument('--side-set', type=str, required=True,
+        help='Specify the name of the side surface(s) to restrict motion in x-direction')
     parser.add_argument('--bottom-platen-fixture', type=str, required=True,
         help='Specify the name of the bottom platen fixture surface')
+    parser.add_argument('--contact-type', type=str, required=False, default='frictionless',
+        help='The option for specifying contact, either "frictionless" or "friction"')
+    parser.add_argument('--symmetry', type=str, required=False, default='eighth',
+        help='Type of symmetry to enforce, either "eighth" or "quarter"')
+    parser.add_argument('--phi-BC', type=str, required=False, default=None,
+        help='Optional string specifying nodeset to force micro deformation components to be zero')
 
     return parser
 
@@ -934,6 +1049,9 @@ if __name__ == '__main__':
                          bottom_platen_contact=args.bottom_platen_contact,
                          top_symmetry=args.top_symmetry,
                          back_symmetry=args.back_symmetry,
-                         side_symmetry=args.side_symmetry,
+                         side_set=args.side_set,
                          bottom_platen_fixture=args.bottom_platen_fixture,
+                         contact_type=args.contact_type,
+                         symmetry=args.symmetry,
+                         phi_BC=args.phi_BC,
                          ))

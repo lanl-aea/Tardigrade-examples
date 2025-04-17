@@ -38,7 +38,7 @@ build_directory = pathlib.Path(Dir('.').abspath)
 workflow_name = build_directory.name
 output_file_type = "h5"
 model = "I43_09_damage_coarse_finetime"
-params = simulation_variables_nominal.I43_damage_coarse_finetime
+params = simulation_variables_nominal.I43_damage_CGNS
 
 # Collect the target nodes to build a concise alias for all targets
 workflow = []
@@ -65,24 +65,24 @@ viz_targs =  (
 params['viz_targs'] = viz_targs
 
 # ---------- Process existing DNS ----------------------------------------------
-results_files = [f"{peta_data_copy_abspath}/{file}" for file in params['DNS_files']]
+results_files = [f"{peta_data_copy_abspath}/{file.split('/')[-1]}" for file in params['DNS_files']]
 
 # Filter prep - Extract results to XDMF
 main_XDMF_name = f"FILTER_INPUT_{model}"
 filter_inputs = [f"{main_XDMF_name}.{ext}" for ext in ['xdmf', 'h5']]
 cauchy_stresses = "DNS_all_33_stresses.csv"
-XDMF_script = "vtk_to_xdmf_fast.py"
+XDMF_script = "cgns_to_xdmf.py"
 script_options = f"--input-files {' '.join(results_files)}"
 script_options += f" --output-file {str(build_directory / main_XDMF_name)}"
 script_options += " --dist-factor 0.001"
 script_options += " --stress-factor 1."
 script_options += " --density-factor 1.e-12"
-script_options += f" --dump-all-33-stresses {cauchy_stresses}"
 script_options += " --damage True"
 workflow.extend(env.PythonScript(
     target=filter_inputs,
     source=[str(DNS_Ratel_abspath / XDMF_script)] + results_files,
     script_options=script_options))
+params['homogenize_damage'] = True
 
 # Get bounding information from DNS extents
 bounding_csv = f"{model}_bounds.csv"
@@ -98,14 +98,16 @@ filter_inputs = [f"{str(build_directory / main_XDMF_name)}.{ext}" for ext in ['x
 
 # Post-processing step - force vs. displacement
 plot_script = "plot_force_displacement.py"
-force_results = f"{peta_data_copy_abspath}/{params['DNS_forces']}"
+force_results = f"{peta_data_copy_abspath}/{params['DNS_forces'].split('/')[-1]}"
 force_plot_targets = [f"{model}_force_displacement.png", f"{model}_force_displacement.csv"]
 script_options = f"--csv-file {force_results}"
 script_options += f" --output-file {force_plot_targets[0]}"
 script_options += f" --output-csv {force_plot_targets[1]}"
-script_options += " --force-col 'Force (N)'"
+script_options += " --face-id 3"
+script_options += " --final-disp 0.210"
 script_options += " --header-row 0"
-script_options += " --filter-markers 0 10 15 20 25 30 35 40 45 50 55 60 70 80"
+script_options += " --force-factor 1.e-6"
+script_options += " --filter-markers 0 5 10 15 20 25 30 35 40 45 50 55 60 65 145"
 workflow.extend(env.PythonScript(
     target=[force_plot_targets],
     source=[str(DNS_Ratel_abspath / plot_script)],

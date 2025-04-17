@@ -122,6 +122,8 @@ if params['acceleration'] == True:
     script_options += " --acceleration acc"
 if params['velocity'] == True:
     script_options += " --velocity vel"
+if ('homogenize_damage' in params.keys()) and (params['homogenize_damage'] == True):
+    script_options += " --damage damage"
 script_options += f" --max-parallel {params['filter_parallel']}"
 workflow.extend(env.PythonScript(
     target = [filter_config_file],
@@ -134,6 +136,8 @@ filter_script = "run_micromorphic_filter.py"
 filter_sources = [f'{macro_file}.xdmf', filter_config_file]
 filter_targs = params['filter_targs']
 script_options = f" --config-file {filter_config_file}"
+if ('homogenize_damage' in params.keys()) and (params['homogenize_damage'] == True):
+    script_options += f" --damage-class True"
 workflow.extend(env.PythonScript(
     target = filter_targs,
     source = [f"{filter_source_abspath / filter_script}"] + filter_sources + filter_inputs,

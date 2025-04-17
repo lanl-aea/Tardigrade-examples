@@ -29,7 +29,6 @@ def build_input(output_file, mesh_file, calibration_map, disp, duration,
     :param str bottom_platen_fixture: Specify the name of the bottom platen fixture surface
     :param str contact_type: The option for specifying contact, either "frictionless" or "friction"
 
-
     :returns: ``output_file``
     '''
 

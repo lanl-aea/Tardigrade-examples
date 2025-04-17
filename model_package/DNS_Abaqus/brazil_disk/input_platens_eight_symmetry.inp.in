@@ -1,0 +1,129 @@
+**
+*HEADING
+Brazilian disk eighth symmetry
+**
+*************************************************************
+** P A R T S 
+*************************************************************
+**
+*PART, NAME=bottom_platen
+*INCLUDE, INPUT=@platen_mesh_file@
+*SOLID SECTION, ELSET=bottom_platen, MATERIAL=steel
+*END PART
+**
+*PART, NAME=specimen
+*INCLUDE, INPUT=@specimen_mesh_file@
+*SOLID SECTION, ELSET=specimen, MATERIAL=mock
+*END PART
+**
+*************************************************************
+** A S S E M B L Y
+*************************************************************
+*ASSEMBLY,NAME=A
+**
+*INSTANCE, NAME=bottom_platen-1, PART=bottom_platen
+ 0.0, 0.0, 0.0
+*END INSTANCE
+**
+*INSTANCE, NAME=specimen-1, PART=specimen
+ 0.0, 0.0, 0.0
+*END INSTANCE
+**
+*Node
+      1,           0.,         -10.,           0.
+*Nset, nset=load_here
+ 1,
+** Constraint: Constraint-1
+*Equation
+2
+bottom_platen-1.bottom, 2, 1.
+load_here, 2, -1.
+*END ASSEMBLY
+**
+*************************************************************
+** M A T E R I A L S
+*************************************************************
+**
+*MATERIAL, NAME=steel
+*DENSITY
+2.8E-9
+*ELASTIC
+@platen_E@, @platen_nu@
+*MATERIAL, NAME=mock
+*DENSITY
+2.0E-9
+*ELASTIC
+@material_E@, @material_nu@
+**
+*************************************************************
+** I N T E R A C T I O N S
+*************************************************************
+**
+*Surface Interaction, name=CONTACT-PROP
+*Friction
+@friction_coefficient@
+*Surface Behavior, pressure-overclosure=HARD
+**
+** Interaction: platen_contact
+*Contact Pair, interaction=CONTACT-PROP, type=SURFACE TO SURFACE
+bottom_platen-1.platen_contact, specimen-1.specimen_contact
+**
+*************************************************************
+** I N I T I A L    B O U N D A R Y    C O N D I T I O N S
+*************************************************************
+**
+** Name: fix_platen_back Type: Displacement/Rotation
+*Boundary
+BOTTOM_PLATEN-1.BACK_SYM, 3, 3
+** Name: fix_platen_side Type: Displacement/Rotation
+*Boundary
+BOTTOM_PLATEN-1.SIDE_SYM, 1, 1
+** Name: fix_specimen_back Type: Displacement/Rotation
+*Boundary
+SPECIMEN-1.BACK_SYM, 3, 3
+** Name: fix_specimen_side Type: Displacement/Rotation
+*Boundary
+SPECIMEN-1.SIDE_SYM, 1, 1
+** Name: fix_specimen_top Type: Displacement/Rotation
+*Boundary
+SPECIMEN-1.TOP_SYM, 2, 2
+**
+*************************************************************
+** S T E P
+*************************************************************
+**
+*Step, name=Step-1, nlgeom=YES, inc=10000, unsymm=YES
+*Static
+0.1, 1.0, 0.000001, 0.1
+**
+*************************************************************
+** L O A D
+*************************************************************
+**
+** Name: load Type: Displacement/Rotation
+*Boundary
+load_here, 2, 2, @macro_disp@
+**
+*************************************************************
+** O U T P U T    R E Q U E S T S
+*************************************************************
+**
+** OUTPUT REQUESTS
+**
+*Restart, write, frequency=0
+**
+** FIELD OUTPUT: F-Output-1
+**
+*Output, field, variable=PRESELECT
+**
+** HISTORY OUTPUT: H-Output-2
+**
+*Output, history
+*Node Output, nset=load_here
+RF1, RF2, RF3, TF1, TF2, TF3, U1, U2
+U3
+**
+** HISTORY OUTPUT: H-Output-1
+**
+*Output, history, variable=PRESELECT
+*End Step

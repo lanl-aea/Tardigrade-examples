@@ -71,19 +71,21 @@ def make_summary_csv(summary_csv, parameter_df):
     :returns: ``summary_csv``
     '''
 
-    params, means, mins, maxs, devs = [], [], [], [], []
+    params, means, medians, mins, maxs, devs = [], [], [], [], [], []
     fields = list(parameter_df.columns)
     fields.remove('element')
     for key in fields:
         # get stats
         params.append(key)
         means.append(numpy.mean(parameter_df[key]))
+        medians.append(numpy.median(parameter_df[key]))
         mins.append(numpy.min(parameter_df[key]))
         maxs.append(numpy.max(parameter_df[key]))
         devs.append(numpy.std(parameter_df[key]))
         # output 
         df = pandas.DataFrame({'param': params,
                                'mean': means,
+                               'median': medians,
                                'min': mins,
                                'max': maxs,
                                'dev': devs})

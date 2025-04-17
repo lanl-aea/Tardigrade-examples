@@ -1,0 +1,150 @@
+**
+*HEADING
+Brazilian disk eighth symmetry
+**
+*************************************************************
+** P A R T S 
+*************************************************************
+**
+*PART, NAME=specimen
+*INCLUDE, INPUT=@specimen_mesh_file@
+*SOLID SECTION, ELSET=specimen, MATERIAL=mock
+*END PART
+**
+*Part, name=bottom_platen
+*End Part
+**
+*Part, name=top_platen
+*End Part
+**
+*************************************************************
+** A S S E M B L Y
+*************************************************************
+*ASSEMBLY,NAME=A
+**
+*INSTANCE, NAME=specimen-1, PART=specimen
+ 0.0, 0.0, 0.0
+*END INSTANCE
+**
+*INSTANCE, NAME=bottom_platen-1, PART=bottom_platen
+*Node
+      1, 0., @neg_app_rad@, 0.           
+*Nset, nset=bottom_platen_rp, internal
+1,
+*Nset, nset=RP
+1,
+*Surface, type=CYLINDER, name=surface
+START, @bottom_start_x@, @bottom_start_y@
+ CIRCL, @bottom_end_x@, @bottom_end_y@,           0.,           @platen_z_bot@
+*End Instance
+** 
+*INSTANCE, NAME=top_platen-1, PART=top_platen
+*Node
+      1, 0., @app_rad@, 0.
+*Nset, nset=top_platen_rp, internal
+1,
+*Nset, nset=RP
+1, 
+*Surface, type=CYLINDER, name=surface
+START, @top_start_x@, @top_start_y@
+ CIRCL, @top_end_x@, @top_end_y@,           0.,           @platen_z_top@
+*End Instance
+** 
+** Constraint: Constraint-1
+*Rigid Body, ref node=bottom_platen-1.bottom_platen_rp, analytical surface=bottom_platen-1.surface
+** Constraint: Constraint-2
+*Rigid Body, ref node=top_platen-1.top_platen_rp, analytical surface=top_platen-1.surface
+*END ASSEMBLY
+**
+*************************************************************
+** M A T E R I A L S
+*************************************************************
+**
+*MATERIAL, NAME=mock
+*DENSITY
+2.0E-9
+*ELASTIC
+@material_E@, @material_nu@
+**
+*************************************************************
+** I N T E R A C T I O N S
+*************************************************************
+**
+*Surface Interaction, name=CONTACT-PROP
+*Friction
+0.,
+*Surface Behavior, pressure-overclosure=HARD
+**
+** Interaction: bottom_platen_contact
+*Contact Pair, interaction=CONTACT-PROP, type=SURFACE TO SURFACE
+specimen-1.specimen_bottom, bottom_platen-1.surface
+**
+** Interaction: top_platen_contact
+*Contact Pair, interaction=CONTACT-PROP, type=SURFACE TO SURFACE
+specimen-1.specimen_top, top_platen-1.surface
+**
+*Contact Initialization Data, name=CInit-1
+**
+*************************************************************
+** I N I T I A L    B O U N D A R Y    C O N D I T I O N S
+*************************************************************
+**
+** Name: fix_platen_reference_points Type: Displacement/Rotation
+*Boundary
+bottom_platen-1.RP, 1, 1
+bottom_platen-1.RP, 3, 3
+bottom_platen-1.RP, 4, 4
+bottom_platen-1.RP, 5, 5
+bottom_platen-1.RP, 6, 6
+top_platen-1.RP, 1, 1
+top_platen-1.RP, 2, 2
+top_platen-1.RP, 3, 3
+top_platen-1.RP, 4, 4
+top_platen-1.RP, 5, 5
+top_platen-1.RP, 6, 6
+**
+*************************************************************
+** S T E P
+*************************************************************
+**
+*Step, name=Step-1, nlgeom=YES, inc=10000, unsymm=YES
+*Static
+0.1, 1.0, 0.000001, 0.1
+**
+** Contact Controls for Interaction: CONTACT-PROP-1
+*Contact Controls, main=bottom_platen-1.surface, secondary=specimen-1.specimen_bottom, reset
+*Contact Controls, main=bottom_platen-1.surface, secondary=specimen-1.specimen_bottom, stabilize=1.
+** Contact Controls for Interaction: CONTACT-PROP-2
+*Contact Controls, main=top_platen-1.surface, secondary=specimen-1.specimen_top, reset
+*Contact Controls, main=top_platen-1.surface, secondary=specimen-1.specimen_top, stabilize=1.
+*************************************************************
+** L O A D
+*************************************************************
+**
+** Name: load Type: Displacement/Rotation
+*Boundary
+bottom_platen-1.RP, 2, 2, @macro_disp@
+**
+*************************************************************
+** O U T P U T    R E Q U E S T S
+*************************************************************
+**
+** OUTPUT REQUESTS
+**
+*Restart, write, frequency=0
+**
+** FIELD OUTPUT: F-Output-1
+**
+*Output, field, variable=PRESELECT
+**
+** HISTORY OUTPUT: H-Output-2
+**
+*Output, history
+*Node Output, nset=bottom_platen-1.RP
+RF1, RF2, RF3, TF1, TF2, TF3, U1, U2
+U3
+**
+** HISTORY OUTPUT: H-Output-1
+**
+*Output, history, variable=PRESELECT
+*End Step

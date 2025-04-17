@@ -1,6 +1,5 @@
 #!python
 import argparse
-import os
 import pathlib
 import sys
 
@@ -41,7 +40,7 @@ def adjust_centroids(centroids, method='absolute'):
     return centroids
 
 
-def get_element_centroids_from_exouds_mesh(exodus_mesh_map):
+def get_element_centroids_from_exodus_mesh(exodus_mesh_map):
     '''Extract and adjust the centroids from an exodus mesh used for mapping element IDs
 
     :params str exodus_mesh_map: An existing macroscale to optionally map centroids for element block numbering
@@ -97,7 +96,7 @@ def add_element_blocks_to_mesh(input_mesh, output_mesh, elements, number_existin
     # Match centroids from filter macroscale mesh using KDTree
     if exodus_mesh_map:
         # get macroscale centroids
-        macro_centroids = get_element_centroids_from_exouds_mesh(exodus_mesh_map)
+        macro_centroids = get_element_centroids_from_exodus_mesh(exodus_mesh_map)
         print(f'macro_centroids = \n {macro_centroids}')
         # Collect hex centroids
         hex_centroids = []

@@ -120,9 +120,26 @@ else:
             action=SCons.Defaults.Copy("${TARGET}", "${SOURCE}", False)
             ))
 
+# Uniformly refine mesh
+if env['uniform_refine'] > 0:
+    refinement_script = 'uniformly_refine_mesh.py'
+    refined_mesh = tardi_mesh_2.split('.')[0] + f'_refined-{env["uniform_refine"]}.e'
+    script_options = f"--input-mesh {tardi_mesh_2}"
+    script_options += f" --output-mesh {refined_mesh}"
+    script_options += f" --refinement-level {env['uniform_refine']}"
+    script_options += f" --calibration-map-in {calibration_map}"
+    workflow.extend(env.PythonScript(
+        target=[refined_mesh],
+        source=[str(Tardigrade_MOOSE_source_abspath / refinement_script), tardi_mesh_2, calibration_map],
+        script_options=script_options
+        ))
+    tardi_mesh_2 = refined_mesh
+
 # build input file
 tardigrade_input_script = "build_plastic_Tardigrade_input_deck.py"
 tardi_sim_name = f'TARDIGRADE-MOOSE_{model}_{domain_number}_elements_plastic_calib_case_{case}_{params["macro_BC"]}'
+if env['uniform_refine'] > 0:
+    tardi_sim_name = f'{tardi_sim_name}_refined-{env["uniform_refine"]}'
 tardigrade_build_targs = f"{tardi_sim_name}.i"
 script_options = f"--output-file {tardigrade_build_targs}"
 script_options += f" --calibration-map {calibration_map}"

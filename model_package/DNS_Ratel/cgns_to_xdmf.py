@@ -175,8 +175,7 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
 
         # Option for damage
         if damage == True:
-            unique_damage = density_factor*unpack_diagnostic(
-                tree, diagnostic_path, damage_field.reshape((-1,1)))
+            unique_damage = unpack_diagnostic(tree, diagnostic_path, damage_field).reshape((-1,1))
             print(f"shape of damage = {numpy.shape(unique_damage)}")
             xdmf.addData(grid, "damage", unique_damage, "Node", dtype='d')
 

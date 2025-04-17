@@ -12,6 +12,8 @@ Requires the following ``Sconscript(..., exports=[])``
 
 import pathlib
 
+import SCons.Defaults
+
 from model_package.Tardigrade_MOOSE import simulation_variables_nominal
 
 
@@ -20,6 +22,7 @@ Import('env')
 
 # set project-wide paths with os-agnostic path separators
 Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
 
 # Simulation variables
 build_directory = pathlib.Path(Dir('.').abspath)
@@ -35,21 +38,30 @@ workflow = []
 mesh_script = 'brazilian_disk_apparatus_symmetry.py'
 tardi_mesh_name = 'brazilian_disk_apparatus_sym'
 tardi_mesh = f'{tardi_mesh_name}.e'
-script_options = f"--output-file {tardi_mesh_name}"
-script_options += f" --seed-size {params['seed_size']}"
-script_options += f" --height {params['height']}"
-script_options += f" --width {params['width']}"
-script_options += f" --chord {params['chord']}"
-script_options += f" --app-rad {params['app_rad']}"
-script_options += f" --app-dep {params['app_dep']}"
-script_options += f" --spec-rad {params['spec_rad']}"
-script_options += f" --spec-dep {params['spec_dep']}"
-script_options += f" --tol {params['tol']}"
-workflow.extend(env.PythonScript(
-    target=[f'{tardi_mesh_name}.e'],
-    source=[str(Tardigrade_MOOSE_source_abspath / mesh_script)],
-    script_options=script_options
-    ))
+if env['cubit']:
+    script_options = f"--output-file {tardi_mesh_name}"
+    script_options += f" --specimen-seed-size {params['seed_size']}"
+    script_options += f" --platen-seed-size {params['platen_seed_size']}"
+    script_options += f" --height {params['height']}"
+    script_options += f" --width {params['width']}"
+    script_options += f" --chord {params['chord']}"
+    script_options += f" --app-rad {params['app_rad']}"
+    script_options += f" --app-dep {params['app_dep']}"
+    script_options += f" --spec-rad {params['spec_rad']}"
+    script_options += f" --spec-dep {params['spec_dep']}"
+    script_options += f" --tol {params['tol']}"
+    workflow.extend(env.PythonScript(
+        target=[f'{tardi_mesh_name}.e'],
+        source=[str(Tardigrade_MOOSE_source_abspath / mesh_script)],
+        script_options=script_options
+        ))
+else:
+    mesh_copy = f"{params['mesh_copy_root']}_sym.e"
+    workflow.extend(env.Command(
+        target=[tardi_mesh],
+        source=[f"{mesh_templates_abspath}/{mesh_copy}"],
+        action=SCons.Defaults.Copy("${TARGET}", "${SOURCE}", False)
+        ))
 
 # Write material card
 material_script = 'write_plastic_material_card.py'
@@ -88,7 +100,7 @@ tardigrade_build_targs = f"{tardi_sim_name}.i"
 script_options = f"--output-file {tardigrade_build_targs}"
 script_options += f" --parameter-sets {' '.join([material_card])}"
 script_options += f" --mesh {tardi_mesh}"
-script_options += f" --disp {params['macro_disp']}"
+script_options += f" --disp {params['macro_disp']/2}"
 script_options += f" --duration {params['macro_duration']}"
 script_options += " --specimen-bottom-surface specimen_contact"
 script_options += " --bottom-platen-contact platen_contact"

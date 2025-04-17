@@ -2,6 +2,7 @@
 import argparse
 import pathlib
 import sys
+import time
 
 import os
 import xml.etree.ElementTree as ET
@@ -242,12 +243,16 @@ def convert_VTK_to_XDMF(input_file, file_root, output_file, dist_factor=1, stres
     :param float density_factor: Optional factor to scale current density (if provided in the DNS results\
                                  to Mg/tonne^3, default=1
     '''
+    start_time = time.time()
 
     # parse vtk file(s)
     results, reference_positions = collect_VTK_output(input_file, file_root)
 
     # convert to XDMF
     convert_to_XDMF(results, reference_positions, output_file, dist_factor, stress_factor, density_factor)
+
+    end_time = time.time()
+    print(f'executed in {end_time - start_time} seconds')
 
     return 0
 

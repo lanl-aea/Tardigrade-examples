@@ -7,9 +7,10 @@ import inspect
 import pandas
 
 
-def build_input(output_file, mesh_file, BCs, pressure, start, duration, dt, ref_density, height, parameter_sets=None, calibration_map=None):
+def build_input(output_file, mesh_file, BCs, pressure, start, duration, dt, ref_density, height,
+                parameter_sets=None, calibration_map=None, phi_BC=None):
     '''Write a Tardigrade-MOOSE input file for dynamic simulation
-    
+
     :param str output_file: The name of Tardigrade-MOOSE file to write
     :param str mesh_file: The name of the mesh file
     :param str BCs: The type of boundary conditions, either "slip" or "clamp"
@@ -21,11 +22,12 @@ def build_input(output_file, mesh_file, BCs, pressure, start, duration, dt, ref_
     :param float height: Height of the geometry
     :param list parameter_sets: The list of yaml files containing calibration results, required if calibration-map is not provided
     :param str calibration_map: Optional yaml file containing names of calibration files
+    :param str phi_BC: Optional string specifying nodeset to force micro deformation components to be zero
 
     :returns: ``output_file``
     '''
 
-    # TODO: Write test to make sure the mesh_file exists
+    assert os.path.exists(mesh_file), f"Mesh file not found: {mesh_file}"
 
     # unpack parameter set files if calibration map is provided
     if calibration_map:
@@ -506,7 +508,6 @@ def build_input(output_file, mesh_file, BCs, pressure, start, duration, dt, ref_
             f.write('    boundary = "top"\n')
             f.write('    function = heaviside\n')
             f.write('  [../]\n')
-            f.write('[]\n')
         elif BCs == 'clamp':
             f.write('[BCs]\n')
             f.write('  active = "bottom_x bottom_y bottom_z top_x top_y top_z"\n')
@@ -551,9 +552,65 @@ def build_input(output_file, mesh_file, BCs, pressure, start, duration, dt, ref_
             f.write('    boundary = "top"\n')
             f.write('    function = heaviside\n')
             f.write('  [../]\n')
-            f.write('[]\n')
         else:
             print('Specify a valid BC type!')
+        # Option to force Phis to be zero
+        if phi_BC is not None:
+            f.write('  [fix_phi_xx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_xz]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xz\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_xy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_xy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zy]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zy\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_zx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_zx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+            f.write('  [fix_phi_yx]\n')
+            f.write('    type = DirichletBC\n')
+            f.write('    variable = phi_yx\n')
+            f.write(f'    boundary = "{phi_BC}"\n')
+            f.write('    value = 0 \n')
+            f.write('  [../]\n')
+        f.write('[]\n')
         # Heaviside load
         f.write('\n')
         f.write('[Functions]\n')
@@ -698,6 +755,8 @@ def get_parser():
         help='Density in reference configuration (Mg/mm^3)')
     parser.add_argument('--height', type=float, required=True,
         help='Height of the geometry')
+    parser.add_argument('--phi-BC', type=str, required=False, default=None,
+        help='Optional string specifying nodeset to force micro deformation components to be zero')
 
     return parser
 
@@ -717,4 +776,5 @@ if __name__ == '__main__':
                          calibration_map=args.calibration_map,
                          ref_density=args.ref_density,
                          height=args.height,
+                         phi_BC=args.phi_BC,
                          ))

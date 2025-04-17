@@ -115,6 +115,8 @@ def average_over_quadrature(xdmf_file_in, type, qp_field_name, inc, num_elements
             out_all[qp, :, :] = two_pressure(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
         elif type == 'q':
             out_all[qp, :, :] = two_devnorm(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
+        elif type == 'v':
+            out_all[qp, :, :] = numpy.sqrt(3/2)*two_devnorm(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements)
         elif type == 'p3':
             out_all[qp, :, :] = three_pressure(xdmf_file_in, f'{qp_field_name}_{qp}', inc, num_elements, k)
         elif type == 'q3':
@@ -141,6 +143,8 @@ def filter_stress_measures(xdmf_file_in, xdmf_file_out, incs, times, num_element
 
     fields = (('p', 'cauchy_stress'),
               ('q', 'cauchy_stress'),
+              ('v', 'cauchy_stress'),
+              ('v', 'symmetric_micro_stress'),
               ('p', 'symmetric_micro_stress'),
               ('q', 'symmetric_micro_stress'),
               ('p3', 'higher_order_stress'),
@@ -221,13 +225,14 @@ def xdmf_3d_calculations(input_file, output_file, write_type, num_elements=None,
 
     num_increments = xdmf_file_in.getNumIncrements()
     incs = list(range(0, num_increments))
-    times = [xdmf_file_in.getIncrementTime(i)[0] for i in incs]
+
 
     reference_positions = xdmf_file_in.getIncrementReferenceNodePositions(0)[0][0]
     connectivity = xdmf_file_in.getIncrementConnectivity(0)[0][0].reshape((1,-1))
 
     if write_type == 'filter_stress_measures':
         assert num_elements != None, "num_elements must be specified!"
+        times = [xdmf_file_in.getIncrementTime(i)[0] for i in incs]
         filter_stress_measures(xdmf_file_in, xdmf_file_out, incs, times, num_elements,
                                reference_positions, connectivity)
     elif write_type == 'calibration':

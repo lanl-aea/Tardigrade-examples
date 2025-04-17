@@ -5,7 +5,10 @@ import sys
 import yaml
 
 
-def write_filter_config(output_file, job_name, dns_file, macro_file, volume, density, displacement, cauchy_stress, velocity=None, acceleration=None, max_parallel=None):
+def write_filter_config(output_file, job_name, dns_file, macro_file,
+                        volume, density, displacement, cauchy_stress,
+                        velocity=None, acceleration=None, damage=None,
+                        max_parallel=None, sets_file=None, spectral=None):
     '''Write the configuration file for the Micromorphic Filter
 
     :param str output_file: The output filename for filter configuration
@@ -18,32 +21,56 @@ def write_filter_config(output_file, job_name, dns_file, macro_file, volume, den
     :param str displacement: The string identifying displacement quantities located in "dns-file"
     :param str velocity: Optional string identifying velocity quantities located in "dns-file"
     :param str acceleration:  Optional string identifying acceleration quantities located in "dns-file"
+    :param str damage: Optional string identifying damage quantities located in "dns-file"
     :param int max_parallel: Optional parameter defining the number of parallel processes for the Micromorphic Filter
+    :param str sets_file: Optional yaml file containing prescribed micro-averaging domains
 
     returns ``output_file``
     '''
 
     quantity_dict = {}
+    filter_dict = {}
+
     # required quantities
     quantity_dict["volume"] = volume
     quantity_dict["density"] = density
     quantity_dict["displacement"] = displacement
     quantity_dict["cauchy_stress"] = cauchy_stress
+
     # optional parameters
     if velocity:
         quantity_dict["velocity"] = velocity
     if acceleration:
         quantity_dict["acceleration"] = acceleration
+    if damage:
+        quantity_dict["damage"] = damage
 
+    # Prescribed or spectral domains
+    if (sets_file is not None) and (spectral is None):
+        filter_dict["micro_averaging_domains"] = 'prescribed'
+        stream = open(sets_file, 'r')
+        sets = yaml.load(stream, Loader=yaml.FullLoader)
+        stream.close()
+        quantity_dict["prescribed_micro_averaging_domains"] = list(sets.keys())
+    elif (sets_file is None) and (spectral is not None):
+        filter_dict["micro_averaging_domains"] = 'spectral'
+    elif (sets_file is None) and (spectral is None):
+        print('Using the default "nearest qpt" micro averaging domain method')
+    else:
+        print('Invalid configuration for "sets_file" and "spectral"')
+
+    # assemble main dictionary
     data = {
         "files":{"output": job_name,\
                  "data": dns_file,\
                  "filter": macro_file},\
         "quantity_names":quantity_dict,\
-        "filter":{},}
+        "filter":filter_dict,}
+
     # max parallel
     if max_parallel:
         data['filter'].update({'max_parallel':max_parallel})
+
     # velocity gradient terms for acceleration
     if acceleration:
         data['filter'].update({'add_velocity_gradient_terms':True})
@@ -83,9 +110,14 @@ def get_parser():
         help='Optional string identifying velocity quantities located in "dns-file"')
     parser.add_argument('--acceleration', type=str, required=False, default=None,
         help='Optional string identifying acceleration quantities located in "dns-file"')
+    parser.add_argument('--damage', type=str, required=False, default=None,
+        help='Optional string identifying damage quantities located in "dns-file"')
     parser.add_argument('--max-parallel', type=int, required=False, default=None,
         help='Optional parameter defining the number of parallel processes for the\
               Micromorphic Filter')
+    parser.add_argument('--sets-file', type=str, required=False, default=None,
+        help='Optional yaml file containing prescribed micro-averaging domains')
+
     # TODO: add non-required arguments for optional quantities
     return parser
 
@@ -94,14 +126,17 @@ if __name__ == '__main__':
     parser = get_parser()
 
     args = parser.parse_args()
-    sys.exit(write_filter_config(output_file=args.output_file, 
-                                 job_name=args.job_name, 
-                                 dns_file=args.dns_file, 
-                                 macro_file=args.macro_file, 
-                                 volume=args.volume, 
-                                 density=args.density, 
-                                 displacement=args.displacement, 
-                                 cauchy_stress=args.cauchy_stress, 
-                                 velocity=args.velocity, 
-                                 acceleration=args.acceleration, 
-                                 max_parallel=args.max_parallel))
+    sys.exit(write_filter_config(output_file=args.output_file,
+                                 job_name=args.job_name,
+                                 dns_file=args.dns_file,
+                                 macro_file=args.macro_file,
+                                 volume=args.volume,
+                                 density=args.density,
+                                 displacement=args.displacement,
+                                 cauchy_stress=args.cauchy_stress,
+                                 velocity=args.velocity,
+                                 acceleration=args.acceleration,
+                                 damage=args.damage,
+                                 max_parallel=args.max_parallel,
+                                 sets_file=args.sets_file,
+                                 ))

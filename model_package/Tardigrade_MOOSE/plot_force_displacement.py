@@ -8,7 +8,8 @@ import numpy
 import pandas
 
 
-def plot_force_displacement(csv_file, output_file, output_csv, final_disp, force_factor=1):
+def plot_force_displacement(csv_file, output_file, output_csv, final_disp=1, force_factor=1,
+                            force_field='bot_react_z', time_field='time', disp_field=None):
     '''Process force-displacement from Tardigrade-MOOSE results
 
     :param str csv_file: The csv file containing force results
@@ -16,6 +17,9 @@ def plot_force_displacement(csv_file, output_file, output_csv, final_disp, force
     :param str output_csv: The name of the output csv file
     :param float final_disp: The final displacement (mm) to linearly ramp over simulation duration
     :param float force_factor: The factor to scale force
+    :param str force_field: The column label for force values
+    :param str time_field: The column label for time values
+    :param str disp_field: Optional column label for displacement values
 
     :returns: Write ``output_file`` and ``output_csv``
     '''
@@ -23,9 +27,12 @@ def plot_force_displacement(csv_file, output_file, output_csv, final_disp, force
     df = pandas.read_csv(csv_file, sep=",")
 
     # get times, forces, and displacements
-    times = numpy.array(df['time'])
-    disps = final_disp*times
-    forces = force_factor*numpy.array(df['bot_react_z'])
+    if disp_field:
+        disps = numpy.array(df[disp_field])
+    else:
+        times = numpy.array(df[time_field])
+        disps = final_disp*times
+    forces = force_factor*numpy.array(df[force_field])
 
     # plot
     matplotlib.pyplot.figure()
@@ -56,10 +63,16 @@ def get_parser():
         help="The name of the output file of collected results")
     parser.add_argument('--output-csv', type=str, required=True,
         help="The name of the output csv file")
-    parser.add_argument('--final-disp', type=float, required=True,
+    parser.add_argument('--final-disp', type=float, required=False, default=1,
         help="The final displacement (mm) to linearly ramp over simulation duration")
     parser.add_argument('--force-factor', type=float, required=False, default=1,
         help="The factor to scale force")
+    parser.add_argument('--force-field', type=str, required=False, default='bot_react_z',
+        help="The column label for force values")
+    parser.add_argument('--time-field', type=str, required=False, default='time',
+        help="The column label for time values")
+    parser.add_argument('--disp-field', type=str, required=False, default=None,
+        help="Optional column label for displacement values")
 
     return parser
 
@@ -72,4 +85,7 @@ if __name__ == '__main__':
                                      output_csv=args.output_csv,
                                      final_disp=args.final_disp,
                                      force_factor=args.force_factor,
+                                     force_field=args.force_field,
+                                     time_field=args.time_field,
+                                     disp_field=args.disp_field,
                                      ))

@@ -62,6 +62,14 @@ AddOption(
          " (default: '%default')"
 )
 AddOption(
+    "--calibrate-softening",
+    dest="calibrate_softening",
+    default=False,
+    action="store_true",
+    help="Boolean speciyfing whether or not to run softening calibration for certain upscaling studies."\
+         " (default: '%default')"
+)
+AddOption(
     "--calibrate-qp",
     dest="calibrate_qp",
     default=False,
@@ -146,6 +154,15 @@ AddOption(
     action="store_true",
     help="Boolean to parse errors from Micromorphic Filter standard output. (default: '%default')"
 )
+AddOption(
+    "--uniform-refine",
+    dest="uniform_refine",
+    default=0,
+    nargs=1,
+    type="int",
+    action="store",
+    help="Integer specifying uniform refinement level for macro simulations. 0: no refinement, 1: refine by 1 level (each hex element is split into 8), 2: refinement by 2 levels (each hex element is split into 27). Currently only used with '--macro-damage' option. (default: '%default')"
+)
 # Inherit user's full environment and set project options
 env = waves.scons_extensions.WAVESEnvironment(
     ENV=os.environ.copy(),
@@ -155,6 +172,7 @@ env = waves.scons_extensions.WAVESEnvironment(
     print_build_failures=GetOption("print_build_failures"),
     filter=GetOption("filter"),
     calibrate=GetOption("calibrate"),
+    calibrate_softening=GetOption("calibrate_softening"),
     calibrate_qp=GetOption("calibrate_qp"),
     macro=GetOption("macro"),
     macro_platen=GetOption("macro_platen"),
@@ -166,6 +184,7 @@ env = waves.scons_extensions.WAVESEnvironment(
     use_sbatch=GetOption("use_sbatch"),
     selected_parameter_sets=GetOption("selected_parameter_sets"),
     parse_filter_errors=GetOption("parse_filter_errors"),
+    uniform_refine=GetOption("uniform_refine"),
     TARFLAGS="-c -j",
     TARSUFFIX=".tar.bz2"
 )
@@ -447,6 +466,10 @@ workflow_configurations = [
     # GEOS elastic cylinder
     "GEOS_elastic_cylinder",
     "GEOS_elastic_cylinder_multi_domain",
+    "GEOS_elastic_cylinder_multi_domain_fast",
+    # GEOS I43.01
+    "GEOS_I43_01",
+    "GEOS_I43_01_annular",
     # Ratel quasistatic elastic cylinder
     "Ratel_elastic_cylinder",
     "Ratel_elastic_cylinder_multi_domain",
@@ -466,13 +489,27 @@ workflow_configurations = [
     "Tardigrade_dynamic_convergence",
     "plastic_refinement_clamp_H-10percent_mu",
     # Brazilian Disk Compression
-    "Tardigrade_Brazilian_disk",
-    "Tardigrade_Brazilian_disk_platens",
-    "Tardigrade_Brazilian_disk_platens_eighth_symmetry",
-    "Abaqus_Brazilian_disk_platens_eighth_symmetry",
+    "Abaqus_Brazilian_disk_rigid_platens_study",
+    "MOOSE_Brazilian_disk_rigid_platens_study",
+    "Tardigrade_Brazilian_disk_rigid_platens_study",
+    #"Abaqus_Brazilian_disk_platens",
+    #"Abaqus_Brazilian_disk_platens_quarter_symmetry",
+    #"Abaqus_Brazilian_disk_platens_eighth_symmetry",
+    #"MOOSE_Brazilian_disk_platens",
+    #"MOOSE_Brazilian_disk_platens_quarter_symmetry",
+    #"MOOSE_Brazilian_disk_platens_eighth_symmetry",
+    #"Tardigrade_Brazilian_disk",
+    #"Tardigrade_Brazilian_disk_platens",
+    #"Tardigrade_Brazilian_disk_platens_eighth_symmetry",
+    #"Tardigrade_Brazilian_disk_platens_elastic",
+    #"Tardigrade_Brazilian_disk_platens_quarter_symmetry_elastic",
+    #"Tardigrade_Brazilian_disk_platens_eighth_symmetry_elastic",
     #Neper studies
     "neper_cube",
     "neper_cylinder",
+    #Filter convergence studies
+    "Filter_convergence_cylinder",
+    "Filter_convergence_cube",
 ]
 
 for workflow in workflow_configurations:

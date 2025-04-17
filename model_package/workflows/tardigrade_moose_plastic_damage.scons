@@ -5,6 +5,8 @@ Requires the following ``Sconscript(..., exports=[])``
 * ``env`` - The SCons construction environment with the following required keys
   * ``Tardigrade_MOOSE_source_abspath`` - String absolute path to model_package/Tardigrade-MOOSE
   * ``mesh_templates_abspath`` - String absolute path to model_package/meshes
+  * ``calibrate_source_abspath`` - String absolute path to model_package/Calibrate
+  * ``filter_source_abspath`` - String absolute path to model_package/Filter
   * ``cubit`` - String absolute path to Cubit Python intepreter, optional
   * ``mpi`` - String absolute path to mpiexec program
   * ``LD_PATH`` - String absolute path(s) for shared libraries required to run Tardigrade
@@ -42,6 +44,8 @@ Import("params")
 # Set project-wide paths
 Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
 mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
+calibrate_source_abspath = pathlib.Path(env["calibrate_source_abspath"])
+filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
 
 # workflow variables
 build_directory = pathlib.Path(Dir(".").abspath)
@@ -130,9 +134,79 @@ else:
             action=SCons.Defaults.Copy("${TARGET}", "${SOURCE}", False)
             ))
 
+# Uniformly refine mesh
+if env['uniform_refine'] > 0:
+    refinement_script = 'uniformly_refine_mesh.py'
+    refined_mesh = tardi_mesh_2.split('.')[0] + f'_refined-{env["uniform_refine"]}.e'
+    refined_calibration_map = parameter_csv.split('.')[0] + f'_refined-{env["uniform_refine"]}.csv'
+    script_options = f"--input-mesh {tardi_mesh_2}"
+    script_options += f" --output-mesh {refined_mesh}"
+    script_options += f" --refinement-level {env['uniform_refine']}"
+    script_options += f" --calibration-map-in {calibration_map}"
+    script_options += f" --calibration-map-out {refined_calibration_map}"
+    workflow.extend(env.PythonScript(
+        target=[refined_mesh, refined_calibration_map],
+        source=[str(Tardigrade_MOOSE_source_abspath / refinement_script), tardi_mesh_2, calibration_map],
+        script_options=script_options
+        ))
+
+    # convert new to format needed by filter for verifying calibration map
+    convert_script = "xdmf_tomfoolery.py"
+    macro_file = refined_mesh.split('.')[0]
+    new_mesh_targets = [f"{macro_file}.{ext}" for ext in ['xdmf', 'h5']]
+    script_options = f"--output-file {macro_file}"
+    script_options += f" --input-file {refined_mesh}"
+    workflow.extend(env.PythonScript(
+        target=[new_mesh_targets],
+        source=[str(filter_source_abspath / convert_script), refined_mesh],
+        script_options=script_options
+        ))
+
+    # make xdmf file containing calibration results
+    xdmf_script = 'xdmf_3d_calculations.py'
+    output_fileroot = f'CALIBRATION_RESULTS_{model}_plastic_parameters_case_{case}_domain_number_refined-{env["uniform_refine"]}'
+    xdmf_targets = [f"{output_fileroot}.{suffix}" for suffix in ['xdmf', 'h5']]
+    script_options = f"--input-file {new_mesh_targets[0].split('.xdmf')[0]}"
+    script_options += f" --output-file {output_fileroot}"
+    script_options += " --write-type calibration"
+    script_options += f" --calibration-map-file {refined_calibration_map}"
+    workflow.extend(env.PythonScript(
+        target = xdmf_targets,
+        source = [f"{filter_source_abspath / xdmf_script}", refined_calibration_map, new_mesh_targets],
+        script_options = script_options,
+    ))
+
+    # make xdmf file with relative paths
+    local_path_script = "xdmf_local_paths.py"
+    output_file = f"{output_fileroot}_for_paraview.xdmf"
+    script_options = f"--input-file {output_fileroot}.xdmf"
+    script_options += f" --output-file {output_file}"
+    script_options += f" --oldpath {build_directory/output_fileroot}.h5"
+    script_options += f" --newpath {output_fileroot}.h5"
+    workflow.extend(env.PythonScript(
+        target = output_file,
+        source = [f"{filter_source_abspath / local_path_script}"] + xdmf_targets,
+        script_options=script_options
+    ))
+
+    # Process calibration map
+    convert_script = 'process_calibration_map_to_parameter_csv.py'
+    refined_parameter_csv = f"{refined_calibration_map.split('/')[-1].split('.')[0]}_parameters.csv"
+    script_options = f"--calibration-map {refined_calibration_map}"
+    script_options += f" --output-file {refined_parameter_csv}"
+    workflow.extend(env.PythonScript(
+        target=[refined_parameter_csv],
+        source=[str(Tardigrade_MOOSE_source_abspath / convert_script), refined_calibration_map],
+        script_options=script_options
+        ))
+    tardi_mesh_2 = refined_mesh
+    parameter_csv = refined_parameter_csv
+
 # build input file
 tardigrade_input_script = "build_GED_Tardigrade_input_deck_from_csv.py"
 tardi_sim_name = f'TARDIGRADE-MOOSE_{model}_{domain_number}_elements_plastic_calib_case_{case}_DAMAGE_{params["macro_BC"]}'
+if env['uniform_refine'] > 0:
+    tardi_sim_name = f'{tardi_sim_name}_refined-{env["uniform_refine"]}'
 tardigrade_build_targs = f"{tardi_sim_name}.i"
 script_options = f"--output-file {tardigrade_build_targs}"
 script_options += f" --parameter-csv {parameter_csv}"
@@ -140,7 +214,7 @@ script_options += f" --mesh {tardi_mesh_2}"
 script_options += f" --BCs {params['macro_BC']}"
 script_options += f" --disp {params['macro_disp']}"
 script_options += f" --duration {params['macro_duration']}"
-script_options += f" --damage-parameter 0.005"
+script_options += f" --damage-parameter 0.001"
 workflow.extend(env.PythonScript(
     target = [tardigrade_build_targs],
     source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh_2, parameter_csv],
