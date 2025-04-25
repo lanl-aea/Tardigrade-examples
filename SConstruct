@@ -484,6 +484,7 @@ workflow_configurations = [
     "Ratel_I43_09_multi_domain",
     "Ratel_I43_09_damage_multi_domain",
     "Ratel_I43_09_multi_domain_CGNS",
+    "Ratel_I43_09_multi_domain_best_DNS",
     # Tardigrade solo studies
     "Tardigrade_convergence",
     "Tardigrade_dynamic_convergence",
