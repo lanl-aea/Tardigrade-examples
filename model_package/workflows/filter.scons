@@ -58,6 +58,9 @@ filter_results = params['filter_targs'][0].split('.')[0]
 # Collect the target nodes to build a concise alias for all targets
 workflow = []
 
+# Optional model name override
+if 'model_override' in params.keys():
+    model = params['model_override']
 
 # Filter prep - write macroscale_domain
 macro_file = f"FILTER_macroscale_{model}_{int(domain_number)}"
