@@ -54,19 +54,27 @@ AddOption(
          " (default: '%default')"
 )
 AddOption(
-    "--calibrate",
-    dest="calibrate",
+    "--calibrate-elasticity",
+    dest="calibrate_elasticity",
     default=False,
     action="store_true",
-    help="Boolean speciyfing whether or not to run calibration for a particular upscaling study."\
+    help="Boolean speciyfing whether or not to run elastic calibration for a particular upscaling study."\
          " (default: '%default')"
 )
 AddOption(
-    "--calibrate-softening",
-    dest="calibrate_softening",
+    "--calibrate-plasticity",
+    dest="calibrate_plasticity",
     default=False,
     action="store_true",
-    help="Boolean speciyfing whether or not to run softening calibration for certain upscaling studies."\
+    help="Boolean speciyfing whether or not to run plastic calibration for a particular upscaling study."\
+         " (default: '%default')"
+)
+AddOption(
+    "--calibrate-plastic-softening",
+    dest="calibrate_Plastic_softening",
+    default=False,
+    action="store_true",
+    help="Boolean speciyfing whether or not to run plastic softening calibration for certain upscaling studies."\
          " (default: '%default')"
 )
 AddOption(
@@ -171,7 +179,8 @@ env = waves.scons_extensions.WAVESEnvironment(
     solve_cpus=GetOption("solve_cpus"),
     print_build_failures=GetOption("print_build_failures"),
     filter=GetOption("filter"),
-    calibrate=GetOption("calibrate"),
+    calibrate=GetOption("calibrate_elasticity"),
+    calibrate=GetOption("calibrate_plasticity"),
     calibrate_softening=GetOption("calibrate_softening"),
     calibrate_qp=GetOption("calibrate_qp"),
     macro=GetOption("macro"),
