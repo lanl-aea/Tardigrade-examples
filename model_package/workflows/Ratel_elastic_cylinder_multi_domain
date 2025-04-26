@@ -116,7 +116,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
 
     # ---------- CALIBRATE -----------------------------------------------------
     case = params['calibration_case']
-    if env['calibrate']:
+    if env['calibrate_elasticity']:
         filter_file = str(build_directory / set_name / filter_targs[0])
         params['filter_file'] = filter_file
         variant_dir = build_directory / set_name
