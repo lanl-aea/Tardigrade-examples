@@ -1,0 +1,263 @@
+#! /usr/bin/env python
+
+""" Common workflow for calibrating micromorphic elasticity
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``calibrate_source_abspath`` - String absolute path to model_package/Calibrate
+  * ``filter_source_abspath`` - String absolute path to model_package/Filter
+* ``parameters`` - WAVES CustomStudy parameter dictionary with the following required kyes
+  * ``num_domains`` - The number of macroscale filtering domains
+  * ``seed_size`` - The approximate element size (mm) for creating macroscale meshes in Cubit
+* ``workflow_name`` - The name of the workflow calling this SConscript
+* ``model`` - The name of the model
+* ``params`` - Parameter dictionary with the following required keys
+  * ``filter_file`` - XDMF file containing Micromorphic Filter results
+  * ``material_E`` - The elastic modulus (MPa) of the DNS material
+  * ``material_nu`` - The Poisson ratio of the DNS material
+  * ``calibration_increment_elastic`` - An optional list of one or more increments to perform elastic calibration
+"""
+
+import pathlib
+import os
+
+import waves
+import numpy
+
+
+# Inherit the parent construction environment
+Import("env")
+Import("parameters")
+Import("workflow_name")
+Import("model")
+Import("params")
+
+# Set project-wide paths
+calibrate_source_abspath = pathlib.Path(env["calibrate_source_abspath"])
+filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
+
+# workflow variables
+build_directory = pathlib.Path(Dir(".").abspath)
+domain_number = parameters['num_domains']
+seed_size = parameters['seed_size']
+filter_file = params['filter_file']
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+ignore_boundary_parameter_sets = []
+
+elastic_calibration_script = 'calibrate_element.py'
+plot_root = 'CALIBRATION_COMPARISON'
+elastic_plot_root = f'{plot_root}_elastic'
+
+common_options = f" --input-file {filter_file}"
+common_options += f" --Emod {params['material_E']}"
+common_options += f" --nu {params['material_nu']}"
+common_options += f" --L 0.5"
+common_options += f" --dev-norm-errors True"
+common_options += f" --increment {' '.join(str(i) for i in params['calibration_increment_elastic'])}"
+if domain_number == 1:
+    # Two stage calibration if case=8
+    if params['elastic_calibration_case'] == 8:
+        # initial higher order parameter calibration
+        case = 6
+        calibration_targs = [f'calibrated_elastic_parameters_case_{case}_elem_0.yml',
+                            f'{elastic_plot_root}_PK2_fit_case_{case}.PNG',
+                            f'{elastic_plot_root}_SIGMA_fit_case_{case}.PNG',
+                            f'{elastic_plot_root}_M_fit_case_{case}.PNG',]
+        script_options = f"--output-file {calibration_targs[0]}"
+        script_options += f" --case {case}"
+        script_options += f" --element 0"
+        script_options += f" --plot-file {elastic_plot_root}"
+        workflow.extend(env.PythonScript(
+            target = calibration_targs,
+            source = [f"{calibrate_source_abspath / elastic_calibration_script}", filter_file],
+            script_options = script_options + common_options
+        ))
+        # Calibrate all 18 parameters
+        higher_order_parameters = calibration_targs[0]
+        case = 8
+        calibration_targs = [f'calibrated_elastic_parameters_case_{case}_elem_0.yml',
+                            f'{elastic_plot_root}_PK2_fit_case_{case}.PNG',
+                            f'{elastic_plot_root}_SIGMA_fit_case_{case}.PNG',
+                            f'{elastic_plot_root}_M_fit_case_{case}.PNG',]
+        script_options = f"--output-file {calibration_targs[0]}"
+        script_options += f" --case {case}"
+        script_options += f" --element 0"
+        script_options += f" --plot-file {elastic_plot_root}"
+        script_options += f" --input-elastic-parameters {higher_order_parameters}"
+        workflow.extend(env.PythonScript(
+            target = calibration_targs,
+            source = [f"{calibrate_source_abspath / elastic_calibration_script}", filter_file, higher_order_parameters],
+            script_options = script_options + common_options
+        ))
+    else:
+        case = params['elastic_calibration_case']
+        calibration_targs = [f'calibrated_elastic_parameters_case_{case}_elem_0.yml',
+                            f'{elastic_plot_root}_PK2_fit_case_{case}.PNG',
+                            f'{elastic_plot_root}_SIGMA_fit_case_{case}.PNG',
+                            f'{elastic_plot_root}_M_fit_case_{case}.PNG',]
+        script_options = f"--output-file {calibration_targs[0]}"
+        script_options += f" --case {case}"
+        script_options += f" --element 0"
+        script_options += f" --plot-file {elastic_plot_root}"
+        workflow.extend(env.PythonScript(
+            target = calibration_targs,
+            source = [f"{calibrate_source_abspath / elastic_calibration_script}", filter_file],
+            script_options = script_options + common_options
+        ))
+
+    # Build calibration map
+    calibration_map_script = 'build_calibration_map.py'
+    case = params['elastic_calibration_case']
+    calibration_map_file = f"Calibration_map_elastic_parameters_case_{case}_{domain_number}.csv"
+    script_options = f"--output-file {calibration_map_file}"
+    script_options += f" --calibrated-elements 0"
+    script_options += f" --calibrated-files {calibration_targs[0]}"
+    script_options += " --map-type full_csv --material-type elastic"
+    workflow.extend(env.PythonScript(
+        target = [calibration_map_file],
+        source = [f"{calibrate_source_abspath / calibration_map_script}", calibration_targs[0]],
+        script_options = script_options,
+    ))
+
+# set up parameter study to calibrate each element individually
+else:
+    element_array = numpy.array(list(range(0,int(domain_number)))).reshape((-1,1))
+    calibration_schema = dict(parameter_samples=element_array, parameter_names=numpy.array(['elements']))
+    calibration_generator = waves.parameter_generators.CustomStudy(calibration_schema)
+
+    # calibration loop
+    calibrated_elastic_files = []
+    calibrated_elements = []
+
+    for calib_set, calib_params in calibration_generator.parameter_study_to_dict().items():
+        elem = calib_params['elements']
+        calibrated_elements.append(str(elem))
+        # calibrate classical elasticity
+        case = 1
+        elastic_plot_root = f'{plot_root}_elastic'
+        calibration_targs = [f'calibrated_elastic_parameters_case_{case}_elem_{elem}.yml',
+                             f'{elastic_plot_root}_PK2_fit_case_{case}.PNG',
+                             f'{elastic_plot_root}_SIGMA_fit_case_{case}.PNG',
+                             f'{elastic_plot_root}_M_fit_case_{case}.PNG',]
+        script_options = f"--output-file {calibration_targs[0]}"
+        script_options += f" --case {case}"
+        script_options += f" --element {elem}"
+        script_options += f" --plot-file {elastic_plot_root}"
+        workflow.extend(env.PythonScript(
+            target = [f'{calib_set}/{cali_targ}' for cali_targ in calibration_targs],
+            source = [f"{calibrate_source_abspath / elastic_calibration_script}", filter_file],
+            script_options = script_options + common_options
+        ))
+        # Two stage calibration if case=8
+        if params['elastic_calibration_case'] == 8:
+            # initial higher order parameter calibration
+            case = 6
+            calibration_targs = [f'calibrated_elastic_parameters_case_{case}_elem_{elem}.yml',
+                                f'{elastic_plot_root}_PK2_fit_case_{case}.PNG',
+                                f'{elastic_plot_root}_SIGMA_fit_case_{case}.PNG',
+                                f'{elastic_plot_root}_M_fit_case_{case}.PNG',]
+            script_options = f"--output-file {calibration_targs[0]}"
+            script_options += f" --case {case}"
+            script_options += f" --element {elem}"
+            script_options += f" --plot-file {elastic_plot_root}"
+            workflow.extend(env.PythonScript(
+                target = [f'{calib_set}/{cali_targ}' for cali_targ in calibration_targs],
+                source = [f"{calibrate_source_abspath / elastic_calibration_script}", filter_file],
+                script_options = script_options + common_options
+            ))
+            # Calibrate all 18 parameters
+            higher_order_parameters = str(build_directory / calib_set / calibration_targs[0])
+            case = 8
+            calibration_targs = [f'calibrated_elastic_parameters_case_{case}_elem_{elem}.yml',
+                                f'{elastic_plot_root}_PK2_fit_case_{case}.PNG',
+                                f'{elastic_plot_root}_SIGMA_fit_case_{case}.PNG',
+                                f'{elastic_plot_root}_M_fit_case_{case}.PNG',]
+            script_options = f"--output-file {calibration_targs[0]}"
+            script_options += f" --case {case}"
+            script_options += f" --element {elem}"
+            script_options += f" --plot-file {elastic_plot_root}"
+            script_options += f" --input-elastic-parameters {higher_order_parameters}"
+            workflow.extend(env.PythonScript(
+                target = [f'{calib_set}/{cali_targ}' for cali_targ in calibration_targs],
+                source = [f"{calibrate_source_abspath / elastic_calibration_script}", filter_file, higher_order_parameters],
+                script_options = script_options + common_options
+            ))
+            calibrated_elastic_files.append(f'{calib_set}/{calibration_targs[0]}')
+        else:
+            case = params['elastic_calibration_case']
+            calibration_targs = [f'calibrated_elastic_parameters_case_{case}_elem_{elem}.yml',
+                                f'{elastic_plot_root}_PK2_fit_case_{case}.PNG',
+                                f'{elastic_plot_root}_SIGMA_fit_case_{case}.PNG',
+                                f'{elastic_plot_root}_M_fit_case_{case}.PNG',]
+            script_options = f"--output-file {calibration_targs[0]}"
+            script_options += f" --case {case}"
+            script_options += f" --element {elem}"
+            script_options += f" --plot-file {elastic_plot_root}"
+            workflow.extend(env.PythonScript(
+                target = [f'{calib_set}/{cali_targ}' for cali_targ in calibration_targs],
+                source = [f"{calibrate_source_abspath / elastic_calibration_script}", filter_file],
+                script_options = script_options + common_options
+            ))
+            calibrated_elastic_files.append(f'{calib_set}/{calibration_targs[0]}')
+
+    # Build calibration map
+    calibration_map_script = 'build_calibration_map.py'
+    case = params['elastic_calibration_case']
+    calibration_map_file = f"Calibration_map_elastic_parameters_case_{case}_{domain_number}.csv"
+    script_options = f"--output-file {calibration_map_file}"
+    script_options += f" --calibrated-elements {' '.join(calibrated_elements)}"
+    script_options += f" --calibrated-files {' '.join(calibrated_plastic_files)}"
+    script_options += " --map-type full_csv --material-type elastic"
+    workflow.extend(env.PythonScript(
+        target = [calibration_map_file],
+        source = [f"{calibrate_source_abspath / calibration_map_script}", calibrated_elastic_files],
+        script_options = script_options,
+    ))
+
+    # make xdmf file containing calibration results
+    xdmf_script = 'xdmf_3d_calculations.py'
+    output_fileroot = f'CALIBRATION_RESULTS_{model}_elastic_parameters_case_{case}_domain_number'
+    xdmf_targets = [f"{output_fileroot}.{suffix}" for suffix in ['xdmf', 'h5']]
+    script_options = f"--input-file {filter_file.split('.xdmf')[0]}"
+    script_options += f" --output-file {output_fileroot}"
+    script_options += " --write-type calibration"
+    script_options += f" --calibration-map-file {calibration_map_file}"
+    workflow.extend(env.PythonScript(
+        target = xdmf_targets,
+        source = [f"{filter_source_abspath / xdmf_script}", calibration_map_file],
+        script_options = script_options,
+    ))
+
+    # make xdmf file with relative paths
+    local_path_script = "xdmf_local_paths.py"
+    output_file = f"{output_fileroot}_for_paraview.xdmf"
+    script_options = f"--input-file {output_fileroot}.xdmf"
+    script_options += f" --output-file {output_file}"
+    script_options += f" --oldpath {build_directory/output_fileroot}.h5"
+    script_options += f" --newpath {output_fileroot}.h5"
+    workflow.extend(env.PythonScript(
+        target = output_file,
+        source = [f"{filter_source_abspath / local_path_script}"] + xdmf_targets,
+        script_options=script_options
+    ))
+
+    # summarize calibration results
+    summary_script = 'summarize_calibration_results_from_csv.py'
+    hist_plot_root = f'kde_elastic_case_{case}'
+    summary_targs = [f'Calibration_summary_{int(domain_number)}_domains_elastic_case_{case}.csv',
+                     f'{hist_plot_root}_lambda_hist.PNG']
+    script_options = f'--parameter-csv {calibration_map_file}'
+    script_options += f' --case {case}'
+    script_options += f' --summary-csv {summary_targs[0]}'
+    script_options += f' --kde-hist-plot {hist_plot_root}'
+    script_options += f' --kde-best {hist_plot_root}_best'
+    script_options += f' --kde-best-parameters best_parameters_{int(domain_number)}_elastic_case_{case}'
+    workflow.extend(env.PythonScript(
+        target = summary_targs,
+        source = [str(calibrate_source_abspath / summary_script), calibration_map_file],
+        script_options = script_options
+        ))
+
+env.Alias(workflow_name, workflow)
+Return("workflow")
