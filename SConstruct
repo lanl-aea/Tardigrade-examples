@@ -71,7 +71,7 @@ AddOption(
 )
 AddOption(
     "--calibrate-plastic-softening",
-    dest="calibrate_Plastic_softening",
+    dest="calibrate_plastic_softening",
     default=False,
     action="store_true",
     help="Boolean speciyfing whether or not to run plastic softening calibration for certain upscaling studies."\
@@ -179,9 +179,9 @@ env = waves.scons_extensions.WAVESEnvironment(
     solve_cpus=GetOption("solve_cpus"),
     print_build_failures=GetOption("print_build_failures"),
     filter=GetOption("filter"),
-    calibrate=GetOption("calibrate_elasticity"),
-    calibrate=GetOption("calibrate_plasticity"),
-    calibrate_softening=GetOption("calibrate_softening"),
+    calibrate_elasticity=GetOption("calibrate_elasticity"),
+    calibrate_plasticity=GetOption("calibrate_plasticity"),
+    calibrate_plastic_softening=GetOption("calibrate_plastic_softening"),
     calibrate_qp=GetOption("calibrate_qp"),
     macro=GetOption("macro"),
     macro_platen=GetOption("macro_platen"),
