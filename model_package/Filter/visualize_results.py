@@ -1095,7 +1095,7 @@ def visualize_results(input_file, average, num_domains,
         plot_rot_diffs(PK2, times, R, Rchi, average, output_name=plot_rotation_diff)
     # plot difference between stretches
     if plot_stretch_diff:
-        plot_stretch_diffs(PK2, times, R, Rchi, average, output_name=plot_stretch_diff)
+        plot_stretch_diffs(PK2, times, U, Uchi, average, output_name=plot_stretch_diff)
     
     # Check #4: Different between body_couple and micro_spin_inertias, plot them too
     if plot_body_couples or plot_spin_inertias or plot_spin_diff:
