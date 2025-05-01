@@ -8,7 +8,8 @@ import yaml
 def write_filter_config(output_file, job_name, dns_file, macro_file,
                         volume, density, displacement, cauchy_stress,
                         velocity=None, acceleration=None, damage=None,
-                        max_parallel=None, sets_file=None, spectral=None):
+                        max_parallel=None, sets_file=None, spectral=None,
+                        update_filter_domains=False):
     '''Write the configuration file for the Micromorphic Filter
 
     :param str output_file: The output filename for filter configuration
@@ -24,6 +25,7 @@ def write_filter_config(output_file, job_name, dns_file, macro_file,
     :param str damage: Optional string identifying damage quantities located in "dns-file"
     :param int max_parallel: Optional parameter defining the number of parallel processes for the Micromorphic Filter
     :param str sets_file: Optional yaml file containing prescribed micro-averaging domains
+    :param bool update_file_domains: Option ot update filter and microaveraging domains for each time step
 
     returns ``output_file``
     '''
@@ -58,6 +60,10 @@ def write_filter_config(output_file, job_name, dns_file, macro_file,
         print('Using the default "nearest qpt" micro averaging domain method')
     else:
         print('Invalid configuration for "sets_file" and "spectral"')
+
+    # Option ot update filter and microaveraging domains for each timestep
+    if bool(update_filter_domains) == True:
+        filter_dict["update_filter_domains"] = True
 
     # assemble main dictionary
     data = {
@@ -117,6 +123,8 @@ def get_parser():
               Micromorphic Filter')
     parser.add_argument('--sets-file', type=str, required=False, default=None,
         help='Optional yaml file containing prescribed micro-averaging domains')
+    parser.add_argument('--update-filter-domains', type=str, required=False, default=None,
+        help='Option to update filter and microaveraging domains for each time step')
 
     # TODO: add non-required arguments for optional quantities
     return parser
@@ -139,4 +147,5 @@ if __name__ == '__main__':
                                  damage=args.damage,
                                  max_parallel=args.max_parallel,
                                  sets_file=args.sets_file,
+                                 update_filter_domains=args.update_filter_domains,
                                  ))
