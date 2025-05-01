@@ -127,6 +127,8 @@ if params['velocity'] == True:
     script_options += " --velocity vel"
 if ('homogenize_damage' in params.keys()) and (params['homogenize_damage'] == True):
     script_options += " --damage damage"
+if ('update_filter_domains' in params.keys()) and (params['update_filter_domains'] == True):
+    script_options += f" --update-filter-domains True"
 script_options += f" --max-parallel {params['filter_parallel']}"
 workflow.extend(env.PythonScript(
     target = [filter_config_file],
