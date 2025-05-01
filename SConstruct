@@ -479,6 +479,8 @@ workflow_configurations = [
     # GEOS I43.01
     "GEOS_I43_01",
     "GEOS_I43_01_annular",
+    "GEOS_I43_01_sim38",
+    "GEOS_I43_elastic",
     # Ratel quasistatic elastic cylinder
     "Ratel_elastic_cylinder",
     "Ratel_elastic_cylinder_multi_domain",
