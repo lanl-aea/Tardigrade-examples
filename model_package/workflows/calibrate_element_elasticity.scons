@@ -207,7 +207,7 @@ else:
     calibration_map_file = f"Calibration_map_elastic_parameters_case_{case}_{domain_number}.csv"
     script_options = f"--output-file {calibration_map_file}"
     script_options += f" --calibrated-elements {' '.join(calibrated_elements)}"
-    script_options += f" --calibrated-files {' '.join(calibrated_plastic_files)}"
+    script_options += f" --calibrated-files {' '.join(calibrated_elastic_files)}"
     script_options += " --map-type full_csv --material-type elastic"
     workflow.extend(env.PythonScript(
         target = [calibration_map_file],
