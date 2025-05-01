@@ -31,3 +31,4 @@ compilers
 neper
 flake8
 pycgns
+vtk
