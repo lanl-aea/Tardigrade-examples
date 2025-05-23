@@ -1,0 +1,127 @@
+#! /usr/bin/env python
+
+"""Workflow for performing a dynamic Abaqus/Standard simulation of an axisymmetric, elastic halfspace subjected a point load
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``DNS_Abaqus_abspath`` - String absolute path to model_package/DNS_Abaqus
+* ``workflow_name`` - The name of the workflow calling this SConscript
+* ``model`` - The name of the model
+* ``job_name`` - The name of the Abaqus simulation
+* ``params`` - Parameter dictionary with the following required keys
+  * ``seed_size`` - The approximate global seed size for meshing
+  * ``domain_width`` - The width of the domain to simulate (m)
+  * ``domain_height`` - The height of the domain to simulate (m)
+  * ``source_depth`` - The depth on the axis of symmetry to apply the point load (m)
+  * ``receiver_radius`` - The radius from the axis of symmetry to measure quantities of interest (m)
+  * ``receiver_depth`` - The depth to measure quantities of interest (m)
+  * ``density`` - The density of the material (kg/m^3)
+  * ``modulus`` - The elastic modulus of the material (Pa)
+  * ``poisson`` - The Poisson ratio of the material
+  * ``duration`` - The duration to simulate (s)
+  * ``increment`` - The fixed time step (s)
+  * ``load`` - The value of the concentrated point load (N)
+"""
+
+import pathlib
+
+import waves
+import numpy
+
+# Inherit the parent construction environment
+Import("env")
+Import("workflow_name")
+Import("model")
+Import("params")
+
+# set project-wide paths with os-agnostic path separators
+DNS_Abaqus_abspath = pathlib.Path(env["DNS_Abaqus_abspath"])
+
+# Simulation variables
+build_directory = pathlib.Path(Dir('.').abspath)
+workflow_name = build_directory.name
+workflow_configuration = [env["project_configuration"], workflow_name]
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+
+# Build DNS
+journal_file = f"DNS_{params['model_name']}"
+build_script = "build_dynamic_axisymmetric_point_source_wave_model.py"
+journal_options = f" --model-name {params['model_name']}"
+journal_options += f" --job-name {params['job_name']}"
+journal_options += f" --seed-size {params['seed_size']}"
+journal_options += f" --domain-width {params['domain_width']}"
+journal_options += f" --domain-height {params['domain_height']}"
+journal_options += f" --source-depth {params['source_depth']}"
+journal_options += f" --receiver-radius {params['receiver_radius']}"
+journal_options += f" --receiver-depth {params['receiver_depth']}"
+journal_options += f" --density {params['density']}"
+journal_options += f" --modulus {params['modulus']}"
+journal_options += f" --poisson {params['poisson']}"
+journal_options += f" --duration {params['duration']}"
+journal_options += f" --increment {params['increment']}"
+journal_options += f" --load {params['load']}"
+workflow.extend(env.AbaqusJournal(
+    target = [f"{params['model_name']}.cae", f"{params['job_name']}.inp"],
+    source = [f"{DNS_Abaqus_abspath / build_script}"],
+    journal_options = journal_options,
+))
+
+# Abaqus solve
+job_name = params['job_name']
+solve_source_list = [f"{job_name}.inp"]
+abaqus_options = '-double both'
+## Solve
+workflow.extend(env.AbaqusSolver(
+    target = [f"{job_name}.sta"],
+    source = solve_source_list,
+    job_name = job_name,
+    abaqus_options = f"{abaqus_options} -cpus $({env['solve_cpus']}$)",
+))
+
+# Extract Abaqus
+## TODO: something is wrong with ODBExtract
+# extract_source_list = [f"{job_name}.odb"]
+# workflow.extend(env.AbaqusExtract(
+#     target=[f"{job_name}.h5"],
+#     source=extract_source_list))
+
+# # Post-processing step #1 - force vs. displacement
+# plot_name = f"{job_name}_U3_timeseries"
+# plot_script = "extract_history.py"
+# post_processing_source = [f"{job_name}_datasets.h5"]
+# script_options = "--input-file " + " ".join(str(path) for path in post_processing_source)
+# script_options += " --output-file ${TARGET.file} --x-units 's' --y-units 'mm'"
+# script_options += " --x-path 'ASSEMBLY/HistoryOutputs/LOAD_HERE/time'"
+# script_options += " --y-path 'ASSEMBLY/HistoryOutputs/LOAD_HERE/U3'"
+# script_options += " --x-label 'Time' --y-label 'Displacement U3'"
+# script_options += f" --csv_file {plot_name}.csv"
+# workflow.extend(env.PythonScript(
+#     target = [f"{plot_name}.png", f"{plot_name}.csv"],
+#     source = [f"{DNS_Abaqus_abspath / plot_script}"] + post_processing_source,
+#     script_options = script_options
+# ))
+
+# # Post-processing step #2 - picture of final frame with Mises Stress
+# frames_file = f"{job_name}_mises"
+# frames_script = "extract_frames.py"
+# journal_options = f"--input-file {job_name}.odb --output-file {frames_file}.png"
+# if 'field_frame' in params.keys():
+#     script_options += f" --frame {params['field_frame']}"
+# else:
+#     script_options += f" --frame {params['num_steps']}"
+# journal_options += " --field S"
+# workflow.extend(env.AbaqusJournal(
+#     target = [f"{frames_file}.png"],
+#     source = [f"{DNS_Abaqus_abspath / frames_script}"] + extract_source_list,
+#     journal_options = journal_options,
+# ))
+
+# # add bounding_csv to params to import into other workflows
+# params['bounding_csv'] = str(build_directory / bounding_csv)
+
+# # add filter_inputs to params to import into other workflows
+# params['filter_inputs'] = filter_inputs
+
+env.Alias(workflow_name, workflow)
+Return("workflow")
