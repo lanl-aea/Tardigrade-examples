@@ -9,6 +9,7 @@ import numpy
 
 from misc_utilities import str2bool
 
+
 def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
                              height, width, chord, app_rad, app_dep, spec_rad, spec_dep, tol,
                              symmetry='eighth', x0=0., y0=0., z0=0., export_platens=True):
@@ -24,15 +25,14 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     :param float depth: The extrusion depth of the Brazilian disk compression platen
     :param float spec_rad: The radius of the Brazilian disk compression specimen
     :param float spec_dep: The extrusion depth of the Brazilian disk compression specimen
-    :param float tol: A tolerance / gap distance to insert between Brazilian disk \
-                      compression specimen and platens
+    :param float tol: A tolerance / gap distance to insert between Brazilian disk compression specimen and platens
     :param str symmetry: Type of symmetry to create, either "eighth" or "quarter"
-    :param float x0: The x-location to move geometry for the center of the Brazil Disk'
+    :param float x0: The x-location to move geometry for the center of the Brazil Disk
     :param float y0: The y-location to move geometry for the center of the Brazil Disk
     :param float z0: The z-location to move geometry for the center of the Brazil Dis
     :param bool export_platens: Flag to export platen meshes of the brazilian disk apparatus
 
-    :returns: Write ``output_file``.cub, ``output_file``_specimen.inp, and optionally ``output_file``_bottom_platen.inp
+    :returns: ``{output_file}.cub``, ``{output_file}_specimen.inp``, and optionally ``{output_file}_bottom_platen.inp``
     '''
 
     perp_dist = app_rad - numpy.sqrt((app_rad**2 - (0.5*chord)**2))
