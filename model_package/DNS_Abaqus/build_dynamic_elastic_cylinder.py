@@ -38,7 +38,7 @@ def main(model_name, diam, height, seed, material_E, material_nu, material_rho, 
     :param bool fix_lateral_dofs: Option to force all x- and y-displacements to be fixed
     :param int finite_rise: Optional extra number of time steps over which to to ramp force
 
-    :returns: write ``model_name``.cae and ``model_name``.inp
+    :returns: write ``{model_name}.cae`` and ``{model_name}.inp``
 
     **Node sets:**
 

@@ -36,7 +36,7 @@ def main(model_name, diam, height, seed, material_E, material_nu, material_rho, 
     :param int num_steps: The fixed number of steps to simulate
     :param str BCs: The type of boundary conditions, either "slip" or "clamp"
 
-    :returns: write ``model_name``.cae and ``model_name``.inp
+    :returns: write ``{model_name}.cae`` and ``{model_name}.inp``
 
     **Node sets:**
 
