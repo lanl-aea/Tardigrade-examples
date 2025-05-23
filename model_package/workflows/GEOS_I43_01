@@ -43,6 +43,7 @@ workflow = []
 
 # specify targets for visualizing Micromorphic Filter output
 viz_targs =  (
+    ('plot-cauchy-couple', 'cauchy_couple.png'),
     ('plot-stress-norms', 'stress_norms.png'),
     ('plot-better-stress-norms', 'better_stress_norms.png'),
     ('plot-best-stress-norms', 'best_stress_norms.png'),
@@ -59,6 +60,9 @@ viz_targs =  (
     ('csv-m', 'm_stress.csv'),
     ('csv-M', 'M_stress.csv'),
     ('csv-stress33-all', 'all_33_stresses.csv'),
+    ('plot-stress-diff', 'stress_diff.png'),
+    ('plot-rotation-diff', 'rotation_diff.png'),
+    ('plot-stretch-diff', 'stretch_diff.png'),
     )
 params['viz_targs'] = viz_targs
 
