@@ -472,6 +472,8 @@ workflow_configurations = [
     # Abaqus dynamic implicit elastic cylinder
     "Abaqus_elastic_cylinder_dynamic_imp",
     "Abaqus_elastic_cylinder_dynamic_imp_multi_domain",
+    # Abaqus axisymmetric wave study
+    "Abaqus_dynamic_axisymmetric_wave_study",
     # GEOS elastic cylinder
     "GEOS_elastic_cylinder",
     "GEOS_elastic_cylinder_multi_domain",
@@ -616,7 +618,7 @@ print(r"""\
 # Add default target list to help message
 # Add aliases to help message so users know what build target options are available
 # This must come *after* all expected Alias definitions and SConscript files.
-waves.scons_extensions.project_help_message()
+env.ProjectHelp()
 
 # Write targets to .scon_autocomplete file
 with open('.scons_autocomplete', 'w') as f:
