@@ -31,7 +31,7 @@
    \part{Analyses}
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Quasi-static Verification
 
    Quasi_static_verification
@@ -41,7 +41,7 @@
    Tardigrade_MOOSE_convergence
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Dynamic Verification
 
    Dynamic_verification
@@ -49,14 +49,14 @@
    Tardigrade_MOOSE_dynamic_convergence
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Heterogeneous Upscaling
 
    Ratel_I41_02_elastic
    Ratel_I43_09_elastoplastic
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Micro-averaging Domain Studies
 
    Neper_cube
