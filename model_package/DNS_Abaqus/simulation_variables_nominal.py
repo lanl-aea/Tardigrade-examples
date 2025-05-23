@@ -118,3 +118,17 @@ neper_cube = {
     'velocity': False,
     'filter_parallel': 8,
 }
+
+axisymmetric_wave_study = {
+    'seed_size': 0.2,
+    'domain_width': 20.,
+    'domain_height': 20.,
+    'receiver_radius': 5.,
+    'receiver_depth': 5.,
+    'density': 1000.,
+    'modulus': 2.5e6,
+    'poisson': 0.25,
+    'duration': 0.5,
+    'increment': 0.0025,
+    'load': -100.,
+}
