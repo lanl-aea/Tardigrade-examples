@@ -61,6 +61,7 @@ journal_options += f" --poisson {params['poisson']}"
 journal_options += f" --duration {params['duration']}"
 journal_options += f" --increment {params['increment']}"
 journal_options += f" --load {params['load']}"
+journal_options += f" --load-direction {params['load_direction']}"
 workflow.extend(env.AbaqusJournal(
     target = [f"{params['model_name']}.cae", f"{params['job_name']}.inp"],
     source = [f"{DNS_Abaqus_abspath / build_script}"],
