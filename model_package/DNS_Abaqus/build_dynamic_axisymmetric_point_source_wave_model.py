@@ -19,10 +19,29 @@ from visualization import *
 from connectorBehavior import *
 
 
-def main(model_name, job_name, seed_size=0.2, domain_width=20., domain_height=20.,
+def get_nodes(part):
+    '''Collect all nodes and nodal coordinates for a given Abaqus part.
+
+    :param object part: the Abaqus model database (mdb) part to operate on.
+
+    :returns: dictionary of nodes and nodal coordinates.
+    '''
+
+    dict = {}
+    nodes = part.nodes[:]
+    for node in nodes:
+        x = node.coordinates[0]
+        y = node.coordinates[1]
+        dict[node.label]=[x,y]
+
+    return(dict)
+
+
+def main(model_name='halfspace_model', job_name='halfpsace_job',
+         seed_size=0.2, domain_width=20., domain_height=20.,
          source_depth=1., receiver_radius=5., receiver_depth=5.,
          density=1000., modulus=2.5e6, poisson=0.25,
-         duration=0.5, increment=0.0025, load=-100.):
+         duration=0.5, increment=0.0025, load=100., load_direction='y'):
     """Create an Abaqus model approximating an axisymmetric, elastic halfspace subjected a point load
 
     :param str model_name: The name of the Abaqus model
@@ -38,7 +57,8 @@ def main(model_name, job_name, seed_size=0.2, domain_width=20., domain_height=20
     :param float poisson: The Poisson ratio of the material
     :param float duration: The duration to simulate (s)
     :param float increment: The fixed time step (s)
-    :param float load: The value of the concentrated point load (N)
+    :param float load: The magnitude of the concentrated point load (N)
+    :param str load_direction: The direction to apply concetrated load, either 'y' for down or 'x' for right
 
     :returns: write ``{model_name}.cae`` and ``{job_name}.inp``
 
@@ -52,6 +72,7 @@ def main(model_name, job_name, seed_size=0.2, domain_width=20., domain_height=20
     """
 
     model = mdb.Model(name=model_name)
+    tol = 1.e-8
 
     # sketch geometry
     model.ConstrainedSketch(name='__profile__', sheetSize=20.0)
@@ -67,58 +88,47 @@ def main(model_name, job_name, seed_size=0.2, domain_width=20., domain_height=20
     part.BaseShell(sketch=model.sketches['__profile__'])
     del model.sketches['__profile__']
 
-    # partitions
-    half_width = domain_width / 2
-    half_height = domain_height / 2
-    model.ConstrainedSketch(
-        gridSpacing=1.41, name='__profile__',
-        sheetSize=56.56, transform=
-        part.MakeSketchTransform(sketchPlane=part.faces[0],
-        sketchPlaneSide=SIDE1, sketchOrientation=RIGHT,
-        origin=(half_width, -1*half_height, 0.0)))
-    part.projectReferencesOntoSketch(filter=COPLANAR_EDGES, sketch=model.sketches['__profile__'])
-    sketch = model.sketches['__profile__']
-    if source_depth > 1.e-3:
-        sketch.Line(
-            point1=(-1*half_width, half_height - source_depth),
-            point2=(half_width, half_height - source_depth))
-    sketch.HorizontalConstraint(addUndoState=False, entity=sketch.geometry[7])
-    sketch.Line(
-        point1=(receiver_radius - half_width, half_height),
-        point2=(receiver_radius - half_width, -1*half_height))
-    sketch.VerticalConstraint(addUndoState=False, entity=sketch.geometry[8])
-    sketch.Line(
-        point1=(-1*half_width, half_height - receiver_depth),
-        point2=(half_width, half_height - receiver_depth))
-    sketch.HorizontalConstraint(addUndoState=False, entity=sketch.geometry[9])
-    part.PartitionFaceBySketch(
-        faces=part.faces.getSequenceFromMask(('[#1 ]', ), ),
-        sketch=model.sketches['__profile__'])
-    del model.sketches['__profile__']
-
-    # sets
-    part.Set(name='source', vertices=part.vertices.getSequenceFromMask(('[#10 ]', ), ))
-    part.Set(name='receiver', vertices=part.vertices.getSequenceFromMask(('[#40 ]', ), ))
-    part.Set(name='reciever_surface', vertices=part.vertices.getSequenceFromMask(('[#8 ]', ), ))
-    part.Set(name='radial_fix', edges=part.edges.getSequenceFromMask(('[#c040 ]', ), ))
-
     # mesh
     part.seedPart(deviationFactor=0.1, minSizeFactor=0.1, size=seed_size)
     part.setMeshControls(
         elemShape=QUAD,
-        regions=part.faces.getSequenceFromMask(
-        ('[#3f ]', ), ), technique=STRUCTURED)
+        regions=part.faces.getByBoundingBox(xMin=0, xMax=domain_width, yMin=-1*domain_height, yMax=0),
+        technique=STRUCTURED)
     part.setElementType(
         elemTypes=(ElemType(elemCode=CAX8, elemLibrary=STANDARD), ElemType(elemCode=CAX6M, elemLibrary=STANDARD)),
-        regions=(part.faces.getSequenceFromMask(('[#3f ]', ), ), ))
+        regions=(part.faces.getByBoundingBox(xMin=0, xMax=domain_width, yMin=-1*domain_height, yMax=0), ))
     part.generateMesh()
+
+    # sets
+    nodes = get_nodes(part)
+    print(nodes)
+    source_node, receiver_node, receiver_surface_node, radial_fix_nodes = [], [], [], []
+    for n in nodes:
+        x, y = nodes[n]
+        # source node
+        if (x < tol) and (abs(y + source_depth) < tol):
+            source_node.append(n)
+        # reciever_node
+        if (abs(x - receiver_radius) < tol) and (abs(y + receiver_depth) < tol):
+            receiver_node.append(n)
+        # receiver surface node
+        if (abs(x - receiver_radius) < tol) and (abs(y) < tol):
+            receiver_surface_node.append(n)
+        # radial_fix_nodes
+        if x < tol:
+            radial_fix_nodes.append(n)
+    part.SetFromNodeLabels(name='source', nodeLabels=tuple(source_node))
+    part.SetFromNodeLabels(name='receiver', nodeLabels=tuple(receiver_node))
+    part.SetFromNodeLabels(name='receiver_surface', nodeLabels=tuple(receiver_surface_node))
+    part.SetFromNodeLabels(name='radial_fix', nodeLabels=tuple(radial_fix_nodes))
 
     # material and section
     model.Material(name='elastic')
     model.materials['elastic'].Density(table=((density, ), ))
     model.materials['elastic'].Elastic(table=((modulus, poisson), ))
     model.HomogeneousSolidSection(material='elastic', name='Section-1', thickness=None)
-    part.Set(faces=part.faces.getSequenceFromMask(('[#3f ]', ), ), name='all')
+    part.Set(faces=part.faces.getByBoundingBox(xMin=0, xMax=domain_width, yMin=-1*domain_height, yMax=0),
+             name='all')
     part.SectionAssignment(
         offset=0.0,
         offsetField='', offsetType=MIDDLE_SURFACE, region=
@@ -147,21 +157,32 @@ def main(model_name, job_name, seed_size=0.2, domain_width=20., domain_height=20
     model.rootAssembly.regenerate()
 
     # Load
+    if load_direction == 'y':
+        cf1_load = 0.
+        cf2_load = -1*load
+    elif load_direction == 'x':
+        cf1_load = load
+        cf2_load = 0.
+    else:
+        print('specify valid load direction')
     model.ConcentratedForce(
-        cf2=load, createStepName='dynamic_step',
+        cf1=cf1_load, cf2=cf2_load,
+        createStepName='dynamic_step',
         distributionType=UNIFORM, field='', localCsys=None,
         name='Load-1',
         region=model.rootAssembly.instances['halfspace-1'].sets['source'])
 
     # History request
     model.HistoryOutputRequest(
-        createStepName='dynamic_step', frequency=1, name='H-Output-2', rebar=EXCLUDE, region=
-        model.rootAssembly.allInstances['halfspace-1'].sets['receiver'],
-        sectionPoints=DEFAULT, variables=('U1', 'U2'))
+        createStepName='dynamic_step', frequency=1, name='H-Output-2',
+        region=model.rootAssembly.allInstances['halfspace-1'].sets['receiver'],
+        sectionPoints=DEFAULT,
+        variables=('U1', 'U2'))
     model.HistoryOutputRequest(
-        createStepName='dynamic_step', frequency=1, name='H-Output-3', rebar=EXCLUDE,
-        region=model.rootAssembly.allInstances['halfspace-1'].sets['reciever_surface'],
-        sectionPoints=DEFAULT, variables=('U1', 'U2'))
+        createStepName='dynamic_step', frequency=1, name='H-Output-3',
+        region=model.rootAssembly.allInstances['halfspace-1'].sets['receiver_surface'],
+        sectionPoints=DEFAULT,
+        variables=('U1', 'U2'))
 
     # Save cae file
     mdb.saveAs(pathName='{}.cae'.format(model_name))
@@ -184,9 +205,9 @@ def get_parser():
 
     # add parser arguments
     parser = argparse.ArgumentParser(description=cli_description, prog=prog)
-    parser.add_argument('--model-name', type=str, required=True,
+    parser.add_argument('--model-name', type=str, required=False, default='halfspace_model',
         help='The name of the model')
-    parser.add_argument('--job-name', type=str, required=True,
+    parser.add_argument('--job-name', type=str, required=False, default='halfspace_job',
         help='The name of the job (input file) to create')
     parser.add_argument('--seed-size', type=float, required=False, default=0.2,
         help='The approximate global seed size for meshing')
@@ -210,9 +231,10 @@ def get_parser():
         help='The duration to simulate (s)')
     parser.add_argument('--increment', type=float, required=False, default=0.0025,
         help='The fixed time step (s)')
-    parser.add_argument('--load', type=float, required=False, default=-100,
+    parser.add_argument('--load', type=float, required=False, default=100,
         help='The value of the concentrated point load (N)')
-
+    parser.add_argument('--load-direction', type=str, required=False, default='y',
+        help='The direction to apply concetrated load, either "y" for down or "x" for right')
     return parser
 
 
@@ -232,4 +254,5 @@ if __name__ == '__main__':
                   duration=args.duration,
                   increment=args.increment,
                   load=args.load,
+                  load_direction=args.load_direction,
                   ))
