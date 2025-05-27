@@ -130,5 +130,5 @@ axisymmetric_wave_study = {
     'poisson': 0.25,
     'duration': 0.5,
     'increment': 0.0025,
-    'load': -100.,
+    'load': 100.,
 }
