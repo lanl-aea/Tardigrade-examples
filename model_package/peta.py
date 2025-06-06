@@ -117,7 +117,14 @@ def peta_copy(source_directory, output_directory):
                    [Ratel_variables.I43_damage_coarse_finetime['DNS_forces']] + \
                    Ratel_variables.I43_damage_CGNS['DNS_files']
 
+    # Transfer the main chunk of results for Ratel
     transfer_Ratel_files(source_files, source_directory, output_directory, username)
+
+    # Transfer Ratel I43.09 MAP results
+    source_files = Ratel_variables.I43_MAP['DNS_files'] + [Ratel_variables.I43_MAP['DNS_forces']] + \
+                   [Ratel_variables.I43_MAP['input_file']]
+    MAP_directory = output_directory / "Ratel_I43_MAP"
+    transfer_Ratel_files(source_files, source_directory, MAP_directory, username)
 
     # GEOS transfer
     source_files_dicts = (('GEOS_elastic_cylinder', 'UniaxialCylinderCompression/', GEOS_variables.elastic_cylinder['DNS_files']),
