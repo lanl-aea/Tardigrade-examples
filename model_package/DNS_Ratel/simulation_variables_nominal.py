@@ -323,3 +323,57 @@ I43_best_DNS['DNS_files'] = [
     'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I43_09_viscohencky_df20_500.cgns',
     ]
 I43_best_DNS['DNS_forces'] = 'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I43_09_viscohencky_df20.csv'
+
+I43_MAP = {
+    # DNS parameters
+    'diam': 5.059347391457650,
+    'height': 4.400976867675780,
+    'center': [2.529673695728830, 2.529673695728830, 2.200488433837890],
+    'material_E': 250.0,
+    'material_nu': 0.25,
+    'cut': True,
+    # Mesh file root to copy if Cubit is not found
+    'mesh_copy_root': 'Ratel_I43_09',
+    # parameters for micromorphic filter
+    'acceleration': False,
+    'velocity': False,
+    'filter_parallel': 8,
+    'homogenize_damage': True,
+    # parameters for elastic calibration
+    'elastic_calibration_case': 8,
+    'plastic_calibration_case': 6,
+    'softening_plastic_calibration_case': 10,
+    'calibration_increment_elastic': [0, 1, 2, 3, 4],
+    'calibration_increment_plastic': [5, 6, 7, 8, 9, 10, 11, 12, 13],
+    #'calibration_increment_softening': [3, 7, 10, 11, 12, 13, 14],
+    'calibration_increment_softening': [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+    # parameters for plastic calibration
+    'cohesion_case': 1,
+    'cohesion_increment': [3, 4, 5],
+    # paramters for Tardigrade-MOOSE
+    'macro_disp': 0.220*0.74011897040049257, #timestep for Monitor_000124.vtu
+    'macro_duration': 1.0,
+    'macro_BC': 'slip_plane',
+}
+I43_MAP['DNS_files'] = [
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0000.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0005.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0010.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0015.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0020.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0025.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0030.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0035.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0040.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0045.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0050.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0055.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0060.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0065.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0070.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0075.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0100.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Monitor_0285.cgns',
+    ]
+I43_MAP['DNS_forces'] = 'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Forces_OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001.csv'
+I43_MAP['input_file'] = 'RatelDNS/IDOX-ESTANE/I43_09/VV_BIN4_SM10_DF20_MI10_MD0.5/OUT-VV_I43-09_BIN4_SM10_DF20_MI10_MD0.5_001/Input_001.yml'
