@@ -32,6 +32,8 @@ dependencies:
   - meshio
   - tqdm
   - compilers
-  - neper
   - yaml
   - pycgns
+  - vtk
+  - moose-dev>=2025.*=mpich
+  - moose-libmesh

@@ -28,7 +28,8 @@ seaborn
 meshio
 tqdm
 compilers
-neper
 flake8
 pycgns
 vtk
+moose-dev>=2025.*=mpich
+moose-libmesh
