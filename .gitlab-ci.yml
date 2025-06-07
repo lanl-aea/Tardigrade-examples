@@ -31,11 +31,11 @@ environment:
   stage: environment
   variables:
     GIT_STRATEGY: clone
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"
-      changes:
-        - "modulefiles/*"
-        - "environment.yml"
+  #rules:
+  #  - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"
+  #    changes:
+  #      - "modulefiles/*"
+  #      - "environment.yml"
   script:
     # Re-build the Conda environment on changes to environment files
     - conda env create --prefix ${environment_path} --file environment.yml ${conda_options}
