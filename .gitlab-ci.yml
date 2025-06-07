@@ -26,7 +26,9 @@ before_script:
           conda env create --prefix ${environment_path} --file environment.yml ${conda_options}
           chmod -R 755 ${environment_path}
       fi
-  - if [[ ${project_environment} != ${environment} ]]; then module unload ${environment}; module load ${project_environment}; fi
+  - module load ${project_environment}
+  - conda info
+  #- if [[ ${project_environment} != ${environment} ]]; then module unload ${environment}; module load ${project_environment}; fi
 
 environment:
   stage: environment
