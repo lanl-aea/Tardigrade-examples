@@ -542,6 +542,8 @@ Neper
 *****
 
 Neper should be installed to the Python environment discussed in :ref:`build`.
+Alternatively, neper may be installed following these instructions:
+https://neper.info/doc/introduction.html#installing-neper.
 One may test if neper has been installed using:
 
    .. code-block:: console
