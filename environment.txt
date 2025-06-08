@@ -31,5 +31,6 @@ compilers
 flake8
 pycgns
 vtk
-moose-dev>=2025.*=mpich
+moose-dev>=2025.05.*=mpich
 moose-libmesh
+neper
