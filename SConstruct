@@ -462,7 +462,7 @@ else:
     print(f"The 'ignore_documentation' option was set to 'True'. Skipping documentation SConscript file(s)")
     docs_aliases = []
 
-# Add simulation targets
+# Workflow Targets
 workflow_configurations = [
     # Abaqus quasistatic elastic cylinder
     "Abaqus_elastic_cylinder",
@@ -492,7 +492,6 @@ workflow_configurations = [
     "Ratel_F83_multi_domain",
     # Ratel I41_02 workflows
     "Ratel_I41_02_elastic_multi_domain",
-    #"Ratel_I41_02_elastic_single_domains",
     # Ratel I43_09 workflow
     "Ratel_I43_09_multi_domain",
     "Ratel_I43_09_damage_multi_domain",
@@ -507,22 +506,10 @@ workflow_configurations = [
     "Abaqus_Brazilian_disk_rigid_platens_study",
     "MOOSE_Brazilian_disk_rigid_platens_study",
     "Tardigrade_Brazilian_disk_rigid_platens_study",
-    #"Abaqus_Brazilian_disk_platens",
-    #"Abaqus_Brazilian_disk_platens_quarter_symmetry",
-    #"Abaqus_Brazilian_disk_platens_eighth_symmetry",
-    #"MOOSE_Brazilian_disk_platens",
-    #"MOOSE_Brazilian_disk_platens_quarter_symmetry",
-    #"MOOSE_Brazilian_disk_platens_eighth_symmetry",
-    #"Tardigrade_Brazilian_disk",
-    #"Tardigrade_Brazilian_disk_platens",
-    #"Tardigrade_Brazilian_disk_platens_eighth_symmetry",
-    #"Tardigrade_Brazilian_disk_platens_elastic",
-    #"Tardigrade_Brazilian_disk_platens_quarter_symmetry_elastic",
-    #"Tardigrade_Brazilian_disk_platens_eighth_symmetry_elastic",
-    #Neper studies
+    # Neper studies
     "neper_cube",
     "neper_cylinder",
-    #Filter convergence studies
+    # Filter convergence studies
     "Filter_convergence_cylinder",
     "Filter_convergence_cube",
 ]
