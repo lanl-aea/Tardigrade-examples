@@ -10,6 +10,7 @@ import pandas
 from scipy.linalg import norm
 from scipy.linalg import polar
 
+sys.path.append('/projects/tea/tardigrade-examples/model_package/')
 import xdmf_reader_tools as XRT
 
 
@@ -577,7 +578,36 @@ def plot_better_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, outpu
     return 0
 
 
-def plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_name, transparency=None):
+def filter_stress_above_threshold(stress_lists, strain_lists, threshold, elem_qp_string):
+    '''Filter out stresses above some threshold for a given element and quadrature point
+
+    :param list stress_lists: List of arrays/lists containing stress histories
+    :param list strain_lists: List of array/lists containing strain histories
+    :param float threshold: Upper limit threshold for filtering stresses
+    :param str elem_qp_string: The element id and quadrature point id for the provided stress and strain lists
+
+    :returns: Stress lists filtered below threshold, strain lists masked by filtered stress lists
+    '''
+
+    stress_norms, strain_norms = [], []
+    stress_names = ['PK2', 'SIGMA', 'M1', 'M2', 'M3']
+    for stress, strain, stress_name in zip(stress_lists, strain_lists, stress_names):
+        mask = numpy.array(stress) < threshold
+        if False in mask:
+            print(f'Oh no!!! {stress_name} stress above threshold for element-qp pair {elem_qp_string}')
+            print(f'\t {stress_name} = {stress}')
+            stress_out = numpy.array(stress)[mask]
+            strain_out = numpy.array(strain)[mask]
+        else:
+            stress_out = stress
+            strain_out = strain
+        stress_norms.append(stress_out)
+        strain_norms.append(strain_out)
+
+    return stress_norms, strain_norms
+
+
+def plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_name, transparency=None, upper_limit=None):
     '''Plot the infinity norms of deviatoric second Piola-Kirchhoff, symmetric micro, and higher order stresses versus relevant deformation measures
 
     :param dict cauchy: The quantities dict storing Cauchy stress
@@ -602,7 +632,6 @@ def plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_
             for t in range(ninc):
                 PK2_norm.append(numpy.linalg.norm(deviatoric(PK2[qp][t,el,:,:]), ord='fro'))
                 SIGMA_norm.append(numpy.linalg.norm(deviatoric(SIGMA[qp][t,el,:,:]), ord='fro'))
-                diff_norm.append(numpy.linalg.norm(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]), ord='fro'))
                 M1_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,0]), ord='fro'))
                 M2_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,1]), ord='fro'))
                 M3_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,2]), ord='fro'))
@@ -612,18 +641,34 @@ def plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_
 
             label = f"qp  #{(qp+1)+(nel*8)}"
 
+            # Filter out bad points if requested
+            if upper_limit is not None:
+                PK2_mask = numpy.array(PK2_norm) < upper_limit
+                SIGMA_mask = numpy.array(SIGMA_norm) < upper_limit
+                M1_mask = numpy.array(M1_norm) < upper_limit
+                M2_mask = numpy.array(M2_norm) < upper_limit
+                M3_mask = numpy.array(M3_norm) < upper_limit
+                stress_norms, strain_norms = filter_stress_above_threshold(
+                    [PK2_norm, SIGMA_norm, M1_norm, M2_norm, M3_norm],
+                    [E_norm, Ecal_norm, Gamma_norm, Gamma_norm, Gamma_norm],
+                    upper_limit, f'el {el} qp {qp}')
+                PK2_norm, SIGMA_norm, M1_norm, M2_norm, M3_norm = stress_norms
+                E_norm, Ecal_norm, Gamma_norm_1, Gamma_norm_2, Gamma_norm_3 = strain_norms
+            else:
+                Gamma_norm_1, Gamma_norm_2, Gamma_norm_3 = Gamma_norm, Gamma_norm, Gamma_norm
+
             if transparency:
                 axes[0].plot(E_norm, PK2_norm, color='r', alpha=transparency)
                 axes[1].plot(Ecal_norm, SIGMA_norm, color='r', alpha=transparency)
-                axes[2].plot(Gamma_norm, M1_norm, '-o', label=f"index K = 1, {label}", color='r', alpha=transparency)
-                axes[2].plot(Gamma_norm, M2_norm, '-^', label=f"index K = 2, {label}", color='r', alpha=transparency)
-                axes[2].plot(Gamma_norm, M3_norm, '-v', label=f"index K = 3, {label}", color='r', alpha=transparency)
+                axes[2].plot(Gamma_norm_1, M1_norm, '-o', label=f"index K = 1, {label}", color='r', alpha=transparency)
+                axes[2].plot(Gamma_norm_2, M2_norm, '-^', label=f"index K = 2, {label}", color='r', alpha=transparency)
+                axes[2].plot(Gamma_norm_3, M3_norm, '-v', label=f"index K = 3, {label}", color='r', alpha=transparency)
             else:
                 axes[0].plot(E_norm, PK2_norm)
                 axes[1].plot(Ecal_norm, SIGMA_norm)
-                axes[2].plot(Gamma_norm, M1_norm, '-o', label=f"index K = 1, {label}")
-                axes[2].plot(Gamma_norm, M2_norm, '-^', label=f"index K = 2, {label}")
-                axes[2].plot(Gamma_norm, M3_norm, '-v', label=f"index K = 3, {label}")
+                axes[2].plot(Gamma_norm_1, M1_norm, '-o', label=f"index K = 1, {label}")
+                axes[2].plot(Gamma_norm_2, M2_norm, '-^', label=f"index K = 2, {label}")
+                axes[2].plot(Gamma_norm_3, M3_norm, '-v', label=f"index K = 3, {label}")
 
     axes[0].set_ylabel(r'$||dev\left(S_{IJ}\right)|| \left( MPa \right)$', fontsize=14)
     axes[0].set_xlabel(r'$||dev\left(E_{IJ}\right)||$', fontsize=14)
@@ -1112,6 +1157,8 @@ def visualize_results(input_file, average, num_domains,
         plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, plot_best_stress_norms)
         transparent_name = f"{plot_best_stress_norms.split('.')[0]}_transparent.{plot_best_stress_norms.split('.')[1]}"
         plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, transparent_name, 0.05)
+        filtered_name = f"{plot_best_stress_norms.split('.')[0]}_filtered.{plot_best_stress_norms.split('.')[1]}"
+        plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, filtered_name, upper_limit=5000.)
     if plot_norm_histories:
         plot_norm_history(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, times, plot_norm_histories)
 
