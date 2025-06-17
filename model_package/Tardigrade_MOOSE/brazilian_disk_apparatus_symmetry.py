@@ -144,6 +144,7 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     else:
         print('Specify a valid type of symmetry!')
 
+
     # Mesh
     if symmetry == 'eighth':
         cubit.cmd(f'volume 10 size {specimen_seed_size}')
@@ -161,6 +162,10 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
         cubit.cmd('mesh volume 1 3')
     else:
         print('Specify a valid type of symmetry!')
+
+    # All Nodes
+    cubit.cmd('nodeset 10 add node all')
+    cubit.cmd('nodeset 10 name "all"')
 
     # Output
     if export_platens == True:

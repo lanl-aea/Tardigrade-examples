@@ -152,6 +152,10 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     cubit.cmd(f'volume 2 5 size {platen_seed_size}')
     cubit.cmd('mesh volume 2 5')
 
+    # All nodes
+    cubit.cmd('nodeset 14 add node all')
+    cubit.cmd('nodeset 14 name "all"')
+
     # Export
     if export_platens == True:
         cubit.cmd(f'export abaqus "{output_file}_bottom_platen.inp" block 1 source_csys 0 target_csys 0 partial dimension 3 overwrite')
