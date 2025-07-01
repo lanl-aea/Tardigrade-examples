@@ -506,6 +506,7 @@ workflow_configurations = [
     "Abaqus_Brazilian_disk_rigid_platens_study",
     "MOOSE_Brazilian_disk_rigid_platens_study",
     "Tardigrade_Brazilian_disk_rigid_platens_study",
+    "Tardigrade_Brazilian_disk_rigid_platens_study_no_phi",
     # Neper studies
     "neper_cube",
     "neper_cylinder",
