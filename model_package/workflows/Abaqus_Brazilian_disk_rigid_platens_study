@@ -191,8 +191,8 @@ script_options += f" --output-file {output_targets[0]}"
 script_options += f" --output-csv {output_targets[1]}"
 script_options += " --disp-field norm_disp"
 script_options += " --force-field norm_force"
-script_options += " --x-label 'Displacement, $\delta / D$ (%)'"
-script_options += " --y-label 'Applied Load, $ P / (BR) $ (MPa)'"
+script_options += r" --x-label 'Displacement, $\delta / D$ (%)'"
+script_options += r" --y-label 'Applied Load, $ P / (BR) $ (MPa)'"
 workflow.extend(env.PythonScript(
     target=output_targets,
     source=[f"{Tardigrade_MOOSE_source_abspath / summary_script}"] + normalized_QoI_csvs,
