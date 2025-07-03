@@ -106,7 +106,7 @@ neper_cylinder = {
 
 neper_cube = {
     'width': 1.0,
-    'number_grains': 50,
+    'number_grains': 10,
     'material_name': 'alum6061',
     'pressure': 10.,
     'displacement': -0.1,
@@ -117,6 +117,7 @@ neper_cube = {
     'acceleration': False,
     'velocity': False,
     'filter_parallel': 8,
+    'plot_micro_domains': True,
 }
 
 axisymmetric_wave_study = {
