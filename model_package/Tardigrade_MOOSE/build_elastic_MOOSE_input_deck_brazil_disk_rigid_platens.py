@@ -21,7 +21,7 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_radius,
     :param str specimen_bottom_surface: The name of the specimen bottom contact surface
     :param str specimen_top_surface: The name of the specimen top contact surface. Required if "geometry" = "full."
     :param str top_symmetry: The name of the top symmetry surface. Required if "geometry" = "quarter" or "eighth."
-    :param str back_symmetry: The name of the back symmetry surface. Required if "geometry" = "quarter" or "eighth."
+    :param str back_symmetry: The name of the back symmetry surface. Required if "geometry" = "quarter" or "eighth" or "half"
     :param str side_set: The name of the side symmetry surface. Required if "geometry" = "quarter" or "eighth."
     :param float xc_bot: The x-position of the center of the circular bottom surface arc
     :param float yc_bot: The y-position of the center of the circular bottom surface arc
@@ -322,7 +322,7 @@ def get_parser():
     parser.add_argument('--top-symmetry', type=str, required=False, default=None,
         help='Specify the name of the top symmetry surface. Required if "geometry" = "quarter" or "eighth."')
     parser.add_argument('--back-symmetry', type=str, required=False, default=None,
-        help='Specify the name of the back symmetry surface. Required if "geometry" = "quarter" or "eighth."')
+        help='Specify the name of the back symmetry surface. Required if "geometry" = "quarter" or "eighth" or "half"')
     parser.add_argument('--side-symmetry', type=str, required=False, default=None,
         help='Specify the name of the side symmetry surface. Required if "geometry" = "quarter" or "eighth."')
     parser.add_argument('--xc-bot', type=float, required=False, default=0.,
