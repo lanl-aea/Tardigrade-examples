@@ -332,9 +332,11 @@ def tardigrade_builder_select():
         return tardigrade_solver
 
 # Neper
+## Only allow neper to use up to 8 threads for a single run
 neper_tesselate = Builder(
     action=["cd ${TARGET.dir.abspath} && \
-             neper -T -n ${num_grains} -o ${output_name} ${arguments} \
+            OMP_NUM_THREADS=8 \
+             ${neper_program} -T -n ${num_grains} -o ${output_name} ${arguments} \
              > ${stdout_file}"])
 
 # # Custom Paraview image generator
@@ -351,7 +353,7 @@ neper_tesselate = Builder(
 project_configuration = pathlib.Path(inspect.getfile(lambda: None))
 project_dir = project_configuration.parent
 project_name = project_dir.name
-version = "0.2.0"
+version = "0.3.0"
 author_list = ["Thomas Allard"]
 author_latex = r" \and ".join(author_list)
 latex_project_name = project_name.replace("_", "-")
@@ -509,6 +511,7 @@ workflow_configurations = [
     "Tardigrade_Brazilian_disk_rigid_platens_study_no_phi",
     # Neper studies
     "neper_cube",
+    "neper_cube_multi_grain",
     "neper_cylinder",
     # Filter convergence studies
     "Filter_convergence_cylinder",
