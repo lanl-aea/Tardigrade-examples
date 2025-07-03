@@ -44,6 +44,7 @@ viz_targs =  (
     ('plot-spin-inertias', 'micro_spin_inertias.png'),
     ('plot-spin-diff', 'spin_diff.png'),
     ('plot-stress-norms', 'stress_norms.png'),
+    ('plot-best-stress-norms', 'best_stress_norms.png'),
     ('plot-rotation-diff', 'rotation_diff.png'),
     ('plot-stretch-diff', 'stretch_diff.png'),
     ('csv-cauchy', 'cauchy.csv'),
@@ -53,19 +54,22 @@ viz_targs =  (
     ('csv-M', 'M_stress.csv'),
     )
 
-# ---------- DNS ---------------------------------------------------------------
-# Run common DNS sconscript
+# ---------- NEPER -------------------------------------------------------------
+# Create grain tesselation
 number_grains = params['number_grains']
 tesselation_file_base = f"{model}_{number_grains}grains"
 tesselation_file = f"{tesselation_file_base}.tess"
 workflow.extend(env.NeperTesselate(
     target = tesselation_file,
     source = [],
+    neper_program = env["neper"],
     num_grains = number_grains,
     output_name = tesselation_file,
     arguments = "-morpho gg",
     stdout_file = f"{tesselation_file}.stdout"))
 
+# ---------- DNS ---------------------------------------------------------------
+# Convert tesselation to mesh
 if env['cubit']:
     mesh_script = "convert_tess.py"
     mesh_file = f"{tesselation_file_base}.inp"
@@ -148,7 +152,7 @@ if env['filter']:
     filter_inputs = [f"{str(build_directory / main_XDMF_name)}.{ext}" for ext in ['xdmf', 'h5']]
     script_options = f"--output-file {str(build_directory / main_XDMF_name)}"
     cauchy_stresses = "DNS_all_33_stresses.csv"
-    XDMF_script = "ODBextract_to_XDMF.py"
+    XDMF_script = "ODBextract_to_XDMF_neper.py"
     script_options += f" --input-file {job_name}_datasets.h5"
     script_options += f" --elem-path {params['block_name']}/FieldOutputs/ALL_ELEMENTS"
     script_options += f" --node-path {params['block_name']}/FieldOutputs/ALL_NODES"
@@ -202,6 +206,21 @@ if env['filter']:
     params['filter_config_basename'] = f"FILTER_config_{model}_grain_domains"
     params['sets_file'] = set_file
     params['model_override'] = f"{model}_grain_domains"
+    # Run common filter sconscript
+    workflow.extend(
+        SConscript("filter.scons",
+                   exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
+                   duplicate=True))
+
+    ## spectral_clustering
+    filter_results = f"FILTER_RESULTS_{model}_grain_spectral"
+    filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
+    params['filter_targs'] = filter_targs
+    params['viz_targs'] = tuple((option, f'spectral_{target}') for option, target in viz_targs)
+    params['filter_config_basename'] = f"FILTER_config_{model}_grain_spectral"
+    params['sets_file'] = None
+    params['model_override'] = f"{model}_grain_spectral"
+    params['spectral'] = True
     # Run common filter sconscript
     workflow.extend(
         SConscript("filter.scons",
