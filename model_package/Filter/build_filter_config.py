@@ -9,7 +9,8 @@ def write_filter_config(output_file, job_name, dns_file, macro_file,
                         volume, density, displacement, cauchy_stress,
                         velocity=None, acceleration=None, damage=None,
                         max_parallel=None, sets_file=None, spectral=None,
-                        update_filter_domains=False):
+                        update_filter_domains=False,
+                        plot_micro_domains=False):
     '''Write the configuration file for the Micromorphic Filter
 
     :param str output_file: The output filename for filter configuration
@@ -25,7 +26,9 @@ def write_filter_config(output_file, job_name, dns_file, macro_file,
     :param str damage: Optional string identifying damage quantities located in "dns-file"
     :param int max_parallel: Optional parameter defining the number of parallel processes for the Micromorphic Filter
     :param str sets_file: Optional yaml file containing prescribed micro-averaging domains
-    :param bool update_file_domains: Option ot update filter and microaveraging domains for each time step
+    :param bool spectral: Option to detect micro-averaging domains using spectral clustering
+    :param bool update_file_domains: Option ot update filter and micro-averaging domains for each time step
+    :param bool plot_micro_domains: Option to request filter to plot micro-averaging domains
 
     returns ``output_file``
     '''
@@ -61,9 +64,13 @@ def write_filter_config(output_file, job_name, dns_file, macro_file,
     else:
         print('Invalid configuration for "sets_file" and "spectral"')
 
-    # Option ot update filter and microaveraging domains for each timestep
+    # Option to update filter and microaveraging domains for each timestep
     if bool(update_filter_domains) == True:
         filter_dict["update_filter_domains"] = True
+
+    # Option to plot micro domains
+    if bool(plot_micro_domains) == True:
+        filter_dict["plot_micro_domains"] = True
 
     # assemble main dictionary
     data = {
@@ -123,8 +130,12 @@ def get_parser():
               Micromorphic Filter')
     parser.add_argument('--sets-file', type=str, required=False, default=None,
         help='Optional yaml file containing prescribed micro-averaging domains')
+    parser.add_argument('--spectral', type=str, required=False, default=None,
+        help='Option to detect micro-averaging domains using spectral clustering')
     parser.add_argument('--update-filter-domains', type=str, required=False, default=None,
         help='Option to update filter and microaveraging domains for each time step')
+    parser.add_argument('--plot-micro-domains', type=str, required=False, default=None,
+        help='Option to request filter to plot micro averaging domains')
 
     # TODO: add non-required arguments for optional quantities
     return parser
@@ -147,5 +158,7 @@ if __name__ == '__main__':
                                  damage=args.damage,
                                  max_parallel=args.max_parallel,
                                  sets_file=args.sets_file,
+                                 spectral=args.spectral,
                                  update_filter_domains=args.update_filter_domains,
+                                 plot_micro_domains=args.plot_micro_domains,
                                  ))
