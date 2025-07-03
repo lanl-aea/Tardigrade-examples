@@ -24,7 +24,7 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
     :param str specimen_bottom_surface: The name of the specimen bottom contact surface
     :param str specimen_top_surface: The name of the specimen top contact surface. Required if "geometry" = "full."
     :param str top_symmetry: The name of the top symmetry surface. Required if "geometry" = "quarter" or "eighth."
-    :param str back_symmetry: The name of the back symmetry surface. Required if "geometry" = "quarter" or "eighth."
+    :param str back_symmetry: The name of the back symmetry surface. Required if "geometry" = "quarter" or "eighth" or "half."
     :param str side_set: The name of the side symmetry surface. Required if "geometry" = "quarter" or "eighth."
     :param float xc_bot: The x-position of the center of the circular bottom surface arc
     :param float yc_bot: The y-position of the center of the circular bottom surface arc
@@ -40,20 +40,26 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
     assert os.path.exists(mesh_file), f"Mesh file not found: {mesh_file}"
 
     if geometry == 'full':
+        solver_type = 'PJFNK'
         active_BCs = 'bottom_y bottom_x top_y top_x'
         react_surface = specimen_top_surface
-        stress_boundary = f'{specimen_bottom_surface} {specimen_top_surface}'
         assert specimen_top_surface != None, "Specimen top surface must be defined if 'geometry' = 'full'!"
     else:
-        react_surface = top_symmetry
-        stress_boundary = f'{specimen_bottom_surface}'
-        assert top_symmetry != None, "Specimen top symmetry must be defined if 'geometry' = 'quarter' or 'eighth'!"
-        assert back_symmetry != None, "Specimen back symmetry must be defined if 'geometry' = 'quarter' or 'eighth'!"
+        solver_type = 'NEWTON'
+        assert back_symmetry != None, "Specimen back symmetry must be defined if 'geometry' = 'quarter' or 'eighth' or 'half'!"
         if geometry == 'quarter':
+            assert top_symmetry != None, "Specimen top symmetry must be defined if 'geometry' = 'quarter' or 'eighth'!"
+            react_surface = top_symmetry
             active_BCs = 'bottom_y bottom_x top_sym back_sym'
         elif geometry == 'eighth':
+            assert top_symmetry != None, "Specimen top symmetry must be defined if 'geometry' = 'quarter' or 'eighth'!"
+            react_surface = top_symmetry
             active_BCs = 'bottom_y bottom_x top_sym back_sym side_sym'
             assert side_symmetry != None, "Specimen side symmetry must be defined if 'geometry' = 'eighth'!"
+        elif geometry == 'half':
+            active_BCs = 'bottom_y bottom_x back_sym top_y top_x'
+            react_surface = specimen_top_surface
+            assert specimen_top_surface != None, "Specimen top surface must be defined if 'geometry' = 'full'!"
         else:
             print('Specify a valid geometry type!')
     if phi_BC is not None:
@@ -624,7 +630,7 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
         f.write('    angle_max = 6.28318530718\n')
         f.write('    invert_displacement = true\n')
         f.write('  [../]\n')
-        if geometry == 'full':
+        if (geometry == 'full') or (geometry == 'half'):
             f.write('  [./top_y]\n')
             f.write('    type = CylindricalSurfaceDirichletBC\n')
             f.write('    variable = disp_y\n')
@@ -633,10 +639,12 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
             f.write(f'    radius = {platen_radius}\n')
             f.write(f'    velocity = {disp}\n')
             f.write('    axis = "0. 0. 1."\n')
-            f.write('    normal = "0. 1. 0."\n')
+            f.write('    normal = "0. -1. 0."\n')
             f.write('    use_sector = true\n')
-            f.write('    angle_min = 3.14159265359\n')
-            f.write('    angle_max = 6.28318530718\n')
+            #f.write('    angle_min = 3.14159265359\n')
+            #f.write('    angle_max = 6.28318530718\n')
+            f.write('    angle_min = 0.\n')
+            f.write('    angle_max = 3.14159265359\n')
             f.write('    invert_displacement = true\n')
             f.write('  [../]\n')
             f.write('  [./top_x]\n')
@@ -649,11 +657,13 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
             f.write('    axis = "0. 0. 1."\n')
             f.write('    normal = "0. -1. 0."\n')
             f.write('    use_sector = true\n')
-            f.write('    angle_min = 3.14159265359\n')
-            f.write('    angle_max = 6.28318530718\n')
+            #f.write('    angle_min = 3.14159265359\n')
+            #f.write('    angle_max = 6.28318530718\n')
+            f.write('    angle_min = 0.\n')
+            f.write('    angle_max = 3.14159265359\n')
             f.write('    invert_displacement = true\n')
             f.write('  [../]\n')
-        else:
+        if geometry != 'full':
             f.write('  [./back_sym]\n')
             f.write('    type = DirichletBC\n')
             f.write('    variable = disp_z\n')
@@ -661,21 +671,22 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
             f.write('    preset = true\n')
             f.write('    value = 0\n')
             f.write('  [../]\n')
-            f.write('  [./top_sym]\n')
-            f.write('    type = DirichletBC\n')
-            f.write('    variable = disp_y\n')
-            f.write(f'    boundary = "{top_symmetry}"\n')
-            f.write('    preset = true\n')
-            f.write('    value = 0\n')
-            f.write('  [../]\n')
-            if geometry == 'eighth':
-                f.write('  [./side_sym]\n')
+            if geometry != 'half':
+                f.write('  [./top_sym]\n')
                 f.write('    type = DirichletBC\n')
-                f.write('    variable = disp_x\n')
-                f.write(f'    boundary = "{side_symmetry}"\n')
+                f.write('    variable = disp_y\n')
+                f.write(f'    boundary = "{top_symmetry}"\n')
                 f.write('    preset = true\n')
                 f.write('    value = 0\n')
                 f.write('  [../]\n')
+                if geometry == 'eighth':
+                    f.write('  [./side_sym]\n')
+                    f.write('    type = DirichletBC\n')
+                    f.write('    variable = disp_x\n')
+                    f.write(f'    boundary = "{side_symmetry}"\n')
+                    f.write('    preset = true\n')
+                    f.write('    value = 0\n')
+                    f.write('  [../]\n')
         # Option to force Phis to be zero
         if phi_BC is not None:
             f.write('  [fix_phi_xx]\n')
@@ -915,19 +926,19 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
         f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
-        dt = duration / 100
+        dt = duration / 20
         f.write('[Executioner]\n')
         f.write('  type = Transient\n')
-        f.write('  solve_type = PJFNK\n')
+        f.write(f'  solve_type = {solver_type}\n')
         f.write('  petsc_options_iname = "-pc_type -pc_factor_mat_solver_type"\n')
         f.write('  petsc_options_value = "lu    superlu_dist"\n')
         f.write('  line_search = "none"\n')
         f.write('  automatic_scaling = true\n')
-        f.write('  nl_rel_tol = 1e-8\n')
-        f.write('  nl_abs_tol = 1e-8\n')
-        f.write('  l_tol = 1e-3\n')
-        f.write('  l_max_its = 60\n')
-        f.write('  nl_max_its = 50\n')
+        f.write('  nl_rel_tol = 1e-7\n')
+        f.write('  nl_abs_tol = 1e-7\n')
+        #f.write('  l_tol = 1e-3\n')
+        f.write('  l_max_its = 100\n')
+        f.write('  nl_max_its = 10\n')
         f.write('  start_time = 0.0\n')
         f.write(f'  end_time = {duration}\n')
         f.write('  dtmin = 1e-6\n')
@@ -935,7 +946,8 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
         f.write('\n')
         f.write('  [TimeStepper]\n')
         f.write('    type = IterationAdaptiveDT\n')
-        f.write('    growth_factor=1.2\n')
+        f.write('    growth_factor=2.0\n')
+        f.write('    cutback_factor=0.5\n')
         f.write(f'    dt = {dt}\n')
         f.write('  []\n')
         f.write('[]\n')
@@ -978,7 +990,7 @@ def get_parser():
     parser.add_argument('--top-symmetry', type=str, required=False, default=None,
         help='Specify the name of the top symmetry surface. Required if "geometry" = "quarter" or "eighth."')
     parser.add_argument('--back-symmetry', type=str, required=False, default=None,
-        help='Specify the name of the back symmetry surface. Required if "geometry" = "quarter" or "eighth."')
+        help='Specify the name of the back symmetry surface. Required if "geometry" = "quarter" or "eighth" or "half"')
     parser.add_argument('--side-symmetry', type=str, required=False, default=None,
         help='Specify the name of the side symmetry surface. Required if "geometry" = "quarter" or "eighth."')
     parser.add_argument('--xc-bot', type=float, required=False, default=0.,
