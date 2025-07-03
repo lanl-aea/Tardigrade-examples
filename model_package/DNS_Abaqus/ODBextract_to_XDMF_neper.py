@@ -446,18 +446,20 @@ def new_XDMF_writer(results, output_file, times, ref_density, sets=None):
         print(f"shape of density = {np.shape(unique_densities)}")
         xdmf.addData(grid, "density", unique_densities, "Node", dtype='d')
 
-            # Sets
+        # Sets
         if (step_name == step_names[0]) and sets:
             print("Adding element sets to XDMF file!")
-            for set in sets.keys():
+            nodeset_mask = np.zeros((ndata, 1), dtype=int)
+            for i, set in enumerate(sets.keys()):
                 #xdmf.addDomain(grid, set, np.array(sets[set]))
-                set_ids = np.array([int(i) for i in sets[set]]).reshape((-1,1))
-                print(f"shape of set{set} = {np.shape(set_ids)}")
-                xdmf.addData(grid, set, set_ids, "Node", dtype='i')
-    # if sets:
-        # print("Adding element sets to XDMF file!")
-        # for set in sets.keys():
-            # xdmf.addDomain(set, np.array(sets[set]))
+                set_ids = np.array([int(i)-1 for i in sets[set]])
+                print(f"shape of set{set} = {np.shape(set_ids.reshape((-1,1)))}")
+                # Write the field of points to a Point Array for the Filter to interpret
+                xdmf.addData(grid, set, set_ids.reshape((-1,1)), "Node", dtype='i')
+                # Write the nodeset for visualization in Paraview
+                nodeset_mask[set_ids] = i + 1
+                print(f"shape of  nodeset {set} = {np.shape(nodeset_mask)}")
+            xdmf.addData(grid, f"grains", nodeset_mask, "Node", dtype='i')
 
     xdmf.write()
     print("XDMF file written!")
