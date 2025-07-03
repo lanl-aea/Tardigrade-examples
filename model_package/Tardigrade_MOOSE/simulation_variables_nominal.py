@@ -43,6 +43,7 @@ Brazilian_disk = {
     'app_dep': 6.0,
     'spec_rad': 9.55,
     'spec_dep': 5.1,
+    'rad_diff': 2.95, #I'm not sure why app_rad - spec_rad is giving weird floating point values like 2.9499999993
     'tol': 0.0,
     'seed_size': 0.5,
     'platen_seed_size': 1.0,
