@@ -40,7 +40,7 @@ def Brazil_disk_normalized_force_vs_displacements(input_file, plot_file, csv_fil
     out_df = pandas.DataFrame({'norm_disp': disps,
                                'norm_force': forces})
     out_df.to_csv(csv_file, header=True, sep=',', index=False)
-    print('we did it')
+
     return 0
 
 

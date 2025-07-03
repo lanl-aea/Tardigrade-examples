@@ -26,7 +26,7 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     :param float spec_rad: The radius of the Brazilian disk compression specimen
     :param float spec_dep: The extrusion depth of the Brazilian disk compression specimen
     :param float tol: A tolerance / gap distance to insert between Brazilian disk compression specimen and platens
-    :param str symmetry: Type of symmetry to create, either "eighth" or "quarter"
+    :param str symmetry: Type of symmetry to create, either "eighth" or "quarter" or "half"
     :param float x0: The x-location to move geometry for the center of the Brazil Disk
     :param float y0: The y-location to move geometry for the center of the Brazil Disk
     :param float z0: The z-location to move geometry for the center of the Brazil Dis
@@ -73,6 +73,9 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
         cubit.cmd('delete volume 1 2 4 5 6 7 8 9 11 12')
     elif symmetry == 'quarter':
         cubit.cmd('delete volume 2 4 5 6 7 8 11 12')
+    elif symmetry == 'half':
+        cubit.cmd('delete volume 5 6 7 8 11 12')
+        print(':)')
     else:
         print('Specify a valid type of symmetry!')
 
@@ -99,7 +102,7 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
         cubit.cmd('sideset 5 add surface 56')
         cubit.cmd('sideset 5 name "platen_contact"')
         cubit.cmd('sideset 6 add surface 83')
-        cubit.cmd('sideset 6 name "specimen_contact"')
+        cubit.cmd('sideset 6 name "specimen_bottom"')
         cubit.cmd('nodeset 1 add surface 53')
         cubit.cmd('nodeset 1 name "bottom"')
         cubit.cmd('nodeset 2 add surface 82')
@@ -111,7 +114,7 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
         cubit.cmd('nodeset 5 add surface 56')
         cubit.cmd('nodeset 5 name "platen_contact"')
         cubit.cmd('nodeset 6 add surface 83')
-        cubit.cmd('nodeset 6 name "specimen_contact"')
+        cubit.cmd('nodeset 6 name "specimen_bottom"')
     elif symmetry == 'quarter':
         cubit.cmd('block 1 add volume 1 3')
         cubit.cmd('block 1 name "bottom_platen"')
@@ -126,7 +129,7 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
         cubit.cmd('sideset 5 add surface 33 56')
         cubit.cmd('sideset 5 name "platen_contact"')
         cubit.cmd('sideset 6 add surface 46 83')
-        cubit.cmd('sideset 6 name "specimen_contact"')
+        cubit.cmd('sideset 6 name "specimen_bottom"')
         cubit.cmd('sideset 7 add surface 52')
         cubit.cmd('sideset 7 name "platen_side"')
         cubit.cmd('nodeset 1 add surface 36 53')
@@ -138,9 +141,38 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
         cubit.cmd('nodeset 5 add surface 33 56')
         cubit.cmd('nodeset 5 name "platen_contact"')
         cubit.cmd('nodeset 6 add surface 46 83')
-        cubit.cmd('nodeset 6 name "specimen_contact"')
+        cubit.cmd('nodeset 6 name "specimen_bottom"')
         cubit.cmd('nodeset 7 add surface 52')
         cubit.cmd('nodeset 7 name "platen_side"')
+    elif symmetry == 'half':
+        cubit.cmd('block 1 add volume 1 3')
+        cubit.cmd('block 1 name "bottom_platen"')
+        cubit.cmd('block 2 add volume 2 4 9 10')
+        cubit.cmd('block 2 name "specimen"')
+        cubit.cmd('sideset 1 add surface 36 53')
+        cubit.cmd('sideset 1 name "bottom"')
+        cubit.cmd('sideset 3 add surface 31 51 71 75 80 84')
+        cubit.cmd('sideset 3 name "back_sym"')
+        cubit.cmd('sideset 5 add surface 33 56')
+        cubit.cmd('sideset 5 name "platen_contact"')
+        cubit.cmd('sideset 6 add surface 46 83')
+        cubit.cmd('sideset 6 name "specimen_bottom"')
+        cubit.cmd('sideset 7 add surface 52')
+        cubit.cmd('sideset 7 name "platen_side"')
+        cubit.cmd('sideset 8 add surface 44 81')
+        cubit.cmd('sideset 8 name "specimen_top"')
+        cubit.cmd('nodeset 1 add surface 36 53')
+        cubit.cmd('nodeset 1 name "bottom"')
+        cubit.cmd('nodeset 3 add surface 31 51 71 75 80 84')
+        cubit.cmd('nodeset 3 name "back_sym"')
+        cubit.cmd('nodeset 5 add surface 33 56')
+        cubit.cmd('nodeset 5 name "platen_contact"')
+        cubit.cmd('nodeset 6 add surface 46 83')
+        cubit.cmd('nodeset 6 name "specimen_bottom"')
+        cubit.cmd('nodeset 7 add surface 52')
+        cubit.cmd('nodeset 7 name "platen_side"')
+        cubit.cmd('nodeset 8 add surface 44 81')
+        cubit.cmd('nodeset 8 name "specimen_top"')
     else:
         print('Specify a valid type of symmetry!')
 
@@ -160,6 +192,15 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
         cubit.cmd('merge volume 1 3')
         cubit.cmd(f'volume 1 3 size {platen_seed_size}')
         cubit.cmd('mesh volume 1 3')
+    elif symmetry == 'half':
+        cubit.cmd('imprint volume 2 4 9 10')
+        cubit.cmd('merge volume 2 4 9 10')
+        cubit.cmd(f'volume 2 4 9 10 size {specimen_seed_size}')
+        cubit.cmd('mesh volume 2 4 9 10')
+        cubit.cmd('imprint volume 1 3')
+        cubit.cmd('merge volume 1 3')
+        cubit.cmd(f'volume 1 3 size {platen_seed_size}')
+        cubit.cmd('mesh volume 1 3')
     else:
         print('Specify a valid type of symmetry!')
 
@@ -175,7 +216,7 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
         cubit.cmd('delete nodeset 1 5 7')
         cubit.cmd('delete sideset 1 5 7')
         cubit.cmd('delete volume 3')
-        if symmetry == 'quarter':
+        if (symmetry == 'quarter') or (symmetry == 'half'):
             cubit.cmd('delete volume 1')
     cubit.cmd(f'save as "{output_file}.cub" overwrite')
     cubit.cmd(f'export mesh "{output_file}.e"  overwrite')
@@ -216,7 +257,7 @@ def get_parser():
         help='A tolerance / gap distance to insert between Brazilian disk \
               compression specimen and platens')
     parser.add_argument('--symmetry', type=str, required=False, default='eighth',
-        help='Type of symmetry to create, either "eighth" or "quarter"')
+        help='Type of symmetry to create, either "eighth" or "quarter" or "half"')
     parser.add_argument('--x0', type=float, required=False, default=0.,
         help='The x-location to move geometry for the center of the Brazil Disk')
     parser.add_argument('--y0', type=float, required=False, default=0.,
