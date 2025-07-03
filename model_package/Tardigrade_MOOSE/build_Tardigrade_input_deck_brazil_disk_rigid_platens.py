@@ -30,7 +30,7 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
     :param float yc_bot: The y-position of the center of the circular bottom surface arc
     :param float xc_top: The x-position of the center of the circular top surface arc
     :param float yc_top: The y-position of the center of the circular top surface arc
-    :param str geometry: The geometry/symmetry type: "full," "quarter," or "eighth"
+    :param str geometry: The geometry/symmetry type: "full," "half," "quarter," or "eighth"
     :param str material_type: The material type, either "elastic" or "plastic"
     :param str phi_BC: Optional string specifying nodeset to force micro deformation components to be zero
 
@@ -641,8 +641,6 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
             f.write('    axis = "0. 0. 1."\n')
             f.write('    normal = "0. -1. 0."\n')
             f.write('    use_sector = true\n')
-            #f.write('    angle_min = 3.14159265359\n')
-            #f.write('    angle_max = 6.28318530718\n')
             f.write('    angle_min = 0.\n')
             f.write('    angle_max = 3.14159265359\n')
             f.write('    invert_displacement = true\n')
@@ -657,8 +655,6 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
             f.write('    axis = "0. 0. 1."\n')
             f.write('    normal = "0. -1. 0."\n')
             f.write('    use_sector = true\n')
-            #f.write('    angle_min = 3.14159265359\n')
-            #f.write('    angle_max = 6.28318530718\n')
             f.write('    angle_min = 0.\n')
             f.write('    angle_max = 3.14159265359\n')
             f.write('    invert_displacement = true\n')
@@ -1002,7 +998,7 @@ def get_parser():
     parser.add_argument('--yc-top', type=float, required=False, default=0.,
         help='Specify the y-position of the center of the circular top surface arc')
     parser.add_argument('--geometry', type=str, required=False, default='full',
-        help='Specify the geometry/symmetry type: "full," "quarter," or "eighth"')
+        help='Specify the geometry/symmetry type: "full," "half," "quarter," or "eighth"')
     parser.add_argument('--material-type', type=str, required=False, default='elastic',
         help='Specify the material type: "elastic" or "plastic"')
     parser.add_argument('--phi-BC', type=str, required=False, default=None,
