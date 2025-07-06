@@ -119,7 +119,8 @@ def interpolate_to_center(node_array, mesh):
     return(results)
 
 
-def parse_input(input_file, elem_path, node_path, mesh_path, collocation_option, element_type, velocities=False, accelerations=False, specific_frames=None):
+def parse_input(input_file, elem_path, node_path, mesh_path, collocation_option, element_type,
+                velocities=False, accelerations=False, specific_frames=None):
     '''Parse the HDF5 file output by ODBextract (WAVES tool)
 
     :param str input_file: HDF5 file of Abaqus results extracted using the
@@ -467,7 +468,9 @@ def new_XDMF_writer(results, output_file, times, ref_density, sets=None):
     return 0
 
 
-def ODBextract_to_XDMF(input_file, output_file, elem_path, node_path, mesh_path, collocation_option, ref_density, element_type, velocities=False, accelerations=False, specific_frames=None, dump_all_33_stresses=None, init_ref=None, sets_file=None):
+def ODBextract_to_XDMF(input_file, output_file, elem_path, node_path, mesh_path, collocation_option, ref_density, element_type,
+                       velocities=False, accelerations=False, specific_frames=None, dump_all_33_stresses=None, init_ref=None,
+                       sets_file=None, num_steps=None):
     '''Convert Abaqus DNS results to XDMF format
 
     :param str input_file: HDF5 file of Abaqus results extracted using the
@@ -486,7 +489,7 @@ def ODBextract_to_XDMF(input_file, output_file, elem_path, node_path, mesh_path,
     :param str dump_all_33_stresses: Optional filename to dump all 33 stresses from DNS
     '''
 
-    # print input argmuments and values
+    # print input arguments and values
     print(f'input_file = {input_file}')
     print(f'output_file = {output_file}')
     print(f'collocation_option = {collocation_option}')
@@ -509,6 +512,24 @@ def ODBextract_to_XDMF(input_file, output_file, elem_path, node_path, mesh_path,
 
     # output contents to XDMF file pair
     times = [results[f]['time'] for f in results.keys()]
+    if num_steps is not None:
+        time_0 = times[0]
+        time_last = times[-1]
+        total_num_times = len(times)
+        if total_num_times <= num_steps:
+            print(f'Total number of times in simulation is {total_num_times} and less than the\
+                    number requested of num_steps={num_steps}. Using all available time steps.')
+            times = times
+        else:
+            print(f'Adjusting times based on num_steps={num_steps}')
+            if num_steps > 1:
+                times_to_insert = []
+                for i in range(1, num_steps):
+                    new_time = times[int(np.floor(i*(total_num_times/num_steps)))]
+                    times_to_insert.append(float(new_time))
+                times = [time_0] + times_to_insert + [time_last]
+            else:
+                times = [time_0, time_last]
     print(f"times = {times}")
     print(results[0].keys())
     new_XDMF_writer(results, output_file, times, ref_density, sets)
@@ -558,6 +579,10 @@ def get_parser():
         help='A flag (any string) to specify if the reference configuration will be initialized manually')
     parser.add_argument('--sets-file', type=str, required=False, default=None,
         help='A yaml file containing element set information')
+    parser.add_argument('--num-steps', type=int, required=False, default=None,
+        help='Option to specify how many total timesteps should be written to the XDMF file excluding\
+              the reference state. For 1, the final state is used. For num_steps > 1, the final state\
+              is written and nearest evenly steps are written.')
 
     return parser
 
@@ -581,4 +606,5 @@ if __name__ == '__main__':
                 element_type=args.element_type,
                 init_ref=args.init_ref,
                 sets_file=args.sets_file,
+                num_steps=args.num_steps,
                 ))
