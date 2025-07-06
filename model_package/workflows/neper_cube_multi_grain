@@ -183,8 +183,8 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     if env['filter']:
         # Extract to XDMF filter input
         main_XDMF_name = f"FILTER_INPUT_{model_name}"
-        filter_inputs = [f"{str(build_directory / main_XDMF_name)}.{ext}" for ext in ['xdmf', 'h5']]
-        script_options = f"--output-file {str(build_directory / main_XDMF_name)}"
+        filter_inputs = [f"{str(build_directory / set_name / main_XDMF_name)}.{ext}" for ext in ['xdmf', 'h5']]
+        script_options = f"--output-file {str(build_directory / set_name / main_XDMF_name)}"
         cauchy_stresses = "DNS_all_33_stresses.csv"
         XDMF_script = "ODBextract_to_XDMF_neper.py"
         script_options += f" --input-file {job_name}_datasets.h5"
@@ -197,9 +197,10 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
         script_options += f" --element-type C3D4"
         script_options += f" --init-ref yes"
         script_options += f" --sets-file {set_file}"
+        script_options += f" --num-steps 4"
         workflow.extend(env.PythonScript(
-            target = [set_name / file for file in filter_inputs] + [set_name / cauchy_stresses],
-            source = [f"{DNS_Abaqus_abspath / XDMF_script}", f"{job_name}.h5", set_file],
+            target = [filter_inputs] + [set_name / cauchy_stresses],
+            source = [f"{DNS_Abaqus_abspath / XDMF_script}", set_name / f"{job_name}.h5", set_name / set_file],
             script_options = script_options
         ))
         params['filter_inputs'] = filter_inputs
@@ -225,11 +226,13 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
         params['filter_config_basename'] = f"FILTER_config_{model_name}_default"
         print(params['filter_config_basename'])
         params['viz_targs'] = tuple((option, f'default_{target}') for option, target in viz_targs)
+        params['sets_file'] = None
+        params['spectral'] = None
         params['model_override'] = f"{model_name}_default"
         # Run common filter sconscript
         workflow.extend(
             SConscript("filter.scons",
-                    exports=["env", "parameters", "workflow_name", "model_name", "params", "filter_inputs"],
+                    exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
                     duplicate=False, variant_dir=build_directory / set_name))
 
         ## micro-averaging domains by grains
@@ -239,27 +242,28 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
         params['viz_targs'] = tuple((option, f'sets_{target}') for option, target in viz_targs)
         params['filter_config_basename'] = f"FILTER_config_{model_name}_grain_domains"
         params['sets_file'] = set_file
+        params['spectral'] = None
         params['model_override'] = f"{model_name}_grain_domains"
         # Run common filter sconscript
         workflow.extend(
             SConscript("filter.scons",
-                    exports=["env", "parameters", "workflow_name", "model_name", "params", "filter_inputs"],
+                    exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
                     duplicate=True, variant_dir=build_directory / set_name))
 
-        # ## spectral_clustering
-        # filter_results = f"FILTER_RESULTS_{model_name}_grain_spectral"
-        # filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
-        # params['filter_targs'] = filter_targs
-        # params['viz_targs'] = tuple((option, f'spectral_{target}') for option, target in viz_targs)
-        # params['filter_config_basename'] = f"FILTER_config_{model_name}_grain_spectral"
-        # params['sets_file'] = None
-        # params['model_override'] = f"{model_name}_grain_spectral"
-        # params['spectral'] = True
-        # # Run common filter sconscript
-        # workflow.extend(
-        #     SConscript("filter.scons",
-        #             exports=["env", "parameters", "workflow_name", "model_name", "params", "filter_inputs"],
-        #             duplicate=True, variant_dir=build_directory / set_name))
+        ## spectral_clustering
+        filter_results = f"FILTER_RESULTS_{model_name}_grain_spectral"
+        filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
+        params['filter_targs'] = filter_targs
+        params['viz_targs'] = tuple((option, f'spectral_{target}') for option, target in viz_targs)
+        params['filter_config_basename'] = f"FILTER_config_{model_name}_grain_spectral"
+        params['sets_file'] = None
+        params['spectral'] = True
+        params['model_override'] = f"{model_name}_grain_spectral"
+        # Run common filter sconscript
+        workflow.extend(
+            SConscript("filter.scons",
+                    exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
+                    duplicate=True, variant_dir=build_directory / set_name))
 
 # Collector alias based on parent directory name
 env.Alias(workflow_name, workflow)
