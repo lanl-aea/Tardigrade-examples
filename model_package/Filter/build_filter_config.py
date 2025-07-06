@@ -5,6 +5,23 @@ import sys
 import yaml
 
 
+def get_set_yaml_depth(data, depth=0):
+    '''Determine the levels of a yaml file containing set information for prescribed micro-averaging domains
+
+    :params dict/list data: Data unpacked from a yaml file containing prescribed micro-averaging set information
+    :param int depth: default depth of yaml file
+
+    :returns: Integer depth value
+    '''
+
+    if isinstance(data, dict):
+        return max((get_yaml_depth(v, depth + 1) for v in data.values()), default=depth)
+    elif isinstance(data, list):
+        return max((get_yaml_depth(item, depth + 1) for item in data), default=depth)
+    else:
+        return depth
+
+
 def write_filter_config(output_file, job_name, dns_file, macro_file,
                         volume, density, displacement, cauchy_stress,
                         velocity=None, acceleration=None, damage=None,
@@ -56,7 +73,13 @@ def write_filter_config(output_file, job_name, dns_file, macro_file,
         stream = open(sets_file, 'r')
         sets = yaml.load(stream, Loader=yaml.FullLoader)
         stream.close()
-        quantity_dict["prescribed_micro_averaging_domains"] = list(sets.keys())
+        # Figure out yaml depth. If depth < 3, sets are defined only for a single filter domains
+        depth = get_yaml_depth(sets)
+        if depth < 3:
+            sets_out = {0: list(sets.keys())}
+        else:
+            sets_out = {key: list(sets[key]) for key in sets.keys()}
+        quantity_dict["prescribed_micro_averaging_domains"] = sets_out
     elif (sets_file is None) and (spectral is not None):
         filter_dict["micro_averaging_domains"] = 'spectral'
     elif (sets_file is None) and (spectral is None):
