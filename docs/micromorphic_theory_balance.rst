@@ -269,7 +269,7 @@ momentum balance conditions. Using the chain rule we find
 .. math::
 
    \phi^{\left(\alpha\right)} \sigma_{ij,i}^{\left(\alpha\right)} = \left(\phi^{\left(\alpha\right)}
-      \sigma_{ij}^{\left(\alpha\right)}\right)_{,i} - phi_{,i}^{\left(\alpha\right)} \sigma_{ij}^{\left(\alpha\right)}
+      \sigma_{ij}^{\left(\alpha\right)}\right)_{,i} - \phi_{,i}^{\left(\alpha\right)} \sigma_{ij}^{\left(\alpha\right)}
 
 Upon substitution into the integral equations we find
 
@@ -289,7 +289,7 @@ Upon substitution into the integral equations we find
 Balance of Linear Momentum
 ==========================
 
-We obtain the macro-balance of linear momentum by letting $\phi^{\left(\alpha\right)} = 1$ which yields
+We obtain the macro-balance of linear momentum by letting :math:`\phi^{\left(\alpha\right)} = 1` which yields
 
 .. math::
 
@@ -314,7 +314,7 @@ We now make the following definitions
 
    \rho a_{j} dv \stackrel{\text{def}}{=} \int_{dv} \rho^{\left(\alpha\right)} a_{j}^{\left(\alpha\right)} \,{dv^{\left(\alpha\right)} }
 
-which are the definitions for the macro-scale Cauchy stress :math:`\mathbf{\sigma}`,
+which are the definitions for the macro-scale Cauchy stress :math:`\boldsymbol{\sigma}`,
 the macro-scale body force :math:`\mathbf{f}`, and the macro-scale acceleration :math:`\mathbf{a}`.
 This means we can write
 
@@ -361,11 +361,11 @@ We note that
 
    \ddot{\xi_j} = \frac{D}{Dt} \dot{\xi_j} &= \frac{D}{Dt} \left(v_{jk} \xi_k\right)
 
-   &= \dot{v_{jk}} \xi_k + v_{jk} \dot{\xi_k}
+   &= \dot{v}_{jk} \xi_k + v_{jk} \dot{\xi}_k
 
-   &= \dot{v_{jk}} \xi_k + v_{jk} v_{kn} \xi_n
+   &= \dot{v}_{jk} \xi_k + v_{jk} v_{kn} \xi_n
 
-   &= \left(\dot{v_{jk}} + v_{jn} v_{nk} \right) \xi_k
+   &= \left(\dot{v}_{jk} + v_{jn} v_{nk} \right) \xi_k
 
 We now investigate the first term in the balance of angular momentum which becomes
 
@@ -389,7 +389,7 @@ We now make the definition
 
 where :math:`m_{ijk}` is a higher-order stress.
 We can understand this quantity as a measure of the traction induced by the micro-scale Cauchy stress
-on the surface of the differential element acting on the lever-arm of the micro-position vector :math:`\mathbf{\xi}`.
+on the surface of the differential element acting on the lever-arm of the micro-position vector :math:`\boldsymbol{\xi}`.
 This stress is not only a measure of the induced moment but also includes stretching and shearing actions
 scaled by the micro-position vector.
 This definition allows us to write
@@ -405,7 +405,7 @@ This allows us to then put the first term into the form
 .. math::
    :label: angbal_first
 
-   \int_{\partial B} \left\{\int_{da} \varepsilon_{mkj} x_{k}^{\left(\alpha\right)} sigma_{ij}^{\left(\alpha\right)}
+   \int_{\partial B} \left\{\int_{da} \varepsilon_{mkj} x_{k}^{\left(\alpha\right)} \sigma_{ij}^{\left(\alpha\right)}
       n_{i}^{\left(\alpha\right)} \,{da^{\left(\alpha\right)}}\right\} = \varepsilon_{mkj} \int_{B} \left[\sigma_{kj}
       - x_k \sigma_{ij,i} + m_{ijk,i} \right] \,{dv}.
 
@@ -458,7 +458,7 @@ Turning our attention to
    &= \ddot{x_j} \int_{dv} \rho^{\left(\alpha\right)} \xi_k \,{dv^{\left(\alpha\right)}}
       + \int_{dv} \rho^{\left(\alpha\right)} \xi_k \ddot{\xi_j} \,{dv^{\left(\alpha\right)}},
 
-because :math:`\mathbf{\xi}` is defined relative to the centroid of :math:`dv`,
+because :math:`\boldsymbol{\xi}` is defined relative to the centroid of :math:`dv`,
 
 .. math::
 
@@ -527,8 +527,8 @@ After localization we find
    \sigma_{kj} + m_{ijk,i} - s_{kj} + \rho \left( l_{jk} - \omega_{jk}\right) = 0,
 
 which shows that the balance of first moment of momentum contains the balance of angular momentum as a special case.
-Note that in the absence of higher order effects, (in order words :math:`\mathbf{m}`, :math:`\mathbf{l}`, and
-:math:`\mathbf{\omega}` are all zero), :math:`\mathbf{\sigma} = \mathbf{s}`, i.e. the Cauchy stress is symmetric.
+Note that in the absence of higher order effects, (in order words :math:`\boldsymbol{m}`, :math:`\boldsymbol{l}`, and
+:math:`\boldsymbol{\omega}` are all zero), :math:`\boldsymbol{\sigma} = \boldsymbol{s}`, i.e. the Cauchy stress is symmetric.
 In this way the balance equations of micromorphic continuum theory reduce to the standard continuum theory in the limit
 of no higher-order effects. Conceptually, this occurs when the deformation and/or loading is homogeneous across
 :math:`dv` which is achieved when the length of the micro-position vector goes to zero among other cases.
@@ -677,7 +677,8 @@ Upon localization,
 
    \rho\dot{e} = v_{j,i}\sigma_{ij} + v_{jk,i}m_{ijk} + v_{jk} \left[s_{kj} - \sigma_{kj}\right] - q_{i,i} + \rho r.
 
-In the absence of higher-order effects, :math:`\mathbf{s} = \mathbf{\sigma}` and :math:`\mathbf{m} = 0`,
+In the absence of higher-order effects, :math:`\boldsymbol{s} = \boldsymbol{\sigma}` and
+:math:`\boldsymbol{m} = \boldsymbol{0}`,
 which means the standard continuum energy balance is recovered.
 
 ****************************
