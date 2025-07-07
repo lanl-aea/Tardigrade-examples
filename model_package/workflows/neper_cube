@@ -191,6 +191,8 @@ if env['filter']:
     params['filter_config_basename'] = f"FILTER_config_{model}_default"
     print(params['filter_config_basename'])
     params['viz_targs'] = tuple((option, f'default_{target}') for option, target in viz_targs)
+    params['sets_file'] = None
+    params['micro_averaging_domains'] = 'auto'
     params['model_override'] = f"{model}_default"
     # Run common filter sconscript
     workflow.extend(
@@ -205,6 +207,7 @@ if env['filter']:
     params['viz_targs'] = tuple((option, f'sets_{target}') for option, target in viz_targs)
     params['filter_config_basename'] = f"FILTER_config_{model}_grain_domains"
     params['sets_file'] = set_file
+    params['micro_averaging_domains'] = 'prescribed'
     params['model_override'] = f"{model}_grain_domains"
     # Run common filter sconscript
     workflow.extend(
@@ -219,8 +222,8 @@ if env['filter']:
     params['viz_targs'] = tuple((option, f'spectral_{target}') for option, target in viz_targs)
     params['filter_config_basename'] = f"FILTER_config_{model}_grain_spectral"
     params['sets_file'] = None
+    params['micro_averaging_domains'] = 'spectral'
     params['model_override'] = f"{model}_grain_spectral"
-    params['spectral'] = True
     # Run common filter sconscript
     workflow.extend(
         SConscript("filter.scons",
