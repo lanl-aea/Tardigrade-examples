@@ -129,10 +129,8 @@ if ('homogenize_damage' in params.keys()) and (params['homogenize_damage'] == Tr
     script_options += " --damage damage"
 if ('sets_file' in params.keys()) and (params['sets_file'] is not None):
     script_options += f" --sets-file {params['sets_file']}"
-if ('spectral' in params.keys()) and (params['spectral'] == True):
-    script_options += " --spectral True"
-if ('update_filter_domains' in params.keys()) and (params['update_filter_domains'] == True):
-    script_options += " --update-filter-domains True"
+if ('micro_averaging_domains' in params.keys()) and (params['micro_averaging_domains'] is not None):
+    script_options += f" --micro-averaging-domains {params['micro_averaging_domains']}"
 if ('plot_micro_domains' in params.keys()) and (params['plot_micro_domains'] == True):
     script_options += f" --plot-micro-domains True"
 script_options += f" --max-parallel {params['filter_parallel']}"
