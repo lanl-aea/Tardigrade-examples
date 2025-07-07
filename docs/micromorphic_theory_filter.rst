@@ -28,23 +28,23 @@ corresponding to the number and ID of the micro-points.
    Micromorphic Filter :math:`\mathcal{G}` showing the macroscale volume associated with the :math:`\beta\text{th}` Gauss domain (:math:`\mathcal{G}^\beta`) and micro-scale point :math:`\alpha`.
 
 The Micromorphic Filter first determines the macro-scale kinematic quantities for displacements
-:math:`\mathbf{u}` and micro-deformation :math:`\mathbf{\phi}` followed by the volume
+:math:`\boldsymbol{u}` and micro-displacement :math:`\boldsymbol{\Phi}` followed by the volume
 and surface integral quantities defined in Eq. :math:numref:`{number} <homogenized_quantities>`.
 The Micromorphic Filter does not actually calculate the macroscale deformation gradient
-:math:`\mathbf{F}`, the micro-deformation tensor :math:`\mathbf{\chi}` or the other deformation measures
+:math:`\boldsymbol{F}`, the micro-deformation tensor :math:`\boldsymbol{\chi}` or the other deformation measures
 in equation :math:numref:`{number} <deformation_measures>`, however, it does provide the terms
 necessary to calculate these quantities including
-:math:`u_i`, :math:`\frac{\partial u_i}{\partial X_I}`, :math:`\phi_{iI}`, and
-:math:`\frac{\partial \phi_{iI}}{\partial X_J}`.
+:math:`u_i`, :math:`\frac{\partial u_i}{\partial X_I}`, :math:`\Phi_{iI}`, and
+:math:`\frac{\partial \Phi_{iI}}{\partial X_J}`.
 Refer to :py:mod:`model_package.xdmf_reader_tools.compute_deformations` to see how quantities
 in equation :math:numref:`{number} <deformation_measures>` are calculated from the
 Micromorphic Filter output.
 
 It should be noted that the micro-deformation tensor may be related to a micro-displacement tensor
-:math:`\mathbf{\phi}` as :math:`\mathbf{\chi} = \mathbf{1} + \mathbf{\phi}`.
+:math:`\boldsymbol{\Phi}` as :math:`\boldsymbol{\chi} = \boldsymbol{1} + \boldsymbol{\Phi}`.
 However, as pointed out by Isbuga 2011 :cite:`Isbuga2011`, this micro-displacement tensor
 only exists as a numerical means to interpolate and solve for nine additional
-dofs that are used to calculate :math:`\mathbf{\chi}`. Although this is only a small detail
+dofs that are used to calculate :math:`\boldsymbol{\chi}`. Although this is only a small detail
 within the context of this theory, it is an important for user's of the Micromorphic Filter.
 
 Note that more than 1 micro-averaging domain is needed to properly
