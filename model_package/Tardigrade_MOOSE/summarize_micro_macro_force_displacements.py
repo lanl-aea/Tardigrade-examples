@@ -4,15 +4,17 @@ import pathlib
 import sys
 
 import matplotlib.pyplot
+import numpy
 import pandas
 
 from finite_stVK_calculation import finite_stVK_calculation
 from summarize_micro_macro_lateral_displacements import plot_convergence
 
 
-def plot_force_displacement(csv_files, plot_labels, output_file, output_csv, convergence_plot=None,
+def plot_force_displacement(csv_files, plot_labels, output_file, output_csv=None, convergence_plot=None,
                             force_field='force', disp_field='disp',
-                            x_label='Displacement (mm)', y_label='Force (N)'):
+                            x_label='Displacement (mm)', y_label='Force (N)',
+                            brazil_exp_file=None):
     '''Plot multiple force displacement plots against each other
 
     :param list csv_files: The csv files containing force results
@@ -39,6 +41,16 @@ def plot_force_displacement(csv_files, plot_labels, output_file, output_csv, con
         final_forces.append(df[force_field].values[-1])
         df = df.assign(id=[label for i in range(len(df.index))])
         dfs.append(df)
+    # Optionally plot from Brazil disk experimental data
+    if brazil_exp_file is not None:
+        exp_df = pandas.read_csv(brazil_exp_file, sep=',')
+        exps = numpy.unique([text.split('_')[0] for text in list(exp_df.columns)])
+        for exp, i in zip(exps, range(len(exps))):
+            if i == 0:
+                matplotlib.pyplot.plot(exp_df[f'{exp}_x'], exp_df[f'{exp}_y'], '--', color='grey',
+                                       label='experiments')
+            else:
+                matplotlib.pyplot.plot(exp_df[f'{exp}_x'], exp_df[f'{exp}_y'], '--', color='grey')
     matplotlib.pyplot.xlabel(x_label)
     matplotlib.pyplot.ylabel(y_label)
     matplotlib.pyplot.tight_layout()
@@ -72,7 +84,7 @@ def get_parser():
         help="The plot labels, same size as '--csv-files'")
     parser.add_argument('--output-file', type=str, required=True,
         help="The name of the output plot")
-    parser.add_argument('--output-csv', type=str, required=True,
+    parser.add_argument('--output-csv', type=str, required=False, default=None,
         help="The name of the output csv file")
     parser.add_argument('--convergence-plot', type=str, required=False, default=None,
         help="Optional file name for convergence plot")
@@ -84,6 +96,8 @@ def get_parser():
         help="The label for the x data")
     parser.add_argument("--y-label", type=str, required=False, default='Force (N)',
         help="The label for the y data")
+    parser.add_argument("--brazil-exp-file", type=str, required=False, default=None,
+        help="Optional csv file containing Brazil disk data")
 
     return parser
 
@@ -100,4 +114,5 @@ if __name__ == '__main__':
                                      disp_field=args.disp_field,
                                      x_label=args.x_label,
                                      y_label=args.y_label,
+                                     brazil_exp_file=args.brazil_exp_file,
                                      ))
