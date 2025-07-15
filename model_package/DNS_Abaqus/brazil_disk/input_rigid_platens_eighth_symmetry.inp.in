@@ -60,7 +60,7 @@ START, @bottom_start_x@, @bottom_start_y@
 **
 ** Interaction: bottom_platen_contact
 *Contact Pair, interaction=CONTACT-PROP, type=SURFACE TO SURFACE
-specimen-1.specimen_contact, bottom_platen-1.surface
+specimen-1.specimen_bottom, bottom_platen-1.surface
 **
 *************************************************************
 ** I N I T I A L    B O U N D A R Y    C O N D I T I O N S
@@ -93,8 +93,8 @@ bottom_platen-1.RP, 6, 6
 0.1, 1.0, 0.000001, 0.1
 **
 ** Contact Controls for Interaction: CONTACT-PROP-1
-*Contact Controls, main=bottom_platen-1.surface, secondary=specimen-1.specimen_contact, reset
-*Contact Controls, main=bottom_platen-1.surface, secondary=specimen-1.specimen_contact, stabilize=1.
+*Contact Controls, main=bottom_platen-1.surface, secondary=specimen-1.specimen_bottom, reset
+*Contact Controls, main=bottom_platen-1.surface, secondary=specimen-1.specimen_bottom, stabilize=1.
 *************************************************************
 ** L O A D
 *************************************************************
