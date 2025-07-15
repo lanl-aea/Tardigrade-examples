@@ -90,7 +90,7 @@ def write_filter_config(output_file, job_name, dns_file, macro_file,
     else:
         print('Invalid configuration for "sets_file" and "spectral"')
 
-    # Option to update filter and microaveraging domains for each timestep
+    # Option to update filter and micro-averaging domains for each timestep
     if bool(update_filter_domains) == True:
         filter_dict["update_filter_domains"] = True
 
