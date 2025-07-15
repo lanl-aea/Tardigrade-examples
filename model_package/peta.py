@@ -115,7 +115,9 @@ def peta_copy(source_directory, output_directory):
                    Ratel_variables.additional_files + \
                    Ratel_variables.I43_damage_coarse_finetime['DNS_files'] + \
                    [Ratel_variables.I43_damage_coarse_finetime['DNS_forces']] + \
-                   Ratel_variables.I43_damage_CGNS['DNS_files']
+                   Ratel_variables.I43_damage_CGNS['DNS_files'] +\
+                   Ratel_variables.I43_best_DNS['DNS_files'] +\
+                   [Ratel_variables.I43_best_DNS['DNS_forces']]
 
     # Transfer the main chunk of results for Ratel
     transfer_Ratel_files(source_files, source_directory, output_directory, username)
