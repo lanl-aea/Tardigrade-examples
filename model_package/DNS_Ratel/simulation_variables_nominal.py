@@ -304,25 +304,25 @@ I43_best_DNS = {
     'macro_BC': 'slip_plane',
 }
 I43_best_DNS['DNS_files'] = [
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I49_09_viscohencky_df20_000.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I49_09_viscohencky_df20_010.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I49_09_viscohencky_df20_020.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I49_09_viscohencky_df20_030.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I49_09_viscohencky_df20_040.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I49_09_viscohencky_df20_050.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I43_09_viscohencky_df20_100.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I43_09_viscohencky_df20_150.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I43_09_viscohencky_df20_200.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I49_09_viscohencky_df20_225.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I43_09_viscohencky_df20_250.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I49_09_viscohencky_df20_275.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I43_09_viscohencky_df20_300.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I43_09_viscohencky_df20_350.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I43_09_viscohencky_df20_400.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I43_09_viscohencky_df20_450.cgns',
-    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I43_09_viscohencky_df20_500.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_000.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_010.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_020.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_030.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_040.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_050.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_100.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_150.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_200.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_225.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_250.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_275.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_300.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_350.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_400.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_450.cgns',
+    'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/I43_09_viscohencky_df20_500.cgns',
     ]
-I43_best_DNS['DNS_forces'] = 'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/I43_09_viscohencky_df20.csv'
+I43_best_DNS['DNS_forces'] = 'RatelDNS/IDOX-ESTANE/I43_09/Fabio-viscoelasticityHencky-MAPparameters/second_attempt/hencky_viscot.csv'
 
 I43_MAP = {
     # DNS parameters
@@ -346,7 +346,7 @@ I43_MAP = {
     'calibration_increment_elastic': [0, 1, 2, 3, 4],
     'calibration_increment_plastic': [5, 6, 7, 8, 9, 10, 11, 12, 13],
     #'calibration_increment_softening': [3, 7, 10, 11, 12, 13, 14],
-    'calibration_increment_softening': [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+    #'calibration_increment_softening': [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
     # parameters for plastic calibration
     'cohesion_case': 1,
     'cohesion_increment': [3, 4, 5],
