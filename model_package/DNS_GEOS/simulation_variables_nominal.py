@@ -161,7 +161,7 @@ I43_01_sim38['DNS_files'] = {
     'force': [f'{root}/reactionHistory.csv'],
     'vtms': [f'{root}/vtkOutput/{level}.vtm' for level in levels]}
 for level in levels:
-    for j in [1,2]:
+    for j in [2,3]: #ParticleRegion1 is the loading platen
         I43_01_sim38['DNS_files'][f'{level}_region{j}'] = [f'{root}/vtkOutput/{level}/particles/Level0/ParticleRegion{j}/rank_{str(i).zfill(3)}.vtu' for i in range(0, ranks)]
 I43_01_sim38['DNS_file'] = 'vtkOutput_trimmed.pvd'
 I43_01_sim38['DNS_fileroot'] = 'GEOS_I43_01_sim38'
