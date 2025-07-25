@@ -97,6 +97,22 @@ def transfer_GEOS_files(source_files_dict, source_directory, output_directory, s
     return 0
 
 
+def remove_block_by_name(parent, block_name_to_remove):
+    ''' Recursively search through an XML node to find and remove a specified block
+
+    :params xml_node parent: The XML node to start search
+    :params string block_name_to_remove: The name attribute of an XML block to remove
+    '''
+
+    # Iterate through parent node
+    for child in list(parent):
+        if child.tag == "Block" and child.attrib.get("name") == block_name_to_remove:
+            parent.remove(child)
+        else:
+            # Recursively search children
+            remove_block_by_name(child, block_name_to_remove)
+
+
 def transfer_GEOS_files_selective(source_files_dict, source_directory, output_directory, split_key, username):
     '''Transfer GEOS DNS ascii VTK results and subdirectories a series of scp commands (multiple sources, multiple destinations)
     for a specific selection of timesteps and modify associated XML data of PVD and VTM files
@@ -133,9 +149,7 @@ def transfer_GEOS_files_selective(source_files_dict, source_directory, output_di
                 sources.append(f'{source_directory}/{file}')
 
         # Only initiate file transfer if there are new files to copy
-        if len(sources) == 0:
-            continue
-        else:
+        if len(sources) > 0:
             print(sources[0])
             # Transfer files
             if len(sources) == 1:
@@ -149,10 +163,14 @@ def transfer_GEOS_files_selective(source_files_dict, source_directory, output_di
         # Trim main pvd file to remove unnecessary timesteps
         if key == 'main':
             print(source_files)
+            pvd_file = f"{output_directory}/{source_files[0].split('/')[-1]}"
+            pvd_output_file = f"{output_directory}/vtkOutput_trimmed.pvd"
+            # Always rewrite the trimmed pvd file
+            if os.path.isfile(pvd_output_file) == True:
+                os.remove(pvd_output_file)
             # Find the target vtm files to keep in pvd file
             target_files = [file.split('/')[-1] for file in source_files_dict['vtms']]
             # parse the XML
-            pvd_file = f"{output_directory}/{source_files[0].split('/')[-1]}"
             tree = ET.parse(pvd_file)
             root=tree.getroot()
             # Find collection element
@@ -164,24 +182,32 @@ def transfer_GEOS_files_selective(source_files_dict, source_directory, output_di
                 if vtm_file not in target_files:
                     collection.remove(dataset)
                 else:
-                    dataset.set('file', f'{vtm_file.split('.')[0]}_trimmed.vtm')
+                    dataset.set('file', f'vtkOutput/{vtm_file.split('.')[0]}_trimmed.vtm')
             # Write the filtered xml file
-            tree.write(f"{output_directory}/vtkOutput_trimmed.pvd", encoding='utf-8', xml_declaration=True)
+            print(f'writing {pvd_output_file}!!!')
+            tree.write(pvd_output_file, encoding='utf-8', xml_declaration=True)
 
         # Trim vtm files to remove backgroundGrid data
         if key == 'vtms':
+            print(source_files)
             for vtm_file in source_files:
-                vtm_filename = vtm_file[0].split('/')[-1]
-                vtm_output_name = f"{output_directory}/vtkOutput/{vtm_filename.split('.')}_trimmed.vtm"
+                vtm_filename = vtm_file.split('/')[-1]
+                vtm_output_name = f"{output_directory}/vtkOutput/{vtm_filename.split('.')[0]}_trimmed.vtm"
+                # Always rewrite the trimmed vtm file
+                if os.path.isfile(vtm_output_name) == True:
+                    os.remove(vtm_output_name)
+                # parse the XML
                 vtm = f"{output_directory}/vtkOutput/{vtm_filename}"
                 tree = ET.parse(vtm)
                 root = tree.getroot()
                 # Remove all backgroundGrid
-                for multiblock in root.finall(".//vtkMultiBlockDataSet"):
-                    for block in list(multiblock):
-                        if block.tag == "Block" and block.attrib.get("name") == "backgroundGrid":
-                            multiblock.remove(block)
+                for multiblock in root.findall(".//vtkMultiBlockDataSet"):
+                    # Do not keep backgroundGrid
+                    remove_block_by_name(multiblock, "backgroundGrid")
+                    # Do not keep platen particles
+                    remove_block_by_name(multiblock, "ParticleRegion1")
                 # Write the filtered xml file
+                print(f'writing {vtm_output_name}!!!')
                 tree.write(vtm_output_name, encoding='utf-8', xml_declaration=True)
 
     return 0
