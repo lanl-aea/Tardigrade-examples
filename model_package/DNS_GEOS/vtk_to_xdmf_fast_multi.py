@@ -101,7 +101,8 @@ def create_annulus(coord, rad, x0, y0, annulus_ratio):
 
 def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
                                 dist_factor, stress_factor, density_factor, annulus_ratio,
-                                upscale_damage=None, num_ranks=1000):
+                                upscale_damage=None, num_ranks=1000,
+                                grain_particle_key=1, binder_particle_key=2):
     '''Write XDMF file of collected GEOS DNS results for Micromorphic Filter
 
     :param dict results: dictionary of results
@@ -113,7 +114,9 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
                                  to Mg/tonne^3, default=1
     :param float annulus_ratio: Optional fraction of the radius of points to keep in the final geometry
     :param str upscale_damage: Option to specify if damage will be upscaled
-    :param str num_ranks: The number of ranks to collect data from
+    :param int num_ranks: The number of ranks to collect data from
+    :param int grain_particle_key: An integer specifying the particle key for grains
+    :param int binder_particle_key: An integer specifying the particle key for binder
 
     :returns: ``{output_file}.xdmf`` and ``{outptu_file}.h5``
     '''
@@ -156,16 +159,27 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
                 print(fields)
                 all_fields[b] = fields
 
-            particle_fields = {1: all_fields[1], 2: all_fields[2]}
-            particle_keys = list(particle_fields[1].keys()) + list(particle_fields[2].keys())
+            # Parse the relevant particle fields for the required keys
+            grain_fields = {grain_particle_key: all_fields[grain_particle_key]}
+            binder_fields = {binder_particle_key: all_fields[binder_particle_key]}
+            particle_fields = grain_fields | binder_fields
+            particle_keys = list(grain_fields.keys()) + list(binder_fields.keys())
 
             # Ids for sorting
-            idox_ids = multi_blocks_to_array('particleID', particle_region_block, {1: particle_fields[1]}, num_ranks, 'h')
-            binder_ids = multi_blocks_to_array('particleID', particle_region_block, {2: particle_fields[2]}, num_ranks, 'h')
+            idox_ids = multi_blocks_to_array(
+                'particleID', particle_region_block,
+                grain_fields, num_ranks, 'h')
+            binder_ids = multi_blocks_to_array(
+                'particleID', particle_region_block,
+                binder_fields, num_ranks, 'h')
 
             # ref pos
-            idox_reference_positions = dist_factor*multi_blocks_to_array('particleReferencePosition', particle_region_block, {1: particle_fields[1]}, num_ranks, id_sort=idox_ids)
-            binder_reference_positions = dist_factor*multi_blocks_to_array('particleReferencePosition', particle_region_block, {2: particle_fields[2]}, num_ranks, id_sort=binder_ids)
+            idox_reference_positions = dist_factor*multi_blocks_to_array(
+                'particleReferencePosition', particle_region_block,
+                grain_fields, num_ranks, id_sort=idox_ids)
+            binder_reference_positions = dist_factor*multi_blocks_to_array(
+                'particleReferencePosition', particle_region_block,
+                binder_fields, num_ranks, id_sort=binder_ids)
             reference_positions = numpy.vstack([idox_reference_positions, binder_reference_positions])
             ndata = numpy.shape(reference_positions)[0]
 
@@ -178,8 +192,12 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
                 reference_positions, mask = create_annulus(reference_positions, rad, x0, y0, annulus_ratio)
         else:
             # Get IDs for sorting
-            idox_ids = multi_blocks_to_array('particleID', particle_region_block, {1: particle_fields[1]}, num_ranks, 'h')
-            binder_ids = multi_blocks_to_array('particleID', particle_region_block, {2: particle_fields[2]}, num_ranks, 'h')
+            idox_ids = multi_blocks_to_array(
+                'particleID', particle_region_block,
+                grain_fields, num_ranks, 'h')
+            binder_ids = multi_blocks_to_array(
+                'particleID', particle_region_block,
+                binder_fields, num_ranks, 'h')
 
         ## initialization stuff
         grid = xdmf.addGrid(xdmf.output_timegrid, {})
@@ -191,12 +209,20 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
             unique_displacements = numpy.zeros_like(reference_positions)
         else:
             # Get reference positions again since particles may have been reordered
-            idox_reference_positions = dist_factor*multi_blocks_to_array('particleReferencePosition', particle_region_block, {1: particle_fields[1]}, num_ranks, id_sort=idox_ids)
-            binder_reference_positions = dist_factor*multi_blocks_to_array('particleReferencePosition', particle_region_block, {2: particle_fields[2]}, num_ranks, id_sort=binder_ids)
+            idox_reference_positions = dist_factor*multi_blocks_to_array(
+                'particleReferencePosition', particle_region_block,
+                grain_fields, num_ranks, id_sort=idox_ids)
+            binder_reference_positions = dist_factor*multi_blocks_to_array(
+                'particleReferencePosition', particle_region_block,
+                binder_fields, num_ranks, id_sort=binder_ids)
             reference_positions = numpy.vstack([idox_reference_positions, binder_reference_positions])
             # Current positions
-            idox_positions = dist_factor*multi_blocks_to_array('particleCenter', particle_region_block, {1: particle_fields[1]}, num_ranks, id_sort=idox_ids)
-            binder_positions = dist_factor*multi_blocks_to_array('particleCenter', particle_region_block, {2: particle_fields[2]}, num_ranks, id_sort=binder_ids)
+            idox_positions = dist_factor*multi_blocks_to_array(
+                'particleCenter', particle_region_block,
+                grain_fields, num_ranks, id_sort=idox_ids)
+            binder_positions = dist_factor*multi_blocks_to_array(
+                'particleCenter', particle_region_block,
+                binder_fields, num_ranks, id_sort=binder_ids)
             unique_positions = numpy.vstack([idox_positions, binder_positions])
             if annulus_ratio is not None:
                 unique_positions = unique_positions[mask]
@@ -214,8 +240,12 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
 
         # get the velocity
         if 'particleVelocity' in particle_keys:
-            idox_velocities = dist_factor*multi_blocks_to_array('particleVelocity', particle_region_block, {1: particle_fields[1]}, num_ranks, id_sort=idox_ids)
-            binder_velocities = dist_factor*multi_blocks_to_array('particleVelocity', particle_region_block, {2: particle_fields[2]}, num_ranks, id_sort=binder_ids)
+            idox_velocities = dist_factor*multi_blocks_to_array(
+                'particleVelocity', particle_region_block,
+                grain_fields, num_ranks, id_sort=idox_ids)
+            binder_velocities = dist_factor*multi_blocks_to_array(
+                'particleVelocity', particle_region_block,
+                binder_fields, num_ranks, id_sort=binder_ids)
             unique_velocities = numpy.vstack([idox_velocities, binder_velocities])
             if annulus_ratio is not None:
                 unique_velocities = unique_velocities[mask]
@@ -226,8 +256,12 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
 
         # get the acceleration, TODO: replace 'particleVelocity' with 'particleAcceleration' Once accelerations have been fixed
         if 'particleAcceleration' in particle_keys:
-            idox_accelerations = dist_factor*multi_blocks_to_array('particleVelocity', particle_region_block, {1: particle_fields[1]}, num_ranks, id_sort=idox_ids)
-            binder_accelerations = dist_factor*multi_blocks_to_array('particleVelocity', particle_region_block, {2: particle_fields[2]}, num_ranks, id_sort=binder_ids)
+            idox_accelerations = dist_factor*multi_blocks_to_array(
+                'particleVelocity', particle_region_block,
+                grain_fields, num_ranks, id_sort=idox_ids)
+            binder_accelerations = dist_factor*multi_blocks_to_array(
+                'particleVelocity', particle_region_block,
+                binder_fields, num_ranks, id_sort=binder_ids)
             unique_accelerations = numpy.vstack([idox_accelerations, binder_accelerations])
             if annulus_ratio is not None:
                 unique_accelerations = unique_accelerations[mask]
@@ -237,8 +271,12 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
         xdmf.addData(grid, "acc", unique_accelerations, "Node", dtype='d')
 
         # get the stresses
-        idox_stresses = stress_factor*multi_blocks_to_array('Idox_stress', particle_region_block, {1: particle_fields[1]}, num_ranks, id_sort=idox_ids)
-        binder_stresses = stress_factor*multi_blocks_to_array('EstaneMatrix_stress', particle_region_block, {2: particle_fields[2]}, num_ranks, id_sort=binder_ids)
+        idox_stresses = stress_factor*multi_blocks_to_array(
+            'Idox_stress', particle_region_block,
+            grain_fields, num_ranks, id_sort=idox_ids)
+        binder_stresses = stress_factor*multi_blocks_to_array(
+            'EstaneMatrix_stress', particle_region_block,
+            binder_fields, num_ranks, id_sort=binder_ids)
         stresses = numpy.vstack([idox_stresses, binder_stresses])
         unique_stresses = numpy.array([stresses[:,0], stresses[:,5], stresses[:,4], #xx, xy, xz
                                     stresses[:,5], stresses[:,1], stresses[:,3], #yx=xy, yy, yz
@@ -252,8 +290,12 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
         #Get the volumes --> update when volumes are added!
         vol_factor = dist_factor*dist_factor*dist_factor
         try:
-            idox_volumes = vol_factor*multi_blocks_to_array('particleVolume', particle_region_block, {1: particle_fields[1]}, num_ranks, id_sort=idox_ids)
-            binder_volumes = vol_factor*multi_blocks_to_array('particleVolume', particle_region_block, {2: particle_fields[2]}, num_ranks, id_sort=binder_ids)
+            idox_volumes = vol_factor*multi_blocks_to_array(
+                'particleVolume', particle_region_block,
+                grain_fields, num_ranks, id_sort=idox_ids)
+            binder_volumes = vol_factor*multi_blocks_to_array(
+                'particleVolume', particle_region_block,
+                binder_fields, num_ranks, id_sort=binder_ids)
             unique_volumes = numpy.vstack([idox_volumes, binder_volumes])
         except:
             total_volume = 79.44851544702128 #mm^2
@@ -268,8 +310,12 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
         xdmf.addData(grid, "volume", unique_volumes, "Node", dtype='d')
 
         # Get the densities
-        idox_densities = density_factor*multi_blocks_to_array('Idox_density', particle_region_block, {1: particle_fields[1]}, num_ranks, stack='h', id_sort=idox_ids)
-        binder_densities = density_factor*multi_blocks_to_array('EstaneMatrix_density', particle_region_block, {2: particle_fields[2]}, num_ranks, stack='h', id_sort=binder_ids)
+        idox_densities = density_factor*multi_blocks_to_array(
+            'Idox_density', particle_region_block,
+            grain_fields, num_ranks, stack='h', id_sort=idox_ids)
+        binder_densities = density_factor*multi_blocks_to_array(
+            'EstaneMatrix_density', particle_region_block,
+            binder_fields, num_ranks, stack='h', id_sort=binder_ids)
         unique_densities = numpy.hstack([idox_densities, binder_densities])
         unique_densities = unique_densities.reshape((-1,1))
         if annulus_ratio is not None:
@@ -279,8 +325,12 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
 
         # Get the damages
         if upscale_damage is not None:
-            idox_damage = multi_blocks_to_array('Idox_damage', particle_region_block, {1: particle_fields[1]}, num_ranks, stack='h', id_sort=idox_ids)
-            binder_damage = multi_blocks_to_array('EstaneMatrix_damage', particle_region_block, {2: particle_fields[2]}, num_ranks, stack='h', id_sort=binder_ids)
+            idox_damage = multi_blocks_to_array(
+                'Idox_damage', particle_region_block,
+                grain_fields, num_ranks, stack='h', id_sort=idox_ids)
+            binder_damage = multi_blocks_to_array(
+                'EstaneMatrix_damage', particle_region_block,
+                binder_fields, num_ranks, stack='h', id_sort=binder_ids)
             unique_damage = numpy.hstack([idox_damage, binder_damage])
             unique_damage = unique_damage.reshape((-1,1))
             print(f"shape of damage = {numpy.shape(unique_damage)}")
@@ -293,7 +343,8 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
 
 
 def convert_VTK_to_XDMF(input_file, file_root, output_file, dist_factor=1, stress_factor=1, density_factor=1,
-                        annulus_ratio=None, upscale_damage=None, num_ranks=1000):
+                        annulus_ratio=None, upscale_damage=None, num_ranks=1000,
+                        grain_particle_key=1, binder_particle_key=2):
     '''Driving function to call functions for parsing GEOS VTK results and writing XDMF output
 
     :param str input_file: The main VTK PVD file containing GEOS DNS results
@@ -305,7 +356,9 @@ def convert_VTK_to_XDMF(input_file, file_root, output_file, dist_factor=1, stres
                                  to Mg/tonne^3, default=1
     :param float annulus_ratio: Optional fraction of the radius of points to keep in the final geometry
     :param str upscale_damage: Option to specify if damage will be upscaled
-    :param str num_ranks: The number of ranks to collect data from
+    :param int num_ranks: The number of ranks to collect data from
+    :param int grain_particle_key: An integer specifying the particle key for grains
+    :param int binder_particle_key: An integer specifying the particle key for binder
     '''
 
     start_time = time.time()
@@ -316,7 +369,8 @@ def convert_VTK_to_XDMF(input_file, file_root, output_file, dist_factor=1, stres
     # collect and convert to XDMF
     collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
                                 dist_factor, stress_factor, density_factor,
-                                annulus_ratio, upscale_damage, num_ranks)
+                                annulus_ratio, upscale_damage, num_ranks,
+                                grain_particle_key, binder_particle_key)
 
     end_time = time.time()
     print(f'executed in {end_time - start_time} seconds')
@@ -350,6 +404,10 @@ def get_parser():
          help='Option to specify if damage will be upscaled')
     parser.add_argument('--num-ranks', type=int, required=False, default=1000,
          help='The number of ranks to collect data from')
+    parser.add_argument('--grain-particle-key', type=int, required=False, default=1,
+         help='An integer specifying the particle key for grains')
+    parser.add_argument('--binder-particle-key', type=int, required=False, default=2,
+         help='An integer specifying the particle key for binder')
 
     return parser
 
@@ -367,4 +425,6 @@ if __name__ == '__main__':
                                  annulus_ratio=args.annulus_ratio,
                                  upscale_damage=args.upscale_damage,
                                  num_ranks=args.num_ranks,
+                                 grain_particle_key=args.grain_particle_key,
+                                 binder_particle_key=args.binder_particle_key,
                                  ))
