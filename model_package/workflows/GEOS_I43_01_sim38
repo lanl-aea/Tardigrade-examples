@@ -36,7 +36,7 @@ build_directory = pathlib.Path(Dir('.').abspath)
 workflow_name = build_directory.name
 output_file_type = "h5"
 model = "GEOS_I43_01_sim38"
-params = simulation_variables_nominal.I43_sim38
+params = simulation_variables_nominal.I43_01_sim38
 
 # Collect the target nodes to build a concise alias for all targets
 workflow = []
