@@ -67,7 +67,7 @@ viz_targs =  (
 params['viz_targs'] = viz_targs
 
 # ---------- Process existing DNS ----------------------------------------------
-DNS_fileroot = f"{peta_data_copy_abspath}/{params['DNS_fileroot']}/"
+DNS_fileroot = f"{peta_data_copy_abspath}/{params['DNS_fileroot']}"
 results_file = params['DNS_file']
 
 # TODO: remove background grid data before filter prep
@@ -85,6 +85,7 @@ script_options += " --stress-factor 1000."
 script_options += " --density-factor 1.e-9"
 script_options += " --num-ranks 216"
 script_options += " --upscale-damage True"
+script_options += " --grain-particle-key 0 --binder-particle-key 1"
 workflow.extend(env.PythonScript(
     target=filter_inputs,
     source=[str(DNS_GEOS_abspath / XDMF_script), f'{DNS_fileroot}/{results_file}'],
