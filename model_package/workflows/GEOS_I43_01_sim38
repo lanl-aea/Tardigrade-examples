@@ -167,8 +167,8 @@ if params['cut'] == False:
             [0.75, 282],
             [0.5, 837],
             [0.375, 1908],
-            #[0.25, 6480],
-            [0.1, 105600],
+            [0.25, 6480],
+            #[0.1, 105600],
             ], dtype=object),
         parameter_names = numpy.array(["seed_size", "num_domains"])
     )
@@ -182,8 +182,8 @@ elif params['cut'] == True:
             [0.75, 264],
             [0.55, 768],
             [0.4, 1680],
-            #[0.25, 6912],
-            [0.1, 110400],
+            [0.25, 6912],
+            #[0.1, 110400],
             ], dtype=object),
         parameter_names = numpy.array(["seed_size", "num_domains"])
     )
