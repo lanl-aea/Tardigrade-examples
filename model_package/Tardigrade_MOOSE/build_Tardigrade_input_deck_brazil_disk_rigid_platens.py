@@ -495,6 +495,8 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
         f.write('    index = 8\n')
         f.write('    variable = sigma_33\n')
         f.write('  [../]\n')
+        f.write('[]\n')
+        f.write('\n')
         if material_type == 'plastic':
             f.write('## plastic Aux kernels\n')
             f.write('[AuxKernels]\n')
@@ -585,7 +587,7 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
             f.write('    index = 54\n')
             f.write('    variable = micro_gradient_isv_3\n')
             f.write('  [../]\n')
-        f.write('[]\n')
+            f.write('[]\n')
         f.write('\n')
         # Reaction Force
         sample_force = 'force_y'
