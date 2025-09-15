@@ -62,9 +62,10 @@ common_options += f" --increment {' '.join(str(i) for i in params['calibration_i
 
 if domain_number == 1:
     # Calibrate plasticity
-    elastic_case = params['elastic_calibration_case']
-    plastic_case = params['plastic_calibration_case']
-    elastic_parameters = f'calibrated_elastic_parameters_case_{elastic_case}_elem_0.yml'
+    if plastic_case == 13:
+        input_parameters = f'calibrated_plastic_parameters_case_6_elem_0.yml'
+    else:
+        input_parameters = f'calibrated_elastic_parameters_case_{elastic_case}_elem_0.yml'
     case = params['plastic_calibration_case']
     plastic_plot_root = f'{plot_root}_plastic'
     calibration_targs = [f'calibrated_plastic_parameters_case_{case}_elem_0.yml',
@@ -77,11 +78,11 @@ if domain_number == 1:
     script_options += f" --case {case}"
     script_options += f" --element 0"
     script_options += f" --plot-file {plastic_plot_root}"
-    script_options += f" --input-parameters {elastic_parameters}"
+    script_options += f" --input-parameters {input_parameters}"
     script_options += f" --increment {' '.join(str(i) for i in params['calibration_increment_plastic'])}"
     workflow.extend(env.PythonScript(
         target = calibration_targs,
-        source = [f"{calibrate_source_abspath / plastic_calibration_script}", filter_file, elastic_parameters],
+        source = [f"{calibrate_source_abspath / plastic_calibration_script}", filter_file, input_parameters],
         script_options = script_options
     ))
 
@@ -115,8 +116,11 @@ else:
         calibrated_elements.append(str(elem))
 
         # Calibrate plasticity
-        elastic_set = f'calibrated_elastic_parameters_case_{elastic_case}_elem_{elem}.yml'
-        elastic_parameters = str(build_directory / calib_set / elastic_set)
+        if plastic_case == 13:
+            input_set =f'calibrated_plastic_parameters_case_6_elem_{elem}.yml'
+        else:
+            input_set = f'calibrated_elastic_parameters_case_{elastic_case}_elem_{elem}.yml'
+        input_parameters = str(build_directory / calib_set / input_set)
         case = params['plastic_calibration_case']
         plastic_plot_root = f'{plot_root}_plastic'
         calibration_targs = [f'calibrated_plastic_parameters_case_{case}_elem_{elem}.yml',
@@ -129,11 +133,11 @@ else:
         script_options += f" --case {case}"
         script_options += f" --element {elem}"
         script_options += f" --plot-file {plastic_plot_root}"
-        script_options += f" --input-parameters {elastic_parameters}"
+        script_options += f" --input-parameters {input_parameters}"
         script_options += f" --increment {' '.join(str(i) for i in params['calibration_increment_plastic'])}"
         workflow.extend(env.PythonScript(
             target = [f'{calib_set}/{cali_targ}' for cali_targ in calibration_targs],
-            source = [f"{calibrate_source_abspath / plastic_calibration_script}", filter_file, elastic_parameters],
+            source = [f"{calibrate_source_abspath / plastic_calibration_script}", filter_file, input_parameters],
             script_options = script_options
         ))
         calibrated_plastic_files.append(f'{calib_set}/{calibration_targs[0]}')
