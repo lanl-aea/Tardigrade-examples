@@ -725,13 +725,13 @@ def plot_norm_history(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, times, outp
                 SIGMA_q.append(numpy.sqrt(numpy.tensordot(deviatoric(SIGMA[qp][t,el,:,:]), deviatoric(SIGMA[qp][t,el,:,:]))))
                 diff_p.append((-1/3)*numpy.trace(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))
                 diff_q.append(numpy.sqrt(numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]),
-                                                               deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))))
+                                                         deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))))
                 M1_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,0]))
                 M1_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,0]), deviatoric(M[qp][t,el,:,:,0]))))
                 M2_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,1]))
                 M2_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
-                M3_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,1]))
-                M3_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
+                M3_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,2]))
+                M3_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,2]), deviatoric(M[qp][t,el,:,:,2]))))
 
             label = f"qp  #{(qp+1)+(nel*8)}"
 
@@ -813,8 +813,8 @@ def p_q_plot(PK2, SIGMA, M, E, nqp, nel, ninc, output_name):
                 M1_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,0]), deviatoric(M[qp][t,el,:,:,0]))))
                 M2_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,1]))
                 M2_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
-                M3_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,1]))
-                M3_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
+                M3_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,2]))
+                M3_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,2]), deviatoric(M[qp][t,el,:,:,2]))))
             label = f"qp  #{(qp+1)+(nel*8)}"
             ax1.plot(PK2_p, PK2_q, label=label)
             ax1.set_xlabel(r'$p\left(\mathbf{S}\right) (MPa)$', fontsize=14)
