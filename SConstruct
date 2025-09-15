@@ -504,11 +504,13 @@ workflow_configurations = [
     "Tardigrade_convergence",
     "Tardigrade_dynamic_convergence",
     "plastic_refinement_clamp_H-10percent_mu",
-    # Brazilian Disk Compression
+    # Brazilian Disk Compression - elastic
     "Abaqus_Brazilian_disk_rigid_platens_study",
     "MOOSE_Brazilian_disk_rigid_platens_study",
     "Tardigrade_Brazilian_disk_rigid_platens_study",
     "Tardigrade_Brazilian_disk_rigid_platens_study_no_phi",
+    # Brazilid Disck Compression - plastic
+    "Tardigrade_Brazilian_disk_rigid_platens_plasticity_study",
     # Neper studies
     "neper_cube",
     "neper_cube_multi_grain",
