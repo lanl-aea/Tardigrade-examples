@@ -56,8 +56,8 @@ common_options += f" --L 0.5"
 common_options += f" --dev-norm-errors True"
 common_options += f" --increment {' '.join(str(i) for i in params['calibration_increment_elastic'])}"
 if domain_number == 1:
-    # Two stage calibration if case=8
-    if params['elastic_calibration_case'] == 8:
+    # Two stage calibration if case is 8 or 9
+    if (params['elastic_calibration_case'] == 8) or (params['elastic_calibration_case'] == 9):
         # initial higher order parameter calibration
         case = 6
         calibration_targs = [f'calibrated_elastic_parameters_case_{case}_elem_0.yml',
@@ -75,7 +75,7 @@ if domain_number == 1:
         ))
         # Calibrate all 18 parameters
         higher_order_parameters = calibration_targs[0]
-        case = 8
+        case = params['elastic_calibration_case']
         calibration_targs = [f'calibrated_elastic_parameters_case_{case}_elem_0.yml',
                             f'{elastic_plot_root}_PK2_fit_case_{case}.PNG',
                             f'{elastic_plot_root}_SIGMA_fit_case_{case}.PNG',
@@ -150,7 +150,7 @@ else:
             script_options = script_options + common_options
         ))
         # Two stage calibration if case=8
-        if params['elastic_calibration_case'] == 8:
+        if (params['elastic_calibration_case'] == 8) or (params['elastic_calibration_case'] == 9):
             # initial higher order parameter calibration
             case = 6
             calibration_targs = [f'calibrated_elastic_parameters_case_{case}_elem_{elem}.yml',
@@ -168,7 +168,7 @@ else:
             ))
             # Calibrate all 18 parameters
             higher_order_parameters = str(build_directory / calib_set / calibration_targs[0])
-            case = 8
+            case = params['elastic_calibration_case']
             calibration_targs = [f'calibrated_elastic_parameters_case_{case}_elem_{elem}.yml',
                                 f'{elastic_plot_root}_PK2_fit_case_{case}.PNG',
                                 f'{elastic_plot_root}_SIGMA_fit_case_{case}.PNG',
