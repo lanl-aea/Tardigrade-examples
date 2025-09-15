@@ -31,6 +31,5 @@ compilers
 flake8
 pycgns
 vtk
-moose-dev>=2025.06.*=mpich
-moose-libmesh
 hdbscan
+moose-libmesh
