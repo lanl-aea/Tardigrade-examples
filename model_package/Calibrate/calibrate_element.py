@@ -127,7 +127,7 @@ def objective(x0, Y, inputs, cal_norm, nu_targ, case, element, nqp, increment=No
             PK2_error = numpy.hstack([PK2_error, PK2_diff])
             SIGMA_error = numpy.hstack([SIGMA_error, SIGMA_diff])
             M_error = [0.]
-    elif case == 4 or case == 5:
+    elif (case == 4) or (case == 5) or (case == 9):
         for t in time_steps:
             PK2_diff = numpy.array([PK2[q][t,e,:,:].flatten() - PK2_sim[q][t,0,:] for q in range(nqp)]).flatten()
             SIGMA_diff = numpy.array([SIGMA[q][t,e,:,:].flatten() - SIGMA_sim[q][t,0,:] for q in range(nqp)]).flatten()
@@ -679,6 +679,34 @@ def calibrate(input_file, output_file, case, Emod, nu, L, element=0, increment=N
         param_est = numpy.hstack([param_est, third_order_params])
         third_order_bounds = [sorted([0.1*p, 10.*p]) for p in third_order_params]
         parameter_bounds = parameter_bounds + third_order_bounds
+        res = scipy.optimize.differential_evolution(func=opti_options_4,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=8,
+                                                    args=(Y, inputs, cal_norm, nu_targ, case, element, nqp, True, increment, dev_norm_errors))
+        print(f"res = {res}")
+        print(f"fit params = {res.x}")
+        params = opti_options_4(res.x, Y, inputs, cal_norm, nu_targ, case, element, nqp, calibrate=False)
+    elif case == 9:
+        # Case 9 - Calibrate all 18 parameters and read in existing higher order parameters which as an initial estimate with adjusted bounds
+        ## This time make sure to get component wise error for M
+        param_mask = [True, True, True, True, True, True, True,
+                      False, False, False, False, False, False,
+                      False, False, False, False, False]
+        param_est = list(compress(param_est, param_mask))
+        parameter_bounds = list(compress(parameter_bounds,param_mask))
+        print('initial parameter estimation:')
+        print(param_est)
+        # unpack previously calibrated parameters
+        assert input_elastic_parameters != None, "input_elastic_parameters must be provided!"
+        input_parameters, _ = calibration_tools.parse_input_parameters(input_elastic_parameters)
+        third_order_params = input_parameters[10:21]
+        print(f'input third_order_parameters = {third_order_params}')
+        param_est = numpy.hstack([param_est, third_order_params])
+        third_order_bounds = [sorted([0.1*p, 10.*p]) for p in third_order_params]
+        parameter_bounds = parameter_bounds + third_order_bounds
+        maxit = 5000
         res = scipy.optimize.differential_evolution(func=opti_options_4,
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
