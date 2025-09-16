@@ -104,6 +104,23 @@ neper_cylinder = {
     'filter_parallel': 8,
 }
 
+neper_rectangle = {
+    'width': 1.0,
+    'number_grains': 10,
+    'material_name': 'mock',
+    'pressure': 10.,
+    'displacement': -0.1,
+    'block_name': 'GRAINS',
+    'material_rho': 2.8,
+    'cut': True,
+    # parameters for micromorphic filter
+    'acceleration': False,
+    'velocity': False,
+    'filter_parallel': 8,
+    'plot_micro_domains': True,
+    'dimension': 2,
+}
+
 neper_cube = {
     'width': 1.0,
     'number_grains': 10,
