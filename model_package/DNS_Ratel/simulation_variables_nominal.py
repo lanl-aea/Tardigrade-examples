@@ -233,6 +233,7 @@ I43_damage_CGNS = {
     'velocity': False,
     'filter_parallel': 8,
     # parameters for elastic calibration
+    'elastic_calibration_case': 8,
     'plastic_calibration_case': 6,
     'softening_plastic_calibration_case': 10,
     'calibration_increment_elastic': [0, 1, 2, 3, 4],
@@ -293,8 +294,7 @@ I43_best_DNS = {
     'softening_plastic_calibration_case': 10,
     'calibration_increment_elastic': [0, 1, 2, 3],
     'calibration_increment_plastic': [4, 5, 6, 7, 8, 9, 10, 11, 12],
-    #'calibration_increment_softening': [3, 7, 10, 11, 12, 13, 14],
-    'calibration_increment_softening': [3, 5, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+    'calibration_increment_softening': [3, 5, 7, 9, 10, 11, 12, 13, 14, 15, 16],
     # parameters for plastic calibration
     'cohesion_case': 1,
     'cohesion_increment': [3, 4, 5],
@@ -339,14 +339,13 @@ I43_MAP = {
     'velocity': False,
     'filter_parallel': 8,
     'homogenize_damage': True,
-    # parameters for elastic calibration
+    # parameters for calibration
     'elastic_calibration_case': 8,
     'plastic_calibration_case': 6,
     'softening_plastic_calibration_case': 10,
     'calibration_increment_elastic': [0, 1, 2, 3, 4],
     'calibration_increment_plastic': [5, 6, 7, 8, 9, 10, 11, 12, 13],
-    #'calibration_increment_softening': [3, 7, 10, 11, 12, 13, 14],
-    #'calibration_increment_softening': [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+    'calibration_increment_softening': [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
     # parameters for plastic calibration
     'cohesion_case': 1,
     'cohesion_increment': [3, 4, 5],
