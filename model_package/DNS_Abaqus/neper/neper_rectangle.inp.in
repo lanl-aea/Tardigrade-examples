@@ -1,0 +1,116 @@
+*HEADING
+**
+********************************** P A R T S **********************************
+*PART, NAME=GRAINS
+*INCLUDE, INPUT=@mesh_file@
+**
+********************************** P R O P E R T I E S ************************
+*INCLUDE, INPUT=@section_file@
+**
+*END PART
+**
+**
+**
+********************************** E N D   P A R T S **********************************
+**
+**
+********************************** A S S E M B L Y ************************************
+**
+*ASSEMBLY, NAME=ASSEMBLY1
+**
+*INSTANCE, NAME=GRAINS, PART=GRAINS
+*END INSTANCE
+**
+*END ASSEMBLY
+**
+*INCLUDE, INPUT=material_props.inc
+**
+*Contact
+*Contact Inclusions, ALL EXTERIOR
+*Contact Property Assignment
+ ,  , BOND
+************************************** H I S T O R Y *************************************
+**
+*PREPRINT
+**
+** BOUNDARY CONDITIONS
+**
+** Name: Disp-BC-2 Type: Displacement/Rotation
+*Boundary
+GRAINS.corner, 1, 1
+** Name: Disp-BC-3 Type: Displacement/Rotation
+*Boundary
+GRAINS.side4, 2, 2
+**
+*Initial Conditions, type=TEMPERATURE
+GRAINS.ALLNODES, 293.15
+** ----------------------------------------------------------------
+**
+** STEP: PRESSURE
+**
+*Step, name=PRESSURE, nlgeom=YES
+*Static
+1., 1., 1e-05, 1.
+**
+** LOADS
+**
+** Name: Load-1   Type: Pressure
+*Dsload
+GRAINS.side1, P, @pressure@
+*Dsload
+GRAINS.side2, P, @pressure@
+*Dsload
+GRAINS.side3, P, @pressure@
+**
+** OUTPUT REQUESTS
+**
+*Restart, write, frequency=0
+*Output, field, frequency=0
+*Output, history, frequency=0
+*End Step
+**************************************** S T E P 1 ***************************************
+*STEP,NAME=LOAD, NLGEOM=YES
+**
+*STATIC
+0.01, 1., 1e-05, 0.1
+**Apply deformation to top surface
+*BOUNDARY
+GRAINS.side2, 2, 2, @displacement@
+**Constrain the remaining degrees of freedom
+*Dsload, op=NEW
+GRAINS.side1, P, @pressure@
+** Name: SURFFORCE-2   Type: Pressure
+*Dsload, op=NEW
+GRAINS.side3, P, @pressure@
+**
+** 
+** OUTPUT REQUESTS
+** 
+*Restart, write, frequency=0
+** 
+** FIELD OUTPUT: F-Output-2
+** 
+*Output, field, time interval=0.025
+*Node Output
+U,
+*Element Output, directions=YES
+EVOL, IVOL, S, COORD
+** 
+** FIELD OUTPUT: F-Output-1
+** 
+*Output, field, frequency=99999
+*Node Output
+U,
+*Element Output, directions=YES
+EVOL, IVOL, S, COORD
+*Contact Output
+CFORCE, CSTATUS, CSTRESS
+** 
+** HISTORY OUTPUT: H-Output-1
+** 
+*Output, history, variable=PRESELECT, time interval=0.05
+*Output, history, variable=PRESELECT, frequency=99999
+**
+**
+**
+*END STEP
