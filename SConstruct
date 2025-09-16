@@ -512,6 +512,7 @@ workflow_configurations = [
     # Brazilid Disck Compression - plastic
     "Tardigrade_Brazilian_disk_rigid_platens_plasticity_study",
     # Neper studies
+    "neper_rectangle",
     "neper_cube",
     "neper_cube_multi_grain",
     "neper_cylinder",
