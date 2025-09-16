@@ -71,6 +71,8 @@ if domain_number == 1:
     mesh_targets = [f"{macro_file}.xdmf"]
     script_options = f" --output-file {macro_file}"
     script_options += f" --csv-file {bounding_csv}"
+    if ('dimension' in params.keys()):
+        script_options += f" --dimension {params['dimension']}"
     workflow.extend(env.PythonScript(
         target=mesh_targets,
         source = [f"{filter_source_abspath / macro_script}", bounding_csv],
