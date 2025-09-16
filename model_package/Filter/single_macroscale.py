@@ -10,7 +10,7 @@ import file_io.xdmf
 
 
 def single_domain(X1, X2, Y1, Y2, Z1, Z2, output_file):
-    ''' Creates an XDMF file containing a single element
+    ''' Creates an XDMF file containing a single hexahedral element
 
     :param float X1: The minimum X value
     :param float X2: The maximum X value
@@ -50,7 +50,42 @@ def single_domain(X1, X2, Y1, Y2, Z1, Z2, output_file):
     return 0
 
 
-def write_filter_domain(output_file, single_points=None, csv_file=None):
+def single_quad_domain(X1, X2, Y1, Y2, output_file):
+    ''' Creates an XDMF file containing a single quadrilateral element
+
+    :param float X1: The minimum X value
+    :param float X2: The maximum X value
+    :param float Y1: The minimum Y value
+    :param float Y2: The maximum Y value
+    :param str output_file: The output filename for the h5 + XDMF file pair
+
+    :returns: ``{output_file}.h5`` and ``{output_file}.xdmf`` quadrilateral filter files
+    '''
+
+    filter_points = numpy.array([[X1, Y1],
+                                 [X2, Y1],
+                                 [X2, Y2],
+                                 [X1, Y2]])
+
+    filter_connectivity = numpy.array([0, 1, 2, 3,])
+    filter_connectivity = filter_connectivity.reshape((1,-1)).astype(int)
+
+    # Write the filter to a file
+    xdmf = file_io.xdmf.XDMF(output_filename=output_file)
+
+    grid = xdmf.addGrid(xdmf.output_timegrid, {})
+    xdmf.addPoints(grid, filter_points)
+
+    xdmf.addConnectivity(grid, "QUADRILATERAL", filter_connectivity)
+
+    print("Writing single filter domain file!")
+    xdmf.write()
+    print("filter domain file written!")
+
+    return 0
+
+
+def write_filter_domain(output_file, single_points=None, csv_file=None, dimension=3):
     '''Write a single macroscale domain file for the Micromorphic Filter
 
     :param str output_file: The output filename for the h5 + XDMF file pair
@@ -63,12 +98,19 @@ def write_filter_domain(output_file, single_points=None, csv_file=None):
     if single_points:
         X1, X2, Y1, Y2, Z1, Z2 = (float(item) for item in args.single_points)
         single_domain(X1, X2, Y1, Y2, Z1, Z2, output_file)
+        if dimension == 3:
+            single_domain(X1, X2, Y1, Y2, Z1, Z2, output_file)
+        elif dimension == 2:
+            single_quad_domain(X1, X2, Y1, Y2, output_file)
     elif csv_file:
         csv_data = pandas.read_csv(csv_file, sep=",")
         X1, X2 = csv_data['xmin'][0], csv_data['xmax'][0]
         Y1, Y2 = csv_data['ymin'][0], csv_data['ymax'][0]
         Z1, Z2 = csv_data['zmin'][0], csv_data['zmax'][0]
-        single_domain(X1, X2, Y1, Y2, Z1, Z2, output_file)
+        if dimension == 3:
+            single_domain(X1, X2, Y1, Y2, Z1, Z2, output_file)
+        elif dimension == 2:
+            single_quad_domain(X1, X2, Y1, Y2, output_file)
     else:
         print('Specify either "single_points" or "csv_file" argument!')
         print('No macro domain file will be written')
@@ -91,6 +133,8 @@ def get_parser():
               macro domain')
     parser.add_argument('--csv-file', type=str,
         help='Specify a csv file containing the bounds of a DNS file')
+    parser.add_argument('--dimension', type=int, required=False, default=3,
+        help='The spatial dimension of the macroscale')
 
     return parser
 
@@ -102,4 +146,5 @@ if __name__ == '__main__':
     sys.exit(write_filter_domain(output_file=args.output_file,
                                  single_points=args.single_points,
                                  csv_file=args.csv_file,
+                                 dimension=args.dimension,
                                  ))
