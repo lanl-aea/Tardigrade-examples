@@ -1,0 +1,232 @@
+#! /usr/bin/env python
+
+""" Upscaling workflow for running and single domain upscaling of an Abaqus/Standard DNS of a bonded grain rectangle geometry generated using Neper
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``DNS_Abaqus_abspath`` - String absolute path to model_package/DNS_Abaqus
+  * ``filter_source_abspath`` - String absolute path to model_package/Filter
+  * ``cubit`` - String absolute path to Cubit Python intepreter
+  * ``filter`` - Boolean specifying whether to perform homogenization 
+"""
+
+import pathlib
+
+from model_package.DNS_Abaqus import simulation_variables_nominal
+
+
+# Inherit the parent construction environment
+Import('env')
+
+# set project-wide paths with os-agnostic path separators
+DNS_Abaqus_abspath = pathlib.Path(env["DNS_Abaqus_abspath"])
+filter_source_abspath = pathlib.Path(env["filter_source_abspath"])
+
+# Simulation variables
+build_directory = pathlib.Path(Dir('.').abspath)
+workflow_name = build_directory.name
+workflow_configuration = [env["project_configuration"], workflow_name]
+output_file_type = "h5"
+model = "neper_rectangle"
+params = simulation_variables_nominal.neper_rectangle
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+
+# specify targets for visualizing Micromorphic Filter output
+viz_targs =  (
+    ('plot-cauchy-couple', 'cauchy_couple.png'),
+    ('plot-cauchy-stress', 'cauchy_stress.png'),
+    ('plot-PK2-stress', 'PK2_stress.png'),
+    ('plot-symm-stress', 'symm_stress.png'),
+    ('plot-SIGMA-stress', 'SIGMA_stress.png'),
+    ('plot-stress-diff', 'stress_diff.png'),
+    ('plot-body-couples', 'body_couples.png'),
+    ('plot-spin-inertias', 'micro_spin_inertias.png'),
+    ('plot-spin-diff', 'spin_diff.png'),
+    ('plot-stress-norms', 'stress_norms.png'),
+    ('plot-best-stress-norms', 'best_stress_norms.png'),
+    ('plot-rotation-diff', 'rotation_diff.png'),
+    ('plot-stretch-diff', 'stretch_diff.png'),
+    ('csv-cauchy', 'cauchy.csv'),
+    ('csv-symm', 'symm.csv'),
+    ('csv-stress-diff', 'stress_diff.csv'),
+    ('csv-m', 'm_stress.csv'),
+    ('csv-M', 'M_stress.csv'),
+    )
+
+# ---------- NEPER -------------------------------------------------------------
+# Create grain tesselation
+number_grains = params['number_grains']
+tesselation_file_base = f"{model}_{number_grains}grains"
+tesselation_file = f"{tesselation_file_base}.tess"
+workflow.extend(env.NeperTesselate(
+    target = tesselation_file,
+    source = [],
+    neper_program = env["neper"],
+    num_grains = number_grains,
+    output_name = tesselation_file,
+    arguments = "-morpho gg -dim 2",
+    stdout_file = f"{tesselation_file}.stdout"))
+
+# ---------- DNS ---------------------------------------------------------------
+# Convert tesselation to mesh
+if env['cubit']:
+    mesh_script = "convert_tess_2d.py"
+    mesh_file = f"{tesselation_file_base}.inp"
+    stl_file = f"{tesselation_file_base}.stl"
+    script_options = f"--input-file {tesselation_file}"
+    script_options += f" --stl-file {tesselation_file_base}"
+    script_options += f" --mesh-file {tesselation_file_base}"
+    workflow.extend(env.PythonScript(
+        target=[mesh_file, stl_file],
+        source=[str(DNS_Abaqus_abspath / mesh_script), tesselation_file],
+        script_options=script_options,
+        ))
+else:
+    print('Cannot continue without Cubit!')
+params['mesh_file'] = mesh_file
+
+# Write section file
+section_script = 'write_section_file.py'
+section_file = 'sections.inp'
+script_options = f'--output-file {section_file}'
+script_options += f' --number-grains {number_grains}'
+script_options += f' --material-name {params["material_name"]}'
+workflow.extend(env.PythonScript(
+    target=[section_file],
+    source=[str(DNS_Abaqus_abspath / section_script)],
+    script_options=script_options
+    ))
+params['section_file'] = section_file
+
+# Set up simulation
+main_input_file = "neper_rectangle.inp"
+abaqus_source_list = [
+    DNS_Abaqus_abspath / "neper" / f"{main_input_file}.in",
+    DNS_Abaqus_abspath / "neper" / "material_props.inc",
+    ]
+
+abaqus_source_list = [pathlib.Path(source_file) for source_file in abaqus_source_list]
+workflow.extend(env.CopySubstfile(
+    abaqus_source_list,
+    substitution_dictionary=env.SubstitutionSyntax(params),))
+
+# Abaqus solve
+solve_source_list = [main_input_file, mesh_file, section_file]
+job_name = pathlib.Path(f"{model}_run")
+abaqus_options = f'-double both -interactive'
+## Solve
+workflow.extend(env.AbaqusSolverOverride(
+    target = [f"{job_name}.sta"],
+    source = solve_source_list,
+    job_name = job_name,
+    abaqus_options = f"{abaqus_options} -cpus $({env['solve_cpus']}$)",
+    stdout_file = f"{job_name}.stdout",
+    search = f"{job_name}.sta",
+))
+
+# Extract Abaqus
+extract_source_list = [f"{job_name}.odb"]
+report_args = "all sets step=_LAST_"
+workflow.extend(env.AbaqusExtract(
+    target = [f"{job_name}.h5", f"{job_name}_datasets.h5"],
+    source = extract_source_list,
+    odb_report_args = report_args
+))
+
+# Extract sets from mesh file
+sets_script = 'parse_sets_from_inp.py'
+set_file = f'{model}_sets.yml'
+script_options = f'--input-file {mesh_file}'
+script_options += f' --output-file {set_file}'
+workflow.extend(env.PythonScript(
+    target=[set_file],
+    source=[str(DNS_Abaqus_abspath / sets_script), mesh_file],
+    script_options=script_options
+    ))
+
+# ---------- Filter ------------------------------------------------------------
+if env['filter']:
+    # Extract to XDMF filter input
+    main_XDMF_name = f"FILTER_INPUT_{model}"
+    filter_inputs = [f"{str(build_directory / main_XDMF_name)}.{ext}" for ext in ['xdmf', 'h5']]
+    script_options = f"--output-file {str(build_directory / main_XDMF_name)}"
+    XDMF_script = "ODBextract_to_XDMF_neper_2d.py"
+    script_options += f" --input-file {job_name}_datasets.h5"
+    script_options += f" --elem-path {params['block_name']}/FieldOutputs/ALL_ELEMENTS"
+    script_options += f" --node-path {params['block_name']}/FieldOutputs/ALL_NODES"
+    script_options += f" --mesh-path {params['block_name']}/Mesh"
+    script_options += f" --ref-density {params['material_rho']}"
+    script_options += f" --collocation-option center"
+    script_options += f" --element-type CPS3"
+    script_options += f" --init-ref yes"
+    script_options += f" --sets-file {set_file}"
+    workflow.extend(env.PythonScript(
+        target = filter_inputs,
+        source = [f"{DNS_Abaqus_abspath / XDMF_script}", f"{job_name}.h5", set_file],
+        script_options = script_options
+    ))
+    params['filter_inputs'] = filter_inputs
+
+    # Specify bounding information
+    bounding_csv = f"{model}_bounds.csv"
+    bounding_script = "force_bounds.py"
+    script_options = f"--xmin 0 --xmax {params['width']} --ymin 0 --ymax {params['width']} --zmin 0.0 --zmax 0.0"
+    script_options += f" --output-file {bounding_csv}"
+    workflow.extend(env.PythonScript(
+        target=bounding_csv,
+        source=[str(filter_source_abspath / bounding_script)],
+        script_options=script_options))
+    params['bounding_csv'] = bounding_csv
+
+    # ---------- FILTER ------------------------------------------------------------
+    ## Default micro-averaging domains
+    parameters = {'seed_size': params['width'],
+                  'num_domains': 1,}
+    filter_results = f"FILTER_RESULTS_{model}_default"
+    filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
+    params['filter_targs'] = filter_targs
+    params['filter_config_basename'] = f"FILTER_config_{model}_default"
+    print(params['filter_config_basename'])
+    params['viz_targs'] = tuple((option, f'default_{target}') for option, target in viz_targs)
+    params['sets_file'] = None
+    params['micro_averaging_domains'] = 'auto'
+    params['model_override'] = f"{model}_default"
+    # Run common filter sconscript
+    workflow.extend(
+        SConscript("filter.scons",
+                   exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
+                   duplicate=False))
+
+#     ## micro-averaging domains by grains
+#     filter_results = f"FILTER_RESULTS_{model}_grain_domains"
+#     filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
+#     params['filter_targs'] = filter_targs
+#     params['viz_targs'] = tuple((option, f'sets_{target}') for option, target in viz_targs)
+#     params['filter_config_basename'] = f"FILTER_config_{model}_grain_domains"
+#     params['sets_file'] = set_file
+#     params['micro_averaging_domains'] = 'prescribed'
+#     params['model_override'] = f"{model}_grain_domains"
+#     # Run common filter sconscript
+#     workflow.extend(
+#         SConscript("filter.scons",
+#                    exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
+#                    duplicate=True))
+
+#     ## spectral_clustering
+#     filter_results = f"FILTER_RESULTS_{model}_grain_spectral"
+#     filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
+#     params['filter_targs'] = filter_targs
+#     params['viz_targs'] = tuple((option, f'spectral_{target}') for option, target in viz_targs)
+#     params['filter_config_basename'] = f"FILTER_config_{model}_grain_spectral"
+#     params['sets_file'] = None
+#     params['micro_averaging_domains'] = 'spectral'
+#     params['model_override'] = f"{model}_grain_spectral"
+#     # Run common filter sconscript
+#     workflow.extend(
+#         SConscript("filter.scons",
+#                    exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
+#                    duplicate=True))
+
+# Collector alias based on parent directory name
+env.Alias(workflow_name, workflow)
