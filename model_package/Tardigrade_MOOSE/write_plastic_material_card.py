@@ -133,17 +133,17 @@ def get_parser():
         help="The elastic tau10 parameter")
     parser.add_argument('--tau11', type=float, required=False, default=0.0,
         help="The elastic tau11 parameter")
-    parser.add_argument('--cu0', type=float, required=False, default=1.e4,
+    parser.add_argument('--cu0', type=float, required=False, default=1.e10,
         help="The plastic initial macro cohesion parameter, $c^{u,0}$")
-    parser.add_argument('--Hu', type=float, required=False, default=1.e-8,
+    parser.add_argument('--Hu', type=float, required=False, default=1.e4,
         help="The plastic macro hardening parameter, $H^u$")
-    parser.add_argument('--cchi0', type=float, required=False, default=1.e4,
+    parser.add_argument('--cchi0', type=float, required=False, default=1.e10,
         help="The plastic initial micro cohesion parameter, $c^{\chi,0}$")
-    parser.add_argument('--Hchi', type=float, required=False, default=1.e-8,
+    parser.add_argument('--Hchi', type=float, required=False, default=1.e4,
         help="The plastic micro hardening parameter, $H^{\chi}$")
-    parser.add_argument('--cnablachi0', type=float, required=False, default=1.e4,
+    parser.add_argument('--cnablachi0', type=float, required=False, default=1.e10,
         help="The plastic initial micro gradient cohesion parameter, $c^{\nabla\chi,0}$")
-    parser.add_argument('--Hnablachi', type=float, required=False, default=1.e-8,
+    parser.add_argument('--Hnablachi', type=float, required=False, default=1.e4,
         help="The plastic micro gradient hardening parameter, $H^{\nabla\chi}$")
 
     return parser
