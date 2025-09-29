@@ -1,0 +1,273 @@
+#! /usr/bin/env python
+
+""" Workflow for running MOOSE simulations of a Brazilian disk indirect tension experiment with loading platens with loading platens (full geometry, 1/4 symmetry, and 1/8 symmetry)
+Requires the following ``Sconscript(..., exports=[])``
+* ``env`` - The SCons construction environment with the following required keys
+  * ``Tardigrade_MOOSE_source_abspath`` - String path for the Tardigrade-MOOSE application
+  * ``mpi`` - String absolute path to mpiexec program
+  * ``LD_PATH`` - String absolute path(s) for shared libraries required to run Tardigrade
+  * ``Tardigrade`` - String absolute path to tardigrade-opt program
+  * ``solve_cpus`` - Integer specifying the number of processes to run Tardigrade-MOOSE, default=1
+"""
+
+import pathlib
+
+import numpy
+import SCons.Defaults
+import waves
+
+from model_package.Tardigrade_MOOSE import simulation_variables_nominal
+
+
+# Inherit the parent construction environment
+Import('env')
+
+# set project-wide paths with os-agnostic path separators
+Tardigrade_MOOSE_source_abspath = pathlib.Path(env["Tardigrade_MOOSE_source_abspath"])
+mesh_templates_abspath = pathlib.Path(env["mesh_templates_abspath"])
+peta_data_copy_abspath = pathlib.Path(env["peta_data_copy_abspath"])
+
+# Simulation variables
+build_directory = pathlib.Path(Dir('.').abspath)
+workflow_name = build_directory.name
+output_file_type = "h5"
+model = "Brazil_disk_rigid_platens_micromorphic_elasticity"
+params = simulation_variables_nominal.Brazilian_disk_platens
+
+# Collect the target nodes to build a concise alias for all targets
+workflow = []
+
+# Calculations for rigid platens
+#rad_diff = params['app_rad'] - params['spec_rad']
+rad_diff = params['rad_diff']
+bottom_platen_center_x = 0.
+bottom_platen_center_y = rad_diff
+top_platen_center_x = 0.
+top_platen_center_y = -1*rad_diff
+
+parameter_schema = dict(
+    parameter_samples = numpy.array([
+        ["full_geometry", 1, 1, 6],
+        ["quarter_symmetry", 2, 1, 1],
+        ["eighth_symmetry", 4, 1, 1],
+        ["half_symmetry", 2, 1, 3],
+        ], dtype=object),
+    parameter_names = numpy.array(["geometry", "force_factor", "disp_factor", "num_cpus"]))
+
+normalized_QoI_csvs = []
+plot_labels = []
+
+parameter_flag = False
+if env['selected_parameter_sets'] != "All":
+    parameter_flag = True
+    selected_parameter_sets = [int(i) for i in env['selected_parameter_sets'].split(' ')]
+
+parameter_generator = waves.parameter_generators.CustomStudy(parameter_schema)
+for set_name, parameters in parameter_generator.parameter_study_to_dict().items():
+    set_name = pathlib.Path(f'{build_directory/set_name}')
+
+    # Optionally skip certain parameter sets
+    if parameter_flag == True:
+        set = int(str(set_name).split('parameter_set')[-1])
+        if set not in selected_parameter_sets:
+            continue
+
+    geometry = parameters['geometry']
+    force_factor = parameters['force_factor']
+    disp_factor = parameters['disp_factor']
+    num_cpus = parameters['num_cpus']
+    model_name = f'{model}_{geometry}'
+    simulation_variables = params.copy()
+
+    # Write elastic material card
+    material_script = 'write_elastic_material_card.py'
+    material_card = 'elastic_material_card.yml'
+    Emod = simulation_variables['material_E']
+    nu = simulation_variables['material_nu']
+    lame_lambda = Emod*nu/((1.+nu)*(1.-2*nu))
+    lame_mu     = Emod/(2*(1.+nu)) #shear modulus, K
+    script_options = f'--output-file {material_card}'
+    script_options += f' --lamb {simulation_variables["lambda"]}'
+    script_options += f' --mu {simulation_variables["mu"]}'
+    script_options += f' --eta {simulation_variables["eta"]}'
+    script_options += f' --tau {simulation_variables["tau"]}'
+    script_options += f' --kappa {simulation_variables["kappa"]}'
+    script_options += f' --nu {simulation_variables["nu"]}'
+    script_options += f' --sigma {simulation_variables["sigma"]}'
+    script_options += f' --tau1 {simulation_variables["tau1"]}'
+    script_options += f' --tau2 {simulation_variables["tau2"]}'
+    script_options += f' --tau3 {simulation_variables["tau3"]}'
+    script_options += f' --tau4 {simulation_variables["tau4"]}'
+    script_options += f' --tau5 {simulation_variables["tau5"]}'
+    script_options += f' --tau6 {simulation_variables["tau6"]}'
+    script_options += f' --tau7 {simulation_variables["tau7"]}'
+    script_options += f' --tau8 {simulation_variables["tau8"]}'
+    script_options += f' --tau9 {simulation_variables["tau9"]}'
+    script_options += f' --tau10 {simulation_variables["tau10"]}'
+    script_options += f' --tau11 {simulation_variables["tau11"]}'
+    workflow.extend(env.PythonScript(
+        target = [f'{set_name}/{material_card}'],
+        source = [f"{Tardigrade_MOOSE_source_abspath / material_script}"],
+        script_options = script_options
+    ))
+
+    # Mesh and simulation options
+    tardi_mesh_name = f'{model_name}_mesh'
+    tardi_mesh =f'{tardi_mesh_name}.e'
+    tardi_sim_name = f'Tardigrade_{model_name}'
+    tardigrade_build_targs = f"{tardi_sim_name}.i"
+    ## mesh
+    mesh_options = f" --output-file {tardi_mesh_name}"
+    mesh_options += f" --specimen-seed-size {simulation_variables['seed_size']}"
+    mesh_options += f" --platen-seed-size {simulation_variables['platen_seed_size']}"
+    mesh_options += f" --height {simulation_variables['height']}"
+    mesh_options += f" --width {simulation_variables['width']}"
+    mesh_options += f" --chord {simulation_variables['chord']}"
+    mesh_options += f" --app-rad {simulation_variables['app_rad']}"
+    mesh_options += f" --app-dep {simulation_variables['app_dep']}"
+    mesh_options += f" --spec-rad {simulation_variables['spec_rad']}"
+    mesh_options += f" --spec-dep {simulation_variables['spec_dep']}"
+    mesh_options += f" --tol {simulation_variables['tol']}"
+    mesh_options += f" --export-platens False"
+    ## simulation
+    input_options = f"--output-file {tardigrade_build_targs}"
+    input_options += f" --mesh {tardi_mesh}"
+    input_options += f" --parameter-sets {material_card}"
+    input_options += f" --platen-radius {simulation_variables['app_rad']}"
+    input_options += f" --disp {simulation_variables['macro_disp']/2}" # Split between top and bottom platens
+    input_options += f" --duration {simulation_variables['macro_duration']}"
+    input_options += f" --xc-bot {bottom_platen_center_x}"
+    input_options += f" --yc-bot {bottom_platen_center_y}"
+    input_options += f" --xc-top {top_platen_center_x}"
+    input_options += f" --yc-top {top_platen_center_y}"
+    input_options += f" --geometry {geometry.split('_')[0]}"
+    input_options += " --material-type elastic"
+    ## conditionals
+    if 'symmetry' in geometry:
+        mesh_script = 'brazilian_disk_apparatus_symmetry.py'
+        input_options += " --back-symmetry back_sym"
+        input_options += " --specimen-bottom-surface specimen_bottom"
+        if 'quarter' in geometry:
+            mesh_options += f" --symmetry quarter"
+            input_options += " --top-symmetry top_sym"
+        elif 'eighth' in geometry:
+            mesh_options += f" --symmetry eighth"
+            input_options += " --top-symmetry top_sym"
+            input_options += " --side-symmetry side_sym"
+        elif 'half' in geometry:
+            mesh_options += f" --symmetry half"
+            input_options += " --specimen-top-surface specimen_top"
+        else:
+            print('Specify a valid geometry type!')
+    elif geometry == 'full_geometry':
+        input_options += " --specimen-top-surface specimen_top"
+        input_options += " --specimen-bottom-surface specimen_bottom"
+        mesh_script = 'brazilian_disk_apparatus.py'
+    else:
+        print('Specify a valid geometry type!')
+
+    # Build mesh
+    workflow.extend(env.PythonScript(
+        target=[str(set_name / tardi_mesh)],
+        source=[str(Tardigrade_MOOSE_source_abspath / mesh_script)],
+        script_options=mesh_options
+        ))
+
+    # build input file
+    tardigrade_input_script = "build_Tardigrade_input_deck_brazil_disk_rigid_platens.py"
+    workflow.extend(env.PythonScript(
+        target = [str(set_name / tardigrade_build_targs)],
+        source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}",
+                  str(set_name / tardi_mesh)],
+        script_options = input_options
+    ))
+
+    # run Tardigrade-MOOSE
+    if env['mpi']:
+        mpi_location = env["mpi"]
+    else:
+        mpi_location = []
+    #mpi_location = []
+    tardigrade_moose_targs = [str(set_name / targ) for targ in [f'{tardi_sim_name}_out.e', f'{tardi_sim_name}_out.csv']]
+    tardigrade_build_sources = [str(set_name / source) for source in [tardigrade_build_targs, tardi_mesh]]
+    workflow.extend(env.TardigradeSolver(
+        target = tardigrade_moose_targs,
+        source = tardigrade_build_sources,
+        LD_LIBRARY_PATH = env['LD_PATH'],
+        tardigrade_program = env['Tardigrade'],
+        tardigrade_input = tardigrade_build_targs,
+        tardigrade_cpus =  num_cpus,
+        stdout_file = f"{tardi_sim_name}_out.e.stdout",
+        mpi_location = mpi_location,
+        ))
+
+    # Post-processing step #1 - force vs. displacement
+    plot_name = f"{tardi_sim_name}_force_displacement"
+    plot_script = "plot_force_displacement.py"
+    script_options = f"--csv-file {tardi_sim_name}_out.csv"
+    script_options += f" --output-file {plot_name}.png"
+    script_options += f" --output-csv {plot_name}.csv"
+    script_options += f" --final-disp {simulation_variables['macro_disp']}"
+    script_options += " --force-field bot_react_y"
+    workflow.extend(env.PythonScript(
+        target = [str(set_name / file) for file in [f"{plot_name}.png", f"{plot_name}.csv"]],
+        source = [f"{Tardigrade_MOOSE_source_abspath / plot_script}", f"{set_name}/{tardi_sim_name}_out.csv"],
+        script_options = script_options
+    ))
+
+    # Post-processing step #2 - normalized force and displacements
+    plot_script = "Brazil_disk_normalized_force_vs_displacements.py"
+    csv_input = f"{set_name}/{plot_name}.csv"
+    plot_name = f"{tardi_sim_name}_force_displacement_normalized"
+    script_options = f"--input-file {csv_input}"
+    script_options += f" --radius {simulation_variables['spec_rad']}"
+    script_options += f" --thickness {simulation_variables['spec_dep']}"
+    script_options += f" --force-factor {force_factor}"
+    script_options += f" --disp-factor {disp_factor}"
+    script_options += f" --plot-file {plot_name}.png"
+    script_options += f" --csv-file {plot_name}.csv"
+    workflow.extend(env.PythonScript(
+        target = [str(set_name / file) for file in [f"{plot_name}.png", f"{plot_name}.csv"]],
+        source = [f"{Tardigrade_MOOSE_source_abspath / plot_script}", csv_input],
+        script_options = script_options
+    ))
+    normalized_QoI_csvs.append(f'{set_name}/{plot_name}.csv')
+    plot_labels.append(geometry)
+
+# Summarize results
+summary_script = "summarize_micro_macro_force_displacements.py"
+output_targets = [f"all_normalized_force_displacements.png",
+                  f"all_normalized_force_displacements.csv"]
+script_options = f"--csv-files {' '.join(normalized_QoI_csvs)}"
+script_options += f" --plot-labels {' '.join(plot_labels)}"
+script_options += f" --output-file {output_targets[0]}"
+script_options += f" --output-csv {output_targets[1]}"
+script_options += " --disp-field norm_disp"
+script_options += " --force-field norm_force"
+script_options += r" --x-label 'Displacement, $\delta / D$ (%)'"
+script_options += r" --y-label 'Applied Load, $ P / (BR) $ (MPa)'"
+workflow.extend(env.PythonScript(
+    target=output_targets,
+    source=[f"{Tardigrade_MOOSE_source_abspath / summary_script}"] + normalized_QoI_csvs,
+    script_options=script_options
+    ))
+
+# Plot against experimental data
+summary_script = "summarize_micro_macro_force_displacements.py"
+output_targets = [f"all_normalized_force_displacements_vs_exp.png"]
+script_options = f"--csv-files {' '.join(normalized_QoI_csvs)}"
+script_options += f" --plot-labels {' '.join(plot_labels)}"
+script_options += f" --output-file {output_targets[0]}"
+script_options += " --disp-field norm_disp"
+script_options += " --force-field norm_force"
+script_options += r" --x-label 'Displacement, $\delta / D$ (%)'"
+script_options += r" --y-label 'Applied Load, $ P / (BR) $ (MPa)'"
+script_options += f' --brazil-exp-file {peta_data_copy_abspath}/Cheng_Brazil_23C_data_extracted.csv'
+workflow.extend(env.PythonScript(
+    target=output_targets,
+    source=[f"{Tardigrade_MOOSE_source_abspath / summary_script}"] + normalized_QoI_csvs,
+    script_options=script_options
+    ))
+
+# Collector alias based on parent directory name
+env.Alias(workflow_name, workflow)

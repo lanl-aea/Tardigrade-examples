@@ -312,6 +312,7 @@ tardigrade_solver_mpi = Builder(
             ${mpi_location} \
             -n ${tardigrade_cpus} ${tardigrade_program} \
             -i ${tardigrade_input} \
+            --n-threads=2 \
             --no-color --color off > ${stdout_file} || true",
             "cd ${TARGET.dir.abspath} && grep -i 'Finished Executing' ${stdout_file}"])
 tardigrade_solver_sbatch = Builder(
@@ -509,8 +510,12 @@ workflow_configurations = [
     "MOOSE_Brazilian_disk_rigid_platens_study",
     "Tardigrade_Brazilian_disk_rigid_platens_study",
     "Tardigrade_Brazilian_disk_rigid_platens_study_no_phi",
+    "Tardigrade_Brazilian_disk_rigid_platens_micromorphic_elasticity_study",
     # Brazilid Disck Compression - plastic
     "Tardigrade_Brazilian_disk_rigid_platens_plasticity_study",
+    "Tardigrade_Brazilian_disk_kernel_platens_plasticity_study",
+    "Tardigrade_Brazilian_disk_rigid_flat_platens_plasticity_study",
+    "Tardigrade_Brazilian_disk_rigid_line_load_plasticity_study",
     # Neper studies
     "neper_rectangle",
     "neper_cube",
