@@ -70,13 +70,15 @@ workflow.extend(env.NeperTesselate(
 
 # ---------- DNS ---------------------------------------------------------------
 # Convert tesselation to mesh
+seed_size = 0.04
 if env['cubit']:
     mesh_script = "convert_tess_2d.py"
     mesh_file = f"{tesselation_file_base}.inp"
-    stl_file = f"{tesselation_file_base}.stl"
+    stl_file = f"{tesselation_file_base}_geo.stl"
     script_options = f"--input-file {tesselation_file}"
-    script_options += f" --stl-file {tesselation_file_base}"
+    script_options += f" --stl-file {tesselation_file_base}_geo"
     script_options += f" --mesh-file {tesselation_file_base}"
+    #script_options += f" --seed-size {seed_size}"
     workflow.extend(env.PythonScript(
         target=[mesh_file, stl_file],
         source=[str(DNS_Abaqus_abspath / mesh_script), tesselation_file],
@@ -198,35 +200,50 @@ if env['filter']:
                    exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
                    duplicate=False))
 
-#     ## micro-averaging domains by grains
-#     filter_results = f"FILTER_RESULTS_{model}_grain_domains"
-#     filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
-#     params['filter_targs'] = filter_targs
-#     params['viz_targs'] = tuple((option, f'sets_{target}') for option, target in viz_targs)
-#     params['filter_config_basename'] = f"FILTER_config_{model}_grain_domains"
-#     params['sets_file'] = set_file
-#     params['micro_averaging_domains'] = 'prescribed'
-#     params['model_override'] = f"{model}_grain_domains"
-#     # Run common filter sconscript
-#     workflow.extend(
-#         SConscript("filter.scons",
-#                    exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
-#                    duplicate=True))
+    ## micro-averaging domains by grains
+    filter_results = f"FILTER_RESULTS_{model}_grain_domains"
+    filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
+    params['filter_targs'] = filter_targs
+    params['viz_targs'] = tuple((option, f'sets_{target}') for option, target in viz_targs)
+    params['filter_config_basename'] = f"FILTER_config_{model}_grain_domains"
+    params['sets_file'] = set_file
+    params['micro_averaging_domains'] = 'prescribed'
+    params['model_override'] = f"{model}_grain_domains"
+    # Run common filter sconscript
+    workflow.extend(
+        SConscript("filter.scons",
+                   exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
+                   duplicate=True))
 
-#     ## spectral_clustering
-#     filter_results = f"FILTER_RESULTS_{model}_grain_spectral"
-#     filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
-#     params['filter_targs'] = filter_targs
-#     params['viz_targs'] = tuple((option, f'spectral_{target}') for option, target in viz_targs)
-#     params['filter_config_basename'] = f"FILTER_config_{model}_grain_spectral"
-#     params['sets_file'] = None
-#     params['micro_averaging_domains'] = 'spectral'
-#     params['model_override'] = f"{model}_grain_spectral"
-#     # Run common filter sconscript
-#     workflow.extend(
-#         SConscript("filter.scons",
-#                    exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
-#                    duplicate=True))
+    ## spectral_clustering
+    filter_results = f"FILTER_RESULTS_{model}_grain_spectral"
+    filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
+    params['filter_targs'] = filter_targs
+    params['viz_targs'] = tuple((option, f'spectral_{target}') for option, target in viz_targs)
+    params['filter_config_basename'] = f"FILTER_config_{model}_grain_spectral"
+    params['sets_file'] = None
+    params['micro_averaging_domains'] = 'spectral'
+    params['model_override'] = f"{model}_grain_spectral"
+    # Run common filter sconscript
+    workflow.extend(
+        SConscript("filter.scons",
+                   exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
+                   duplicate=True))
+
+    ## HDBSCAN
+    filter_results = f"FILTER_RESULTS_{model}_grain_HDBSCAN_recursive"
+    filter_targs = [f"{filter_results}.{ext}" for ext in ['xdmf', 'h5']]
+    params['filter_targs'] = filter_targs
+    params['viz_targs'] = tuple((option, f'HDBSCAN_recursive_{target}') for option, target in viz_targs)
+    params['filter_config_basename'] = f"FILTER_config_{model}_grain_HDBSCAN_recursive"
+    params['sets_file'] = None
+    params['micro_averaging_domains'] = 'HDBSCAN_recursive'
+    params['model_override'] = f"{model}_grain_HDBSCAN_recursive"
+    # Run common filter sconscript
+    workflow.extend(
+        SConscript("filter.scons",
+                   exports=["env", "parameters", "workflow_name", "model", "params", "filter_inputs"],
+                   duplicate=True))
 
 # Collector alias based on parent directory name
 env.Alias(workflow_name, workflow)
