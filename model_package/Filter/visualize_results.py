@@ -10,7 +10,6 @@ import pandas
 from scipy.linalg import norm
 from scipy.linalg import polar
 
-sys.path.append('/projects/tea/tardigrade-examples/model_package/')
 import xdmf_reader_tools as XRT
 
 
@@ -32,26 +31,27 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def plot_reference_stresses(E, stress, average, output_name):
+def plot_reference_stresses(E, stress, average, output_name, dim=3):
     ''' Plot stress vs strain in the reference configuration
 
     :param dict E: The quantities dict storing Green-Lagrance strain
     :param dict stress: The quantities dict storing either second Piola Kirchhoff or Symmetric micro stress
     :param bool average: Average over quadrature points if True
     :param str output_name: The output plot name
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: ``output_name``
     '''
 
     name = output_name.replace('.PNG','')
     fig1 = matplotlib.pyplot.figure(name, figsize=(11,9))
-    axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
+    axes1 = [[fig1.add_subplot(dim,dim,dim * i + j + 1) for j in range(dim)] for i in range(dim)]
     ybounds = [-1, 1]
 
     colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
 
-    for i in range(3):
-        for j in range(3):
+    for i in range(dim):
+        for j in range(dim):
             ax1 = axes1[i][j]
             if 'PK2' in output_name:
                 plot_label = r"$PK2_{" + str(i+1) + str(j+1) + "}$ (MPa)"
@@ -71,7 +71,7 @@ def plot_reference_stresses(E, stress, average, output_name):
             matplotlib.pyplot.ticklabel_format(style='sci', axis='y')
             ax1.tick_params('x', labelrotation=45)
 
-    ax1 = axes1[1][2]
+    ax1 = axes1[dim-2][dim-1]
     if average == False:
         ax1.legend(bbox_to_anchor=(1.2, 0.9))
     matplotlib.pyplot.figure(name)
@@ -81,26 +81,27 @@ def plot_reference_stresses(E, stress, average, output_name):
     return 0
 
 
-def plot_current_stresses(e, stress, average, output_name):
+def plot_current_stresses(e, stress, average, output_name, dim=3):
     ''' Plot stress vs strain in the current configuration
 
     :param dict e: The quantities dict storing Euler-Almansi strain
     :param dict stress: The quantities dict storing either Cauchy or symmetric micro stress
     :param bool average: Average over quadrature points if True
     :param str output_name: The output plot name
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: ``output_name``
     '''
 
     name = output_name.replace('.PNG','')
     fig1 = matplotlib.pyplot.figure(name, figsize=(11,9))
-    axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
+    axes1 = [[fig1.add_subplot(dim,dim,dim * i + j + 1) for j in range(dim)] for i in range(dim)]
     ybounds = [-1, 1]
 
     colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
 
-    for i in range(3):
-        for j in range(3):
+    for i in range(dim):
+        for j in range(dim):
             ax1 = axes1[i][j]
             if 'cauchy' in output_name:
                 plot_label = r"$\sigma_{" + str(i+1) + str(j+1) + "}$ (MPa)"
@@ -120,7 +121,7 @@ def plot_current_stresses(e, stress, average, output_name):
             matplotlib.pyplot.ticklabel_format(style='sci', axis='y')
             ax1.tick_params('x', labelrotation=45)
 
-    ax1 = axes1[1][2]
+    ax1 = axes1[dim-2][dim-1]
     if average == False:
         ax1.legend(bbox_to_anchor=(1.2, 0.9))
     matplotlib.pyplot.figure(name)
@@ -131,13 +132,14 @@ def plot_current_stresses(e, stress, average, output_name):
     return 0
 
 
-def plot_axial_vector_mag(cauchy, times, average, output_name):
+def plot_axial_vector_mag(cauchy, times, average, output_name, dim=3):
     ''' Plot the magnitude of the Cauchy couple
 
     :param dict cauchy: The quantities dict storing Cauchy stress
     :param array-like times: The time increments
     :param bool average: Average over quadrature points if True
     :param str output_name: The output plot name
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: ``output_name``
     '''
@@ -156,7 +158,10 @@ def plot_axial_vector_mag(cauchy, times, average, output_name):
                 skew = 0.5*(sig - sig_t)
 
                 # off diagonals
-                ax = numpy.sqrt((skew[0][1]**2)+(skew[0][2]**2)+(skew[1][2]**2))
+                if dim == 3:
+                    ax = numpy.sqrt((skew[0][1]**2)+(skew[0][2]**2)+(skew[1][2]**2))
+                elif dim == 2:
+                    ax = skew[0][1]
 
                 # Append results
                 axial.append(ax)
@@ -176,7 +181,7 @@ def plot_axial_vector_mag(cauchy, times, average, output_name):
     return 0 
 
 
-def plot_stress_diffs(cauchy, symm, times, average, output_name):
+def plot_stress_diffs(cauchy, symm, times, average, output_name, dim=3):
     ''' Plot differences between Cauchy and micro symmetric stresses
 
     :param dict cauchy: The quantities dict storing Cauchy stress
@@ -184,19 +189,20 @@ def plot_stress_diffs(cauchy, symm, times, average, output_name):
     :param array-like times: The time increments
     :param bool average: Average over quadrature points if True
     :param str output_name: The output plot name
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: ``output_name``
     '''
 
     fig1 = matplotlib.pyplot.figure('stress_diff', figsize=(11,9),dpi=300)
-    axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
+    axes1 = [[fig1.add_subplot(dim,dim,dim * i + j + 1) for j in range(dim)] for i in range(dim)]
 
     colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
     nel = numpy.shape(cauchy[0])[1]
     for el in range(nel):
-        for i in range(3):
-            for j in range(3):
+        for i in range(dim):
+            for j in range(dim):
                 ax1 = axes1[i][j]
                 
                 for qp in cauchy.keys():
@@ -210,7 +216,7 @@ def plot_stress_diffs(cauchy, symm, times, average, output_name):
 
                 ax1.set_xlabel(r'Simulation time (s)', fontsize=14)
                 ax1.set_ylabel(r"($\sigma_{" + str(i+1) + str(j+1) + "}$ - $s_{" + str(i+1) + str(j+1) + "}$)", fontsize=14)
-    ax1 = axes1[1][2]
+    ax1 = axes1[dim-2][dim-1]
     matplotlib.pyplot.figure('stress_diff')
     matplotlib.pyplot.tight_layout()
     matplotlib.pyplot.savefig(f'{output_name}')
@@ -218,13 +224,14 @@ def plot_stress_diffs(cauchy, symm, times, average, output_name):
     return 0
 
 
-def get_R_and_U(PK2, F, chi, times):
+def get_R_and_U(PK2, F, chi, times, dim=3):
     ''' Calculate macro and micro stretches and deformations from deformation gradients
 
     :param dict PK2: The quantities dict storing second Piola Kirchhoff stress
     :param dict F: The quantities dict storing the macro deformation gradient
     :param dict chi: The quantities dict storing the micro deformation
     :param array-like times: The time increments
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: macro rotation (R), macro stretch (U), micro rotation (Rchi), and micro stretch (Uchi)
     '''
@@ -234,8 +241,8 @@ def get_R_and_U(PK2, F, chi, times):
     nel = numpy.shape(PK2[0])[1]
     ntimes = len(times)
     for qp in PK2.keys():
-        Rs, Us = numpy.zeros([ntimes,nel,3,3]), numpy.zeros([ntimes,nel,3,3])
-        Rcs, Ucs = numpy.zeros([ntimes,nel,3,3]), numpy.zeros([ntimes,nel,3,3])
+        Rs, Us = numpy.zeros([ntimes,nel,dim,dim]), numpy.zeros([ntimes,nel,dim,dim])
+        Rcs, Ucs = numpy.zeros([ntimes,nel,dim,dim]), numpy.zeros([ntimes,nel,dim,dim])
         for el in range(nel):
             for i,t in enumerate(times):
                 #if i > 0:
@@ -244,9 +251,9 @@ def get_R_and_U(PK2, F, chi, times):
 
                 #check orthogonality
                 tol = 1.e-9
-                if (norm((numpy.dot(Rr,numpy.transpose(Rr)) - numpy.eye(3)),ord=2)) > tol:
+                if (norm((numpy.dot(Rr,numpy.transpose(Rr)) - numpy.eye(dim)),ord=2)) > tol:
                     print('Error!!! R is not orthogonal!')
-                if (norm((numpy.dot(Rcr,numpy.transpose(Rcr)) - numpy.eye(3)),ord=2)) > tol:
+                if (norm((numpy.dot(Rcr,numpy.transpose(Rcr)) - numpy.eye(dim)),ord=2)) > tol:
                     print('Error!!! Rc is not orthogonal!')
 
                 Rs[i,el,:,:] = Rr
@@ -261,7 +268,7 @@ def get_R_and_U(PK2, F, chi, times):
     return(R,U,Rchi,Uchi)
 
     
-def plot_rot_diffs(PK2, times, R, Rchi, average, output_name):
+def plot_rot_diffs(PK2, times, R, Rchi, average, output_name, dim=3):
     ''' Plot differences between macro and micro rotations
 
     :param dict PK2: The quantities dict storing second Piola Kirchhoff stress
@@ -270,19 +277,20 @@ def plot_rot_diffs(PK2, times, R, Rchi, average, output_name):
     :param dict Rchi: The quantities dict storing micro rotations
     :param bool average: Average over quadrature points if True
     :param str output_name: The output plot name
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: ``output_name``
     '''
 
     fig1 = matplotlib.pyplot.figure('Rot_diff', figsize=(12,9))
-    axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
+    axes1 = [[fig1.add_subplot(dim,dim,dim * i + j + 1) for j in range(dim)] for i in range(dim)]
 
     colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
     nel = numpy.shape(PK2[0])[1]
     for el in range(nel):
-        for i in range(3):
-            for j in range(3):
+        for i in range(dim):
+            for j in range(dim):
                 ax1 = axes1[i][j]
                 for qp in PK2.keys():
                     diffs = []
@@ -305,7 +313,7 @@ def plot_rot_diffs(PK2, times, R, Rchi, average, output_name):
     return 0 
 
 
-def plot_stretch_diffs(PK2, times, U, Uchi, average, output_name):
+def plot_stretch_diffs(PK2, times, U, Uchi, average, output_name, dim=3):
     ''' Plot differences between macro and micro stretches
 
     :param dict PK2: The quantities dict storing second Piola Kirchhoff stress
@@ -314,19 +322,20 @@ def plot_stretch_diffs(PK2, times, U, Uchi, average, output_name):
     :param dict Uchi: The quantities dict storing micro stretches
     :param bool average: Average over quadrature points if True
     :param str output_name: The output plot name
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: ``output_name``
     '''
 
     fig1 = matplotlib.pyplot.figure('U', figsize=(11,9))
-    axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
+    axes1 = [[fig1.add_subplot(dim,dim,dim * i + j + 1) for j in range(dim)] for i in range(dim)]
 
     colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
     nel = numpy.shape(PK2[0])[1]
     for el in range(nel):
-        for i in range(3):
-            for j in range(3):
+        for i in range(dim):
+            for j in range(dim):
                 ax1 = axes1[i][j]
                 for qp in PK2.keys():
                     diffs = []
@@ -347,7 +356,9 @@ def plot_stretch_diffs(PK2, times, U, Uchi, average, output_name):
     return 0 
 
 
-def plot_first_moment_of_momentum_measures(coup, spins, times, average, plot_body_couples=None, plot_spin_inertias=None, plot_spin_diff=None):
+def plot_first_moment_of_momentum_measures(coup, spins, times, average,
+                                           plot_body_couples=None, plot_spin_inertias=None, plot_spin_diff=None,
+                                           dim=3):
     '''Plot the first moment of momentum measures
 
     :param dict coup: The quantities dict storing body couples
@@ -356,7 +367,8 @@ def plot_first_moment_of_momentum_measures(coup, spins, times, average, plot_bod
     :param bool average: Average over quadrature points if True
     :param str plot_body_couples: Optional filename to plot body couples vs. simulation time
     :param str plot_spin_inertias: Optional filename to plot micro spin inertias vs. simulation time
-    :param str plot_spin_diff: Optional filenmae to plot difference between body couples and micro spin inertias
+    :param str plot_spin_diff: Optional filename to plot difference between body couples and micro spin inertias
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: ``plot_body_couples``, ``plot_spin_inertias``, and ``plot_spin_diff``
     '''
@@ -365,16 +377,16 @@ def plot_first_moment_of_momentum_measures(coup, spins, times, average, plot_bod
     name2 = 'micro_spin_inertias'
     name3 = 'couple_spin_diff'
     fig1 = matplotlib.pyplot.figure(name1, figsize=(11,9))
-    axes1 = [[fig1.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
+    axes1 = [[fig1.add_subplot(dim,dim,dim * i + j + 1) for j in range(dim)] for i in range(dim)]
     fig2 = matplotlib.pyplot.figure(name2, figsize=(11,9))
-    axes2 = [[fig2.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
+    axes2 = [[fig2.add_subplot(dim,dim,dim * i + j + 1) for j in range(dim)] for i in range(dim)]
     fig3 = matplotlib.pyplot.figure(name3, figsize=(11,9))
-    axes3 = [[fig3.add_subplot(3,3,3 * i + j + 1) for j in range(3)] for i in range(3)]
+    axes3 = [[fig3.add_subplot(dim,dim,dim * i + j + 1) for j in range(dim)] for i in range(dim)]
     
     colors = matplotlib.pyplot.rcParams['axes.prop_cycle'].by_key()['color']
     
-    for i in range(3):
-        for j in range(3):
+    for i in range(dim):
+        for j in range(dim):
             ax1 = axes1[i][j]
             ax2 = axes2[i][j]
             ax3 = axes3[i][j]
@@ -395,7 +407,7 @@ def plot_first_moment_of_momentum_measures(coup, spins, times, average, plot_bod
             ax3.set_xlabel(r'Simulation time (s)', fontsize=14)
             ax3.set_ylabel(r'$l_{' + str(i+1) + str(j+1) + '}$ - $\omega_{' + str(i+1) + str(j+1) + '}$', fontsize=14)
             
-    ax1, ax2, ax3 = axes1[1][2], axes2[1][2], axes3[1][2]
+    ax1, ax2, ax3 = axes1[dim-2][dim-1], axes2[dim-2][dim-1], axes3[dim-2][dim-1]
     if average == False:
         ax1.legend(bbox_to_anchor=(1.2,0.9))
         ax2.legend(bbox_to_anchor=(1.2,0.9))
@@ -418,18 +430,19 @@ def plot_first_moment_of_momentum_measures(coup, spins, times, average, plot_bod
     return 0
 
 
-def deviatoric(stress):
+def deviatoric(stress, dim=3):
     '''Calculate the deviatoric component of a stress quantity
 
     :param array-like stress: A second order tensor or 9-component slice of a third order tensor
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: deviatoric of ``stress``
     '''
 
-    return(stress - (1/3)*numpy.eye(3)*numpy.trace(stress))
+    return(stress - (1/dim)*numpy.eye(dim)*numpy.trace(stress))
 
 
-def plot_stress_norm(cauchy, symm, m, nqp, nel, ninc, times, output_name):
+def plot_stress_norm(cauchy, symm, m, nqp, nel, ninc, times, output_name, dim=3):
     '''Plot the infinity norms of deviatoric Cauchy, symmetric micro, and higher stresses
 
     :param dict cauchy: The quantities dict storing Cauchy stress
@@ -440,6 +453,7 @@ def plot_stress_norm(cauchy, symm, m, nqp, nel, ninc, times, output_name):
     :param int ninc: The number of time increments
     :param array-like times: The time increments
     :param str output_name: Output filename
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: ``output_name`` plot
     '''
@@ -456,13 +470,14 @@ def plot_stress_norm(cauchy, symm, m, nqp, nel, ninc, times, output_name):
             cauchy_norm, symm_norm, diff_norm = [], [], []
             m1_norm, m2_norm, m3_norm = [], [], []
             for t in range(ninc):
-                cauchy_norm.append(numpy.linalg.norm(deviatoric(cauchy[qp][t,el,:,:]), ord='fro'))
-                symm_norm.append(numpy.linalg.norm(deviatoric(symm[qp][t,el,:,:]), ord='fro'))
-                diff_norm.append(numpy.linalg.norm(deviatoric(cauchy[qp][t,el,:,:]-symm[qp][t,el,:,:]), ord='fro'))
-                m1_norm.append(numpy.linalg.norm(deviatoric(m[qp][t,el,:,:,0]), ord='fro'))
-                m2_norm.append(numpy.linalg.norm(deviatoric(m[qp][t,el,:,:,1]), ord='fro'))
-                m3_norm.append(numpy.linalg.norm(deviatoric(m[qp][t,el,:,:,2]), ord='fro'))
-            label = f"qp  #{(qp+1)+(nel*8)}"
+                cauchy_norm.append(numpy.linalg.norm(deviatoric(cauchy[qp][t,el,:,:], dim=dim), ord='fro'))
+                symm_norm.append(numpy.linalg.norm(deviatoric(symm[qp][t,el,:,:], dim=dim), ord='fro'))
+                diff_norm.append(numpy.linalg.norm(deviatoric(cauchy[qp][t,el,:,:]-symm[qp][t,el,:,:], dim=dim), ord='fro'))
+                m1_norm.append(numpy.linalg.norm(deviatoric(m[qp][t,el,:,:,0], dim=dim), ord='fro'))
+                m2_norm.append(numpy.linalg.norm(deviatoric(m[qp][t,el,:,:,1], dim=dim), ord='fro'))
+                if dim == 3:
+                    m3_norm.append(numpy.linalg.norm(deviatoric(m[qp][t,el,:,:,2], dim=dim), ord='fro'))
+            label = f"qp  #{(qp+1)+(nel*nqp)}"
             ax1.plot(times, cauchy_norm, label=label)
             ax1.set_xlabel(r'Simulation time (s)', fontsize=14)
             ax1.set_ylabel(r'$||dev\left(\sigma_{ij}\right)||$', fontsize=14)
@@ -474,13 +489,17 @@ def plot_stress_norm(cauchy, symm, m, nqp, nel, ninc, times, output_name):
             ax3.set_ylabel(r'$||dev\left(\sigma_{ij} - s_{ij}\right)||$', fontsize=14)
             ax4.plot(times, m1_norm, '-o', label=f"index k = 1, {label}")
             ax4.plot(times, m2_norm, '-^', label=f"index k = 2, {label}")
-            ax4.plot(times, m3_norm, '-v', label=f"index k = 3, {label}")
+            if dim == 3:
+                ax4.plot(times, m3_norm, '-v', label=f"index k = 3, {label}")
             ax4.set_xlabel(r'Simulation time (s)', fontsize=14)
             ax4.set_ylabel(r'$||dev\left(m_{ijk}\right)||$', fontsize=14)
             # ax4.legend([(label='index 1', color='b'),
                         # (label='index 2', color='b'),
                         # (label='index 3', color='b')])
-            ax4.legend(['index k = 1', 'index k = 2', 'index k = 3'])
+            if dim == 3:
+                ax4.legend(['index k = 1', 'index k = 2', 'index k = 3'])
+            elif dim == 2:
+                ax4.legend(['index k = 1', 'index k = 2', 'index k = 3'])
             ax1.set_xlabel(r'Simulation time (s)', fontsize=14)
 
     fig.savefig(output_name)
@@ -488,22 +507,24 @@ def plot_stress_norm(cauchy, symm, m, nqp, nel, ninc, times, output_name):
     return 0
 
 
-def triple_deviatoric(stress):
+def triple_deviatoric(stress, dim=3):
     '''Calculate the deviatoric component of a stress quantity
 
-    :param array-like stress: A second order tensor or 9-component slice of a third order tensor
+    :param array-like stress: A second order tensor or (dim*dim)-component slice of a third order tensor
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: deviatoric of ``stress``
     '''
 
-    stress_1 = stress[:,:,0] - (1/3)*numpy.eye(3)*numpy.trace(stress[:,:,0])
-    stress_2 = stress[:,:,1] - (1/3)*numpy.eye(3)*numpy.trace(stress[:,:,1])
-    stress_3 = stress[:,:,2] - (1/3)*numpy.eye(3)*numpy.trace(stress[:,:,2])
+    stress_1 = stress[:,:,0] - (1/dim)*numpy.eye(dim)*numpy.trace(stress[:,:,0])
+    stress_2 = stress[:,:,1] - (1/dim)*numpy.eye(dim)*numpy.trace(stress[:,:,1])
+    if dim == 3:
+        stress_3 = stress[:,:,2] - (1/dim)*numpy.eye(dim)*numpy.trace(stress[:,:,2])
+        return(stress_1 + stress_2 + stress_3)
+    elif dim == 2:
+        return(stress_1 + stress_2)
 
-    return(stress_1 + stress_2 + stress_3)
-
-
-def plot_better_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_name):
+def plot_better_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_name, dim=3):
     '''Plot the infinity norms of deviatoric Cauchy, symmetric micro, and higher stresses
 
     :param dict PK2: The quantities dict storing second Piola-Kirchhoff stress
@@ -516,6 +537,7 @@ def plot_better_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, outpu
     :param int nel: The number of elements
     :param int ninc: The number of time increments
     :param str output_name: Output filename
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: ``output_name`` plot
     '''
@@ -529,38 +551,42 @@ def plot_better_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, outpu
             M1_norm, M2_norm, M3_norm = [], [], []
             E_norm, Ecal_norm, Gamma_norm = [], [], []
             for t in range(ninc):
-                PK2_norm.append(numpy.linalg.norm(deviatoric(PK2[qp][t,el,:,:]), ord='fro'))
-                SIGMA_norm.append(numpy.linalg.norm(deviatoric(SIGMA[qp][t,el,:,:]), ord='fro'))
-                diff_norm.append(numpy.linalg.norm(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]), ord='fro'))
-                M1_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,0]), ord='fro'))
-                M2_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,1]), ord='fro'))
-                M3_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,2]), ord='fro'))
-                E_norm.append(numpy.linalg.norm(deviatoric(E[qp][t,el,:,:]), ord='fro'))
-                Ecal_norm.append(numpy.linalg.norm(deviatoric(Ecal[qp][t,el,:,:]), ord='fro'))
-                Gamma_norm.append(numpy.linalg.norm(triple_deviatoric(Gamma[qp][t,el,:,:,:]), ord='fro'))
+                PK2_norm.append(numpy.linalg.norm(deviatoric(PK2[qp][t,el,:,:], dim=dim), ord='fro'))
+                SIGMA_norm.append(numpy.linalg.norm(deviatoric(SIGMA[qp][t,el,:,:], dim=dim), ord='fro'))
+                diff_norm.append(numpy.linalg.norm(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:], dim=dim), ord='fro'))
+                M1_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,0], dim=dim), ord='fro'))
+                M2_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,1], dim=dim), ord='fro'))
+                if dim == 3:
+                    M3_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,2], dim=dim), ord='fro'))
+                E_norm.append(numpy.linalg.norm(deviatoric(E[qp][t,el,:,:], dim=dim), ord='fro'))
+                Ecal_norm.append(numpy.linalg.norm(deviatoric(Ecal[qp][t,el,:,:], dim=dim), ord='fro'))
+                Gamma_norm.append(numpy.linalg.norm(triple_deviatoric(Gamma[qp][t,el,:,:,:], dim=dim), ord='fro'))
 
-            label = f"qp  #{(qp+1)+(nel*8)}"
+            label = f"qp  #{(qp+1)+(nel*nqp)}"
 
             axes[0][0].plot(E_norm, PK2_norm)
             axes[1][0].plot(E_norm, SIGMA_norm)
             axes[2][0].plot(E_norm, diff_norm)
             axes[3][0].plot(E_norm, M1_norm, '-o', label=f"index K = 1, {label}")
             axes[3][0].plot(E_norm, M2_norm, '-^', label=f"index K = 2, {label}")
-            axes[3][0].plot(E_norm, M3_norm, '-v', label=f"index K = 3, {label}")
+            if dim == 3:
+                axes[3][0].plot(E_norm, M3_norm, '-v', label=f"index K = 3, {label}")
 
             axes[0][1].plot(Ecal_norm, PK2_norm)
             axes[1][1].plot(Ecal_norm, SIGMA_norm)
             axes[2][1].plot(Ecal_norm, diff_norm)
             axes[3][1].plot(Ecal_norm, M1_norm, '-o', label=f"index K = 1, {label}")
             axes[3][1].plot(Ecal_norm, M2_norm, '-^', label=f"index K = 2, {label}")
-            axes[3][1].plot(Ecal_norm, M3_norm, '-v', label=f"index K = 3, {label}")
+            if dim == 3:
+                axes[3][1].plot(Ecal_norm, M3_norm, '-v', label=f"index K = 3, {label}")
 
             axes[0][2].plot(Gamma_norm, PK2_norm)
             axes[1][2].plot(Gamma_norm, SIGMA_norm)
             axes[2][2].plot(Gamma_norm, diff_norm)
             axes[3][2].plot(Gamma_norm, M1_norm, '-o', label=f"index K = 1, {label}")
             axes[3][2].plot(Gamma_norm, M2_norm, '-^', label=f"index K = 2, {label}")
-            axes[3][2].plot(Gamma_norm, M3_norm, '-v', label=f"index K = 3, {label}")
+            if dim == 3:
+                axes[3][2].plot(Gamma_norm, M3_norm, '-v', label=f"index K = 3, {label}")
 
     axes[0][0].set_ylabel(r'$||dev\left(S_{IJ}\right)|| \left( MPa \right)$', fontsize=14)
     axes[1][0].set_ylabel(r'$||dev\left(\Sigma_{IJ}\right)|| \left( MPa \right)$', fontsize=14)
@@ -607,7 +633,8 @@ def filter_stress_above_threshold(stress_lists, strain_lists, threshold, elem_qp
     return stress_norms, strain_norms
 
 
-def plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_name, transparency=None, upper_limit=None):
+def plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_name,
+                          transparency=None, dim=3, upper_limit=None):
     '''Plot the infinity norms of deviatoric second Piola-Kirchhoff, symmetric micro, and higher order stresses versus relevant deformation measures
 
     :param dict cauchy: The quantities dict storing Cauchy stress
@@ -617,6 +644,8 @@ def plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_
     :param int nel: The number of elements
     :param array-like times: The time increments
     :param str output_name: Output filename
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
+    :param float upper_limit: Optional value above which stresses will be ignored
 
     :returns: ``output_name`` plot
     '''
@@ -630,16 +659,18 @@ def plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_
             M1_norm, M2_norm, M3_norm = [], [], []
             E_norm, Ecal_norm, Gamma_norm = [], [], []
             for t in range(ninc):
-                PK2_norm.append(numpy.linalg.norm(deviatoric(PK2[qp][t,el,:,:]), ord='fro'))
-                SIGMA_norm.append(numpy.linalg.norm(deviatoric(SIGMA[qp][t,el,:,:]), ord='fro'))
-                M1_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,0]), ord='fro'))
-                M2_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,1]), ord='fro'))
-                M3_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,2]), ord='fro'))
-                E_norm.append(numpy.linalg.norm(deviatoric(E[qp][t,el,:,:]), ord='fro'))
-                Ecal_norm.append(numpy.linalg.norm(deviatoric(Ecal[qp][t,el,:,:]), ord='fro'))
-                Gamma_norm.append(numpy.linalg.norm(triple_deviatoric(Gamma[qp][t,el,:,:,:]), ord='fro'))
+                PK2_norm.append(numpy.linalg.norm(deviatoric(PK2[qp][t,el,:,:], dim=dim), ord='fro'))
+                SIGMA_norm.append(numpy.linalg.norm(deviatoric(SIGMA[qp][t,el,:,:], dim=dim), ord='fro'))
+                diff_norm.append(numpy.linalg.norm(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:], dim=dim), ord='fro'))
+                M1_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,0], dim=dim), ord='fro'))
+                M2_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,1], dim=dim), ord='fro'))
+                if dim == 3:
+                    M3_norm.append(numpy.linalg.norm(deviatoric(M[qp][t,el,:,:,2], dim=dim), ord='fro'))
+                E_norm.append(numpy.linalg.norm(deviatoric(E[qp][t,el,:,:], dim=dim), ord='fro'))
+                Ecal_norm.append(numpy.linalg.norm(deviatoric(Ecal[qp][t,el,:,:], dim=dim), ord='fro'))
+                Gamma_norm.append(numpy.linalg.norm(triple_deviatoric(Gamma[qp][t,el,:,:,:], dim=dim), ord='fro'))
 
-            label = f"qp  #{(qp+1)+(nel*8)}"
+            label = f"qp  #{(qp+1)+(nel*nqp)}"
 
             # Filter out bad points if requested
             if upper_limit is not None:
@@ -660,15 +691,17 @@ def plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_
             if transparency:
                 axes[0].plot(E_norm, PK2_norm, color='r', alpha=transparency)
                 axes[1].plot(Ecal_norm, SIGMA_norm, color='r', alpha=transparency)
-                axes[2].plot(Gamma_norm_1, M1_norm, '-o', label=f"index K = 1, {label}", color='r', alpha=transparency)
-                axes[2].plot(Gamma_norm_2, M2_norm, '-^', label=f"index K = 2, {label}", color='r', alpha=transparency)
-                axes[2].plot(Gamma_norm_3, M3_norm, '-v', label=f"index K = 3, {label}", color='r', alpha=transparency)
+                axes[2].plot(Gamma_norm, M1_norm, '-o', label=f"index K = 1, {label}", color='r', alpha=transparency)
+                axes[2].plot(Gamma_norm, M2_norm, '-^', label=f"index K = 2, {label}", color='r', alpha=transparency)
+                if dim == 3:
+                    axes[2].plot(Gamma_norm, M3_norm, '-v', label=f"index K = 3, {label}", color='r', alpha=transparency)
             else:
                 axes[0].plot(E_norm, PK2_norm)
                 axes[1].plot(Ecal_norm, SIGMA_norm)
-                axes[2].plot(Gamma_norm_1, M1_norm, '-o', label=f"index K = 1, {label}")
-                axes[2].plot(Gamma_norm_2, M2_norm, '-^', label=f"index K = 2, {label}")
-                axes[2].plot(Gamma_norm_3, M3_norm, '-v', label=f"index K = 3, {label}")
+                axes[2].plot(Gamma_norm, M1_norm, '-o', label=f"index K = 1, {label}")
+                axes[2].plot(Gamma_norm, M2_norm, '-^', label=f"index K = 2, {label}")
+                if dim == 3:
+                    axes[2].plot(Gamma_norm, M3_norm, '-v', label=f"index K = 3, {label}")
 
     axes[0].set_ylabel(r'$||dev\left(S_{IJ}\right)|| \left( MPa \right)$', fontsize=14)
     axes[0].set_xlabel(r'$||dev\left(E_{IJ}\right)||$', fontsize=14)
@@ -687,7 +720,7 @@ def plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_
     return 0
 
 
-def plot_norm_history(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, times, output_name):
+def plot_norm_history(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, times, output_name, dim=3):
     '''Plot the infinity norms of deviatoric second Piola-Kirchhoff, symmetric micro, and higher order stresses versus time
 
     :param dict PK2: The quantities dict storing second Piola-Kirchhoff stress
@@ -701,6 +734,7 @@ def plot_norm_history(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, times, outp
     :param int ninc: The number of time increments
     :param array-like times: The time increments
     :param str output_name: Output filename
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: ``output_name`` plot
     '''
@@ -715,25 +749,26 @@ def plot_norm_history(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, times, outp
             diff_p, diff_q = [], []
             M1_p, M1_q, M2_p, M2_q, M3_p, M3_q = [], [], [], [], [], []
             for t in range(ninc):
-                E_norm.append(numpy.linalg.norm(deviatoric(E[qp][t,el,:,:]), ord='fro'))
-                Ecal_norm.append(numpy.linalg.norm(deviatoric(Ecal[qp][t,el,:,:]), ord='fro'))
-                Gamma_norm.append(numpy.linalg.norm(triple_deviatoric(Gamma[qp][t,el,:,:,:]), ord='fro'))
+                E_norm.append(numpy.linalg.norm(deviatoric(E[qp][t,el,:,:], dim=dim), ord='fro'))
+                Ecal_norm.append(numpy.linalg.norm(deviatoric(Ecal[qp][t,el,:,:], dim=dim), ord='fro'))
+                Gamma_norm.append(numpy.linalg.norm(triple_deviatoric(Gamma[qp][t,el,:,:,:], dim=dim), ord='fro'))
 
-                PK2_p.append((-1/3)*numpy.trace(PK2[qp][t,el,:,:]))
-                PK2_q.append(numpy.sqrt(numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]), deviatoric(PK2[qp][t,el,:,:]))))
-                SIGMA_p.append((-1/3)*numpy.trace(SIGMA[qp][t,el,:,:]))
-                SIGMA_q.append(numpy.sqrt(numpy.tensordot(deviatoric(SIGMA[qp][t,el,:,:]), deviatoric(SIGMA[qp][t,el,:,:]))))
-                diff_p.append((-1/3)*numpy.trace(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))
-                diff_q.append(numpy.sqrt(numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]),
-                                                         deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))))
-                M1_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,0]))
-                M1_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,0]), deviatoric(M[qp][t,el,:,:,0]))))
-                M2_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,1]))
-                M2_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
-                M3_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,2]))
-                M3_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,2]), deviatoric(M[qp][t,el,:,:,2]))))
+                PK2_p.append((-1/dim)*numpy.trace(PK2[qp][t,el,:,:]))
+                PK2_q.append(numpy.sqrt(numpy.tensordot(deviatoric(PK2[qp][t,el,:,:], dim=dim), deviatoric(PK2[qp][t,el,:,:], dim=dim))))
+                SIGMA_p.append((-1/dim)*numpy.trace(SIGMA[qp][t,el,:,:]))
+                SIGMA_q.append(numpy.sqrt(numpy.tensordot(deviatoric(SIGMA[qp][t,el,:,:], dim=dim), deviatoric(SIGMA[qp][t,el,:,:], dim=dim))))
+                diff_p.append((-1/dim)*numpy.trace(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))
+                diff_q.append(numpy.sqrt(numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:], dim=dim),
+                                                               deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:], dim=dim))))
+                M1_p.append((-1/dim)*numpy.trace(M[qp][t,el,:,:,0]))
+                M1_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,0], dim=dim), deviatoric(M[qp][t,el,:,:,0], dim=dim))))
+                M2_p.append((-1/dim)*numpy.trace(M[qp][t,el,:,:,1]))
+                M2_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,1], dim=dim), deviatoric(M[qp][t,el,:,:,1], dim=dim))))
+                if dim == 3:
+                    M3_p.append((-1/dim)*numpy.trace(M[qp][t,el,:,:,2]))
+                    M3_q.append(numpy.sqrt(numpy.tensordot(deviatoric(M[qp][t,el,:,:,2], dim=dim), deviatoric(M[qp][t,el,:,:,1], dim=dim))))
 
-            label = f"qp  #{(qp+1)+(nel*8)}"
+            label = f"qp  #{(qp+1)+(nel*nqp)}"
 
             axes[0][0].plot(times, PK2_p)
             axes[0][1].plot(times, PK2_q)
@@ -745,10 +780,11 @@ def plot_norm_history(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, times, outp
 
             axes[2][0].plot(times, M1_p, '-o', label=f"index K = 1, {label}")
             axes[2][0].plot(times, M2_p, '-^', label=f"index K = 2, {label}")
-            axes[2][0].plot(times, M3_p, '-v', label=f"index K = 3, {label}")
             axes[2][1].plot(times, M1_q, '-o', label=f"index K = 1, {label}")
             axes[2][1].plot(times, M2_q, '-^', label=f"index K = 2, {label}")
-            axes[2][1].plot(times, M3_q, '-v', label=f"index K = 3, {label}")
+            if dim == 3:
+                axes[2][0].plot(times, M3_p, '-v', label=f"index K = 3, {label}")
+                axes[2][1].plot(times, M3_q, '-v', label=f"index K = 3, {label}")
             axes[2][2].plot(times, Gamma_norm)
 
     axes[0][0].set_ylabel(r'$p\left(\mathbf{S}\right) (MPa)$', fontsize=14)
@@ -773,7 +809,7 @@ def plot_norm_history(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, times, outp
     return 0
 
 
-def p_q_plot(PK2, SIGMA, M, E, nqp, nel, ninc, output_name):
+def p_q_plot(PK2, SIGMA, M, E, nqp, nel, ninc, output_name, dim=3):
     '''Plot the pressure versus deviatoric norm (P-Q) plot for second Piola-Kirchhoff, symmetric micro, and higher order stresses
 
     :param dict PK2: The quantities dict storing second Piola-Kirchhoff stress
@@ -786,6 +822,7 @@ def p_q_plot(PK2, SIGMA, M, E, nqp, nel, ninc, output_name):
     :param int nel: The number of elements
     :param int ninc: The number of time increments
     :param str output_name: Output filename
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: ``output_name`` plot
     '''
@@ -802,20 +839,23 @@ def p_q_plot(PK2, SIGMA, M, E, nqp, nel, ninc, output_name):
             diff_p, diff_q = [], []
             M1_p, M1_q, M2_p, M2_q, M3_p, M3_q = [], [], [], [], [], []
             for t in range(ninc):
-                PK2_p.append((-1/3)*numpy.trace(PK2[qp][t,el,:,:]))
-                PK2_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]), deviatoric(PK2[qp][t,el,:,:]))))
-                SIGMA_p.append((-1/3)*numpy.trace(SIGMA[qp][t,el,:,:]))
-                SIGMA_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(SIGMA[qp][t,el,:,:]), deviatoric(SIGMA[qp][t,el,:,:]))))
-                diff_p.append((-1/3)*numpy.trace(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))
-                diff_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]),
-                                                               deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))))
-                M1_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,0]))
-                M1_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,0]), deviatoric(M[qp][t,el,:,:,0]))))
-                M2_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,1]))
-                M2_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,1]), deviatoric(M[qp][t,el,:,:,1]))))
-                M3_p.append((-1/3)*numpy.trace(M[qp][t,el,:,:,2]))
-                M3_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,2]), deviatoric(M[qp][t,el,:,:,2]))))
-            label = f"qp  #{(qp+1)+(nel*8)}"
+                PK2_p.append((-1/dim)*numpy.trace(PK2[qp][t,el,:,:]))
+                PK2_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(PK2[qp][t,el,:,:], dim=dim), deviatoric(PK2[qp][t,el,:,:], dim=dim))))
+                SIGMA_p.append((-1/dim)*numpy.trace(SIGMA[qp][t,el,:,:]))
+                SIGMA_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(SIGMA[qp][t,el,:,:], dim=dim), deviatoric(SIGMA[qp][t,el,:,:], dim=dim))))
+                diff_p.append((-1/dim)*numpy.trace(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:]))
+                diff_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:], dim=dim),
+                                                               deviatoric(PK2[qp][t,el,:,:]-SIGMA[qp][t,el,:,:], dim=dim))))
+                M1_p.append((-1/dim)*numpy.trace(M[qp][t,el,:,:,0]))
+                M1_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,0], dim=dim), deviatoric(M[qp][t,el,:,:,0], dim=dim))))
+                M2_p.append((-1/dim)*numpy.trace(M[qp][t,el,:,:,1]))
+                M2_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,1], dim=dim), deviatoric(M[qp][t,el,:,:,1], dim=dim))))
+                if dim == 3:
+                    M3_p.append((-1/dim)*numpy.trace(M[qp][t,el,:,:,2]))
+                    M3_q.append(numpy.sqrt(0.5*numpy.tensordot(deviatoric(M[qp][t,el,:,:,2], dim=dim), deviatoric(M[qp][t,el,:,:,1], dim=dim))))
+
+            label = f"qp  #{(qp+1)+(nel*nqp)}"
+
             ax1.plot(PK2_p, PK2_q, label=label)
             ax1.set_xlabel(r'$p\left(\mathbf{S}\right) (MPa)$', fontsize=14)
             ax1.set_ylabel(r'$q\left(\mathbf{S}\right) (MPa)$', fontsize=14)
@@ -827,7 +867,8 @@ def p_q_plot(PK2, SIGMA, M, E, nqp, nel, ninc, output_name):
             ax3.set_ylabel(r'$q\left(\mathbf{S} - \mathbf{\Sigma}\right) (MPa$)', fontsize=14)
             ax4.plot(M1_p, M1_q, '-o', label=f"index K = 1, {label}")
             ax4.plot(M2_p, M2_q, '-^', label=f"index K = 2, {label}")
-            ax4.plot(M3_p, M3_q, '-v', label=f"index K = 3, {label}")
+            if dim == 3:
+                ax4.plot(M3_p, M3_q, '-v', label=f"index K = 3, {label}")
             ax4.set_xlabel(r'$p\left(\mathbf{M}\right) (MPa \cdot mm^2)$', fontsize=14)
             ax4.set_ylabel(r'$q\left(\mathbf{M}\right) (MPa \cdot mm^2)$', fontsize=14)
 
@@ -838,7 +879,7 @@ def p_q_plot(PK2, SIGMA, M, E, nqp, nel, ninc, output_name):
     return 0
 
 
-def csv_machine(quantity, output_file, nqp, nel, time, three_point=False):
+def csv_machine(quantity, output_file, nqp, nel, time, three_point=False, dim=3):
     '''Write a text dump summarizing a variety of statistics
 
     :param dict quantities: A 2nd or third order tensor dictionary with keys for quadrature points and values storing a 4d array where indices correspond to time, element number, component i, and component j
@@ -847,14 +888,15 @@ def csv_machine(quantity, output_file, nqp, nel, time, three_point=False):
     :param int nel: The desired element of the quantity to output
     :param int time: The desired time increment to output the quantity
     :param bool three_point: Parameter indicating if tensor is 2nd or 3rd order. "False" by default
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: ``output_file``
     '''
 
     comps, means, mins, maxs, devs, covs = [], [], [], [], [], []
     if three_point == False:
-        for i in range(3):
-            for j in range(3):
+        for i in range(dim):
+            for j in range(dim):
                 comps.append(f"{i+1}{j+1}")
                 everything = numpy.array([quantity[qp][time,el,i,j] for qp in range(nqp) for el in range(nel)]).flatten()
                 means.append(numpy.mean(everything))
@@ -863,9 +905,9 @@ def csv_machine(quantity, output_file, nqp, nel, time, three_point=False):
                 devs.append(numpy.std(everything))
                 covs.append(numpy.std(everything)/numpy.mean(everything))
     else:
-        for i in range(3):
-            for j in range(3):
-                for k in range(3):
+        for i in range(dim):
+            for j in range(dim):
+                for k in range(dim):
                     comps.append(f"{i+1}{j+1}{k+1}")
                     everything = numpy.array([quantity[qp][time,el,i,j,k] for qp in range(nqp) for el in range(nel)]).flatten()
                     means.append(numpy.mean(everything))
@@ -889,7 +931,9 @@ def csv_machine(quantity, output_file, nqp, nel, time, three_point=False):
 def dump_all(quantity, output_file, icomp, jcomp, nqp, nel, time):
     '''Dump all values for particular components of a 2nd order tensor for a given time value and element number
 
-    :param dict quantities: A 2nd order tensor dictionary with keys for quadrature points and values storing a 4d array where indices correspond to time, element number, component i, and component j
+    :param dict quantities: A 2nd order tensor dictionary with keys for quadrature points
+        and values storing a 4d array where indices correspond to time, element number,
+        component i, and component j
     :param str output_file: Output filename
     :param int icomp: the desired i component of the quantity to output
     :param int jcomp: the desired j component of the quantity to output
@@ -907,18 +951,21 @@ def dump_all(quantity, output_file, icomp, jcomp, nqp, nel, time):
     return 0
 
 
-def average_quantities(quantities):
-    '''Average 2nd order tensor quantites over 8 quadrature points
+def average_quantities(quantities, dim=3):
+    '''Average 2nd order tensor quantites over quadrature points
 
-    :param dict quantities: A 2nd order tensor dictionary with keys for quadrature points and values storing a 4d array where indices correspond to time, element number, component i, and component j
+    :param dict quantities: A 2nd order tensor dictionary with keys for quadrature points
+        and values storing a 4d array where indices correspond to time, element number,
+        component i, and component j
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: ``output`` dict with same indices as ``quantities`` and a single key
     '''
 
     output = {}
     output[0] = numpy.zeros_like(quantities[0])
-    for i in range(3):
-        for j in range(3):
+    for i in range(dim):
+        for j in range(dim):
             mean_field = []
             for qp in quantities.keys():
                 mean_field.append(quantities[qp][:,0,i,j])
@@ -928,7 +975,7 @@ def average_quantities(quantities):
     return(output)
 
 
-def csv_all_quantities(output_file, times, nqp, quantities, quantity_names):
+def csv_all_quantities(output_file, times, nqp, quantities, quantity_names, dim=3):
     '''Create csv file of a list of quantities for a single domain
 
     :param str output_file: Output filename
@@ -936,6 +983,7 @@ def csv_all_quantities(output_file, times, nqp, quantities, quantity_names):
     :param int nqp: The number of quadrature points
     :param list quantities: A list containing Micromorphic Filter output quantities
     :param list quantity_names: A list containing the names of Micromorphic Filter output quantities
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
 
     :returns: Write ``output_file``
     '''
@@ -955,7 +1003,7 @@ def csv_all_quantities(output_file, times, nqp, quantities, quantity_names):
             output_dict[key] = numpy.array(qp_data).flatten()
         # vectors
         elif len(numpy.shape(quantity[0])) == 3:
-            for i in range(3):
+            for i in range(dim):
                 key = f'{name}_{i+1}'
                 qp_data = []
                 for qp in range(nqp):
@@ -963,8 +1011,8 @@ def csv_all_quantities(output_file, times, nqp, quantities, quantity_names):
                 output_dict[key] = numpy.array(qp_data).flatten()
         # second order tensors
         elif len(numpy.shape(quantity[0])) == 4:
-            for i in range(3):
-                for j in range(3):
+            for i in range(dim):
+                for j in range(dim):
                     key = f'{name}_{i+1}{j+1}'
                     qp_data = []
                     for qp in range(nqp):
@@ -972,9 +1020,9 @@ def csv_all_quantities(output_file, times, nqp, quantities, quantity_names):
                     output_dict[key] = numpy.array(qp_data).flatten()
         # third order tensors
         elif len(numpy.shape(quantity[0])) == 5:
-            for i in range(3):
-                for j in range(3):
-                    for k in range(3):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
                         key = f'{name}_{i+1}{j+1}{k+1}'
                         qp_data = []
                         for qp in range(nqp):
@@ -1039,7 +1087,8 @@ def visualize_results(input_file, average, num_domains,
                       csv_stress33_all=None,
                       csv_all_quantities_single_domain=None,
                       rho_binder=None,
-                      rho_grain=None):
+                      rho_grain=None,
+                      dim=3):
     ''' Post-process Micromorphic Filter output
 
     :param str input_file: The XDMF Micromorphic Filter results file
@@ -1073,148 +1122,155 @@ def visualize_results(input_file, average, num_domains,
     :param str csv_all_quantities_single_domain: Optional filename for csv output of all quantities for a single domain
     :param str rho_binder: The density of the binder material, required if 'csv-all-quantities-single-domain' is specified
     :param str rho_grain: The density of the grain material, required if 'csv-all-quantities-single-domain' is specified
+    :param int dim: The dimension of the arrays, '2' for 2d or '3' for 3d
     '''
 
     # Read in data
     data, geometry, topology = XRT.parse_xdmf_output(input_file)
-    nqp = 8
+    ## TODO: generalize for any element type
+    if dim == 3:
+        nqp = 8
+    elif dim == 2:
+        nqp = 4
     ninc = numpy.shape(data['time'])[0]
     nel = num_domains
 
     # Read in the DOF information
-    displacement, gradu, phi, gradphi = XRT.construct_degrees_of_freedom(data, nqp, nel)
+    displacement, gradu, phi, gradphi = XRT.construct_degrees_of_freedom(data, nqp, nel, dim=dim)
 
     # Read in the stress information
-    cauchy, symm, m = XRT.collect_stresses(data, nqp, nel)
-    PK2, SIGMA, M = XRT.get_reference_configuration_stresses(data, nqp, nel)
+    cauchy, symm, m = XRT.collect_stresses(data, nqp, nel, dim=dim)
+    PK2, SIGMA, M = XRT.get_reference_configuration_stresses(data, nqp, nel, dim=dim)
 
     # Read in the strain information
-    E, Ecal, Gamma, F, chi, grad_chi, e, h = XRT.compute_deformations(data, nqp, nel)
+    E, Ecal, Gamma, F, chi, grad_chi, e, h = XRT.compute_deformations(data, nqp, nel, dim=dim)
 
     # Read in first moment of momentum measures
-    coup, spins = XRT.collect_first_moment_of_momentum_measures(data, nqp, nel)
+    coup, spins = XRT.collect_first_moment_of_momentum_measures(data, nqp, nel, dim=dim)
 
     # Get times
     times = numpy.unique(data['time'])
     
     # average fields if selected as an option
     if average:
-        cauchy = average_quantities(cauchy)
-        symm   = average_quantities(symm)
-        E      = average_quantities(E)
-        PK2    = average_quantities(PK2)
-        SIGMA  = average_quantities(SIGMA)
-        F      = average_quantities(F)
-        chi    = average_quantities(chi)
-        e      = average_quantities(e)
-        h      = average_quantities(h)
-        coup   = average_quantities(coup)
-        spins  = average_quantities(spins)
+        cauchy = average_quantities(cauchy, dim)
+        symm   = average_quantities(symm, dim)
+        E      = average_quantities(E, dim)
+        PK2    = average_quantities(PK2, dim)
+        SIGMA  = average_quantities(SIGMA, dim)
+        F      = average_quantities(F, dim)
+        chi    = average_quantities(chi, dim)
+        e      = average_quantities(e, dim)
+        h      = average_quantities(h, dim)
+        coup   = average_quantities(coup, dim)
+        spins  = average_quantities(spins, dim)
 
     # Plot stresses
     ## plot cauchy and PK2 stress
     if plot_cauchy_stress:
-        plot_current_stresses(e, cauchy, average, output_name=plot_cauchy_stress)
+        plot_current_stresses(e, cauchy, average, output_name=plot_cauchy_stress, dim=dim)
     if plot_PK2_stress:
-        plot_reference_stresses(E, PK2, average, output_name=plot_PK2_stress)
+        plot_reference_stresses(E, PK2, average, output_name=plot_PK2_stress, dim=dim)
     ## plot symmetric micro-stress, s and SIGMA
     if plot_symm_stress:
-        plot_current_stresses(e, symm, average, output_name=plot_symm_stress)
+        plot_current_stresses(e, symm, average, output_name=plot_symm_stress, dim=dim)
     if plot_SIGMA_stress:
-        plot_reference_stresses(E, SIGMA, average, output_name=plot_SIGMA_stress)
+        plot_reference_stresses(E, SIGMA, average, output_name=plot_SIGMA_stress, dim=dim)
 
     ## Check #1: Symmetry of Cauchy Stress using Axial Vector
     if plot_cauchy_couple:
-        plot_axial_vector_mag(cauchy, times, average, output_name=plot_cauchy_couple)
+        plot_axial_vector_mag(cauchy, times, average, output_name=plot_cauchy_couple, dim=dim)
 
     ## Check #2: Difference between Cauchy and Symmetric Micro-Stresses
     if plot_stress_diff:
-        plot_stress_diffs(cauchy, symm, times, average, output_name=plot_stress_diff)
+        plot_stress_diffs(cauchy, symm, times, average, output_name=plot_stress_diff, dim=dim)
 
     ## Check #3: Micromorphic Effects - Difference between macro- and micro-deformation gradients
     # Get R and U
     if plot_rotation_diff or plot_stretch_diff:
-        R, U, Rchi, Uchi = get_R_and_U(PK2, F, chi, times)
+        R, U, Rchi, Uchi = get_R_and_U(PK2, F, chi, times, dim=dim)
     # plot difference between rotations
     if plot_rotation_diff:
-        plot_rot_diffs(PK2, times, R, Rchi, average, output_name=plot_rotation_diff)
+        plot_rot_diffs(PK2, times, R, Rchi, average, output_name=plot_rotation_diff, dim=dim)
     # plot difference between stretches
     if plot_stretch_diff:
-        plot_stretch_diffs(PK2, times, U, Uchi, average, output_name=plot_stretch_diff)
+        plot_stretch_diffs(PK2, times, U, Uchi, average, output_name=plot_stretch_diff, dim=dim)
     
     # Check #4: Different between body_couple and micro_spin_inertias, plot them too
     if plot_body_couples or plot_spin_inertias or plot_spin_diff:
-        plot_first_moment_of_momentum_measures(coup, spins, times, average, plot_body_couples, plot_spin_inertias, plot_spin_diff)
+        plot_first_moment_of_momentum_measures(coup, spins, times, average, plot_body_couples, plot_spin_inertias, plot_spin_diff, dim=dim)
 
     # Plot stress norms
     if plot_stress_norms:
-        plot_stress_norm(cauchy, symm, m, nqp, nel, ninc, times, plot_stress_norms)
+        plot_stress_norm(cauchy, symm, m, nqp, nel, ninc, times, plot_stress_norms, dim=dim)
 
     # Plot better and best stress norms
     if plot_better_stress_norms:
-        plot_better_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, plot_better_stress_norms)
+        plot_better_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, plot_better_stress_norms, dim=dim)
     if plot_best_stress_norms:
-        plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, plot_best_stress_norms)
+        plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, plot_best_stress_norms, dim=dim)
         transparent_name = f"{plot_best_stress_norms.split('.')[0]}_transparent.{plot_best_stress_norms.split('.')[1]}"
-        plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, transparent_name, 0.05)
+        plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, transparent_name, 0.05, dim=dim)
         filtered_name = f"{plot_best_stress_norms.split('.')[0]}_filtered.{plot_best_stress_norms.split('.')[1]}"
-        plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, filtered_name, upper_limit=5000.)
+        plot_best_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, filtered_name, upper_limit=5000., dim=dim)
     if plot_norm_histories:
-        plot_norm_history(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, times, plot_norm_histories)
+        plot_norm_history(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, times, plot_norm_histories, dim=dim)
 
     # p_q_plots
     if p_q_plots:
-        p_q_plot(PK2, SIGMA, M, E, nqp, nel, ninc, p_q_plots)
+        p_q_plot(PK2, SIGMA, M, E, nqp, nel, ninc, p_q_plots, dim=dim)
 
     # Output csvs
     #TODO: add an argument for specifying what time to gather statistics on
     if csv_cauchy:
-        csv_machine(cauchy, csv_cauchy, nqp, nel, ninc-1)
+        csv_machine(cauchy, csv_cauchy, nqp, nel, ninc-1, dim=dim)
     if csv_PK2:
-        csv_machine(PK2, csv_PK2, nqp, nel, ninc-1)
+        csv_machine(PK2, csv_PK2, nqp, nel, ninc-1, dim=dim)
     if csv_GLstrain:
-        csv_machine(E, csv_GLstrain, nqp, nel, ninc-1)
+        csv_machine(E, csv_GLstrain, nqp, nel, ninc-1, dim=dim)
     if csv_estrain:
-        csv_machine(e, csv_estrain, nqp, nel, ninc-1)
+        csv_machine(e, csv_estrain, nqp, nel, ninc-1, dim=dim)
     if csv_ref_mod:
         mod = {}
         for qp in range(nqp):
-            values = numpy.zeros((ninc, nel, 3, 3))
+            values = numpy.zeros((ninc, nel, dim, dim))
             for el in range(nel):
                 for t in range(ninc):
+                    print(f'shape of PK2[qp][t,el,:,:] = {numpy.shape(PK2[qp][t,el,:,:])}')
+                    print(f'shape of E[qp][t,el,:,:] = {numpy.shape(E[qp][t,el,:,:])}')
                     values[t,el,:,:] = PK2[qp][t,el,:,:] / E[qp][t,el,:,:]
                 mod.update({qp:numpy.copy(values)})
-        csv_machine(mod, csv_ref_mod, nqp, nel, ninc-1)
+        csv_machine(mod, csv_ref_mod, nqp, nel, ninc-1, dim=dim)
     if csv_cur_mod:
         mod = {}
         for qp in range(nqp):
-            values = numpy.zeros((ninc, nel, 3, 3))
+            values = numpy.zeros((ninc, nel, dim, dim))
             for el in range(nel):
                 for t in range(ninc):
                     values[t,el,:,:] = cauchy[qp][t,el,:,:] / e[qp][t,el,:,:]
                 mod.update({qp:numpy.copy(values)})
-        csv_machine(mod, csv_cur_mod, nqp, nel, ninc-1)
+        csv_machine(mod, csv_cur_mod, nqp, nel, ninc-1, dim=dim)
     if csv_symm:
-        csv_machine(symm, csv_symm, nqp, nel, ninc-1)
+        csv_machine(symm, csv_symm, nqp, nel, ninc-1, dim=dim)
     # TODO: make this better lol
     if csv_stress_diff:
         diff = {}
         for qp in range(nqp):
-            values = numpy.zeros((ninc, nel, 3, 3))
+            values = numpy.zeros((ninc, nel, dim, dim))
             for el in range(nel):
                 for t in range(ninc):
                     values[t,el,:,:] = cauchy[qp][t,el,:,:] - symm[qp][t,el,:,:]
                 diff.update({qp:numpy.copy(values)})
-        csv_machine(diff, csv_stress_diff, nqp, nel, ninc-1)
+        csv_machine(diff, csv_stress_diff, nqp, nel, ninc-1, dim=dim)
     # Higher order stresses
     if csv_m:
-        csv_machine(m, csv_m, nqp, nel, ninc-1, three_point=True)
+        csv_machine(m, csv_m, nqp, nel, ninc-1, three_point=True, dim=dim)
     if csv_M:
-        csv_machine(M, csv_M, nqp, nel, ninc-1, three_point=True)
+        csv_machine(M, csv_M, nqp, nel, ninc-1, three_point=True, dim=dim)
 
     # Dump all cauchy
     if csv_stress33_all:
-        dump_all(cauchy, csv_stress33_all, 2, 2, nqp, nel, ninc-1)
+        dump_all(cauchy, csv_stress33_all, dim-1, dim-1, nqp, nel, ninc-1)
 
     # Summary csv for quantities of a single single domains
     if csv_all_quantities_single_domain:
@@ -1225,7 +1281,7 @@ def visualize_results(input_file, average, num_domains,
         print(f'fgs = {fgs}')
         quantities = [fgs, displacement, gradu, phi, gradphi, F, chi, E, Ecal, Gamma, e, h, cauchy, symm, m]
         quantities_names = ['f_g', 'u', 'gradu', 'phi', 'gradphi', 'F', 'chi', 'E', 'Ecal', 'Gamma', 'e', 'h', 'cauchy', 'symm', 'm']
-        csv_all_quantities(csv_all_quantities_single_domain, times, nqp, quantities, quantities_names)
+        csv_all_quantities(csv_all_quantities_single_domain, times, nqp, quantities, quantities_names, dim=dim)
 
     return 0
 
@@ -1324,6 +1380,8 @@ def get_parser():
         help="The density of the binder material, required if '--csv-all-quantities-single-domain' is specified")
     parser.add_argument('--rho-grain', type=float, required=False, default=None,
         help="The density of the grain material, required if '--csv-all-quantities-single-domain' is specified")
+    parser.add_argument('--dim', type=int, required=False, default=3,
+        help="The dimension of the arrays, '2' for 2d or '3' for 3d")
 
     return parser
 
@@ -1366,4 +1424,5 @@ if __name__ == '__main__':
                 csv_all_quantities_single_domain=args.csv_all_quantities_single_domain,
                 rho_binder=args.rho_binder,
                 rho_grain=args.rho_grain,
+                dim=args.dim,
                 ))
