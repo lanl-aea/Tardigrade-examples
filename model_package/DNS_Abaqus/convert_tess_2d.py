@@ -104,7 +104,7 @@ def create_mesh(stl_file, mesh_file, faces, sidesets, seed_size):
     :params str stl_file: Optional filename to save STL geometry without extension
     :params str mesh_file: Optional filename to create an Abaqus mesh without extension
     :params dict sidesets: Dictionary containing names of surfaces and geometric search strings
-    :params float seed_size: The approximate mesh size   
+    :params float seed_size: The approximate mesh size
 
     :returns: Write ``{mesh_file}.cub`` and ``{mesh_file}.inp``
     """
@@ -117,6 +117,8 @@ def create_mesh(stl_file, mesh_file, faces, sidesets, seed_size):
     #cubit.cmd('set developer commands on')
     cubit.cmd('imprint all')
     cubit.cmd('surface all scheme trimesh')
+    if seed_size < 1.0:
+        cubit.cmd(f'surface all size {seed_size}')
     cubit.cmd('mesh surface all')
 
     for cell in faces.keys():
@@ -151,7 +153,7 @@ def convert_tess(input_file, stl_file=None, mesh_file=None, seed_size=1.0):
     :params str input_file: Input tesselation (.tess) file
     :params str stl_file: Optional filename to save STL geometry without extension
     :params str mesh_file: Optional filename to create an Abaqus mesh without extension
-    :params float seed_size: The approximate mesh size    
+    :params float seed_size: The approximate mesh size
     """
 
     vertices, edges, faces = parse_contents(input_file)
