@@ -184,6 +184,8 @@ for option, target in viz_targs:
 if 'csv-all-quantities-single-domain' in [targ[0] for targ in viz_targs]:
     script_options += f" --rho-binder {params['rho_binder']}"
     script_options += f" --rho-grain {params['rho_grain']}"
+if ('dimension' in params.keys()):
+    script_options += f" --dim {params['dimension']}"
 workflow.extend(env.PythonScript(
     target = viz_targets,
     source = [f"{filter_source_abspath / viz_script}"] + filter_targs,
