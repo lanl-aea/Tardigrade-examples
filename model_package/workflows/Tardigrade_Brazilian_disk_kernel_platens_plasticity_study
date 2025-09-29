@@ -105,8 +105,8 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     script_options += f' --tau9 {simulation_variables["tau9"]}'
     script_options += f' --tau10 {simulation_variables["tau10"]}'
     script_options += f' --tau11 {simulation_variables["tau11"]}'
-    script_options += f' --cu0 10.0'
-    script_options += f' --Hu 100.'
+    script_options += f' --cu0 5.0'
+    script_options += f' --Hu 50.'
     #script_options += f' --'
     workflow.extend(env.PythonScript(
         target = [f'{set_name}/{material_card}'],
