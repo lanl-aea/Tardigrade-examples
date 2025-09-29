@@ -459,14 +459,14 @@ def collect_first_moment_of_momentum_measures(data, nqp, nel, dim=3):
         values = np.zeros((ninc, nel, dim, dim))
         for t in range(ninc):
             root_string = f'body_force_couple_{t}'
-            values[t,:,:,:] = data[root_string][qp].reshape((3,3))
+            values[t,:,:,:] = data[root_string][qp].reshape((dim,dim))
         body_couples.update({qp:np.copy(values)})
 
         # Collect micro_spin_inertias
         values = np.zeros((ninc, nel, dim, dim))
         for t in range(ninc):
             root_string = f'micro_spin_inertia_{t}'
-            values[t,:,:,:] = data[root_string][qp].reshape((3,3))
+            values[t,:,:,:] = data[root_string][qp].reshape((dim,dim))
         micro_spin_inertias.update({qp:np.copy(values)})
 
     return(body_couples, micro_spin_inertias)
@@ -502,9 +502,9 @@ def get_R_and_U(data, F, chi, nqp, nel, dim=3):
 
             # check orthogonality
             tol = 1.e-9
-            if (norm((np.dot(Rr, np.transpose(Rr)) - np.eye(3)),ord=2)) > tol:
+            if (norm((np.dot(Rr, np.transpose(Rr)) - np.eye(dim)),ord=2)) > tol:
                 print('Error!!! R is not orthogonal!')
-            if (norm((np.dot(Rchir, np.transpose(Rchir)) - np.eye(3)),ord=2)) > tol:
+            if (norm((np.dot(Rchir, np.transpose(Rchir)) - np.eye(dim)),ord=2)) > tol:
                 print('Error!!! Rchi is not orthogonal!')
 
             # append results
