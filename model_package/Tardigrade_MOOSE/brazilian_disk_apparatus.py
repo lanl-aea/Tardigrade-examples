@@ -140,6 +140,10 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
     cubit.cmd('nodeset 12 name "specimen_front"')
     cubit.cmd('nodeset 13 add surface 53 55 60 66')
     cubit.cmd('nodeset 13 name "specimen_back"')
+    cubit.cmd('nodeset 15 add curve 74')
+    cubit.cmd('nodeset 15 name "top_line_load"')
+    cubit.cmd('nodeset 16 add curve 72')
+    cubit.cmd('nodeset 16 name "bottom_line_load"')
 
     # Mesh
     cubit.cmd('merge volume 3 6 7 8')
