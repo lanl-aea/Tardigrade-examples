@@ -80,20 +80,32 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     simulation_variables = params.copy()
 
     # Write plastic material card
-    material_script = 'write_elastic_material_card.py'
+    material_script = 'write_plastic_material_card.py'
     material_card = 'plastic_material_card.yml'
     Emod = simulation_variables['material_E']
     nu = simulation_variables['material_nu']
-    lame_lambda = Emod*nu/((1.+nu)*(1.-2*nu))
-    lame_mu     = Emod/(2*(1.+nu)) #shear modulus, K
+    #lame_lambda = Emod*nu/((1.+nu)*(1.-2*nu))
+    #lame_mu     = Emod/(2*(1.+nu)) #shear modulus, K
     script_options = f'--output-file {material_card}'
-    script_options += f' --lamb {lame_lambda}'
-    script_options += f' --mu {lame_mu}'
-    #script_options += f' --tau7 {simulation_variables["tau7"]}'
-    script_options += f' --tau7 0.001'
-    #script_options += f' --cu0 1000.0'
-    #script_options += f' --cchi0 1000.0'
-    #script_options += f' --cnablachi0 1000.0'
+    script_options += f' --lamb {simulation_variables["lambda"]}'
+    script_options += f' --mu {simulation_variables["mu"]}'
+    script_options += f' --eta {simulation_variables["eta"]}'
+    script_options += f' --tau {simulation_variables["tau"]}'
+    script_options += f' --kappa {simulation_variables["kappa"]}'
+    script_options += f' --nu {simulation_variables["nu"]}'
+    script_options += f' --sigma {simulation_variables["sigma"]}'
+    script_options += f' --tau1 {simulation_variables["tau1"]}'
+    script_options += f' --tau2 {simulation_variables["tau2"]}'
+    script_options += f' --tau3 {simulation_variables["tau3"]}'
+    script_options += f' --tau4 {simulation_variables["tau4"]}'
+    script_options += f' --tau5 {simulation_variables["tau5"]}'
+    script_options += f' --tau6 {simulation_variables["tau6"]}'
+    script_options += f' --tau7 {simulation_variables["tau7"]}'
+    script_options += f' --tau8 {simulation_variables["tau8"]}'
+    script_options += f' --tau9 {simulation_variables["tau9"]}'
+    script_options += f' --tau10 {simulation_variables["tau10"]}'
+    script_options += f' --tau11 {simulation_variables["tau11"]}'
+    #script_options += f' --cu0 10.0'
     #script_options += f' --Hu 100.'
     workflow.extend(env.PythonScript(
         target = [f'{set_name}/{material_card}'],
@@ -131,7 +143,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     input_options += f" --xc-top {top_platen_center_x}"
     input_options += f" --yc-top {top_platen_center_y}"
     input_options += f" --geometry {geometry.split('_')[0]}"
-    input_options += " --material-type elastic"
+    input_options += " --material-type plastic"
     #input_options += f" --phi-BC all"
     ## conditionals
     if 'symmetry' in geometry:
