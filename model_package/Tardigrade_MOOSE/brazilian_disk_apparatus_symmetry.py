@@ -115,6 +115,8 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
         cubit.cmd('nodeset 5 name "platen_contact"')
         cubit.cmd('nodeset 6 add surface 83')
         cubit.cmd('nodeset 6 name "specimen_bottom"')
+        cubit.cmd('nodeset 11 add curve 106')
+        cubit.cmd('nodeset 11 name "bottom_line_load"')
     elif symmetry == 'quarter':
         cubit.cmd('block 1 add volume 1 3')
         cubit.cmd('block 1 name "bottom_platen"')
@@ -144,6 +146,8 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
         cubit.cmd('nodeset 6 name "specimen_bottom"')
         cubit.cmd('nodeset 7 add surface 52')
         cubit.cmd('nodeset 7 name "platen_side"')
+        cubit.cmd('nodeset 11 add curve 77')
+        cubit.cmd('nodeset 11 name "bottom_line_load"')
     elif symmetry == 'half':
         cubit.cmd('block 1 add volume 1 3')
         cubit.cmd('block 1 name "bottom_platen"')
@@ -173,6 +177,12 @@ def brazilian_disk_apparatus(output_file, specimen_seed_size, platen_seed_size,
         cubit.cmd('nodeset 7 name "platen_side"')
         cubit.cmd('nodeset 8 add surface 44 81')
         cubit.cmd('nodeset 8 name "specimen_top"')
+        cubit.cmd('nodeset 11 add curve 75')
+        cubit.cmd('nodeset 11 name "top_line_load"')
+        cubit.cmd('undo group end')
+        cubit.cmd('undo group begin')
+        cubit.cmd('nodeset 12 add curve 77')
+        cubit.cmd('nodeset 12 name "bottom_line_load"')
     else:
         print('Specify a valid type of symmetry!')
 
