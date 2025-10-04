@@ -211,6 +211,7 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
             f.write('    beta = 1e-9\n')
             f.write('  [../]\n')
         f.write('[../]\n')
+
         # BCs
         f.write('# BCs\n')
         f.write('[BCs]\n')
