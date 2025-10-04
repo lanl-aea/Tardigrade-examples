@@ -43,7 +43,7 @@ loading is challenging.
 A displacement of about 0.125 mm is applied to the top face of a cylinder over 100 microseconds.
 Boundary conditions are chosen to approximate uniaxial stress.
 Figure :numref:`{number} <GEOS_elastic_cylinder_displacements>` shows
-the force vs displacement and displacement field of the DNS.
+the force vs displacement and final displacement field of the DNS.
 Orange markers in Figure :numref:`{number} <GEOS_elastic_cylinder_displacements>`
 denote the frames chosen for upscaling.
 The force is roughly linear, though the variations indicate the dynamic nature of the simulation.
@@ -63,7 +63,7 @@ The force is roughly linear, though the variations indicate the dynamic nature o
 
     GEOS elastic cylinder simulation force vs displacement
 
-The Cauchy stress (ZZ component) is plotted in Figure
+The Cauchy stress (ZZ component) is plotted for the final time step in Figure
 :numref:`{number} <GEOS_elastic_cylinder_stress>` showing that
 stress is approximately uniaxial varying from -6.2 to -6.4 MPa with higher
 stresses concentrated on the bottom.
@@ -86,7 +86,7 @@ DNS results are homogenized using the Micromorphic Filter for 1, 24, 48, and 192
 filter domains.
 Only the results for the 192 element macroscale are presented.
 Figure :numref:`{number} <GEOS_elastic_cylinder_filter_results>`
-shows the homogenized displacement and stress fields which generally
+shows the homogenized displacement and stress fields for the final time step which generally
 agree with the results shown in Figures :numref:`{number} <GEOS_elastic_cylinder_displacements>`
 and :numref:`{number} <GEOS_elastic_cylinder_stress>`.
 

@@ -32,7 +32,8 @@ the Micromorphic Filter using the following command:
       $ scons GEOS_I43_01_sim38
 
 Next the homogenization is performed. Macroscale meshes with
-1, 24, 48, and 192 are considered for the default configuration.
+1, 24, 48, 264, 768, 1680, and 6912 are considered for the default configuration.
+These jobs may be run at the same time using the `--jobs=7` command line argument.
 
    .. code-block:: bash
 
@@ -48,7 +49,7 @@ a personal machine.
 The following figures show the extracted point fields input to the
 Micromorphic Filter containing the raw DNS data.
 Figure :numref:`{number} <GEOS_I43_01_cylinder_displacements>` shows
-the force vs displacement and displacement field of the DNS.
+the force vs displacement and final displacement field of the DNS.
 Orange markers in Figure :numref:`{number} <GEOS_I43_01_cylinder_displacements>`
 denote the frames chosen for upscaling.
 The force-displacement indicates that the specimen has started to fail by the end
@@ -72,9 +73,9 @@ which may be a byproduct of the CT segmentation and DNS geometry generation.
     GEOS I43.01 simulation force vs displacement
 
 The Cauchy stress (ZZ component) and scalar damage field is plotted in Figure
-:numref:`{number} <GEOS_I43_01_cylinder_stress_damage>`.
+:numref:`{number} <GEOS_I43_01_cylinder_stress_damage>` for the final time step.
 It is clear that there is a high concentration of stress on the top of the cylinder.
-The damage field shows regions, resembling grains, that have reached full
+The damage field shows regions, resembling grains, that have reached a full
 state of damage.
 These same regions of high damage correspond to regions where Cauchy stress is zero.
 
@@ -101,12 +102,11 @@ DNS results are homogenized using the Micromorphic Filter for 1, 24, 48, 264, 76
 filter domains.
 Only the results for the 6912 element macroscale are presented.
 Figure :numref:`{number} <GEOS_I43_01_filter_results>`
-shows the homogenized displacement, stress, and damage fields.
+shows the homogenized displacement, stress, and damage fields for the final time step.
 These results generally agree with the DNS fields shown in Figures
 :numref:`{number} <GEOS_I43_01_cylinder_displacements>`
 and :numref:`{number} <GEOS_I43_01_cylinder_stress_damage>`, except
 here the DNS results are clearly "smeared out."
-
 
  .. subfigure:: AA|BC
     :gap: 8px
