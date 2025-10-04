@@ -5,12 +5,15 @@ import pathlib
 import sys
 import yaml
 
+import MOOSE_input_deck_tools as moose_tools
+
 
 def build_input(output_file, mesh_file, parameter_sets, platen_radius,
                 disp, duration, specimen_bottom_surface, specimen_top_surface=None, 
                 top_symmetry=None, back_symmetry=None, side_symmetry=None,
                 xc_bot=0., yc_bot=0., xc_top=0., yc_top=0., geometry='full',
-                material_type='elastic', phi_BC=None, phis='on'):
+                material_type='elastic', phi_BC=None, phis='on',
+                extra_stress_output='off', higher_order_stress_output='off'):
     '''Write Tardigrade-MOOSE input file for Brazilian disk simulation with platens
     
     :param str output_file: The name of Tardigrade-MOOSE file to write
@@ -34,6 +37,8 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
     :param str material_type: The material type, either "elastic" or "plastic"
     :param str phi_BC: Optional string specifying nodeset to force micro deformation components to be zero
     :param str phis: Either "on" to activate phi coupling kernels, or "off" to deactivate
+    :param str extra_stress_output: Either "on" to output all second order stress variables, or "off" to deactivate
+    :param str higher_order_stress_output: Either "on" to output higher order stress variables, or "off" to deactivate
 
     :returns: ``output_file``
     '''
@@ -408,33 +413,11 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
         # Aux variables
         f.write('# Aux variables\n')
         f.write('[AuxVariables]\n')
-        f.write('  [force_x][]\n')
-        f.write('  [force_y][]\n')
-        f.write('  [force_z][]\n')
-        f.write('  [./pk2_11]\n')
-        f.write('    order = CONSTANT\n')
-        f.write('    family = MONOMIAL\n')
-        f.write('  [../]\n')
-        f.write('  [./pk2_22]\n')
-        f.write('    order = CONSTANT\n')
-        f.write('    family = MONOMIAL\n')
-        f.write('  [../]\n')
-        f.write('  [./pk2_33]\n')
-        f.write('    order = CONSTANT\n')
-        f.write('    family = MONOMIAL\n')
-        f.write('  [../]\n')
-        f.write('  [./sigma_11]\n')
-        f.write('    order = CONSTANT\n')
-        f.write('    family = MONOMIAL\n')
-        f.write('  [../]\n')
-        f.write('  [./sigma_22]\n')
-        f.write('    order = CONSTANT\n')
-        f.write('    family = MONOMIAL\n')
-        f.write('  [../]\n')
-        f.write('  [./sigma_33]\n')
-        f.write('    order = CONSTANT\n')
-        f.write('    family = MONOMIAL\n')
-        f.write('  [../]\n')
+        moose_tools.write_default_auxvariables(f)
+        if extra_stress_output is not None:
+            moose_tools.write_extra_second_order_auxvariables(f)
+        if higher_order_stress_output == 'on':
+            moose_tools.write_higher_order_stress_auxvariables(f)
         if material_type == 'plastic':
             f.write('## plastic Aux variables\n')
             f.write('  [./macro_gamma]\n')
@@ -535,6 +518,89 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
         f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
+        if extra_stress_output is not None:
+            f.write('[AuxKernels]\n')
+            f.write('  [./pk2_12]\n')
+            f.write('    type = MaterialStdVectorAux\n')
+            f.write('    property = PK2\n')
+            f.write('    index = 1\n')
+            f.write('    variable = pk2_12\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+            f.write('\n')
+            f.write('[AuxKernels]\n')
+            f.write('  [./pk2_13]\n')
+            f.write('    type = MaterialStdVectorAux\n')
+            f.write('    property = PK2\n')
+            f.write('    index = 2\n')
+            f.write('    variable = pk2_13\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+            f.write('\n')
+            f.write('[AuxKernels]\n')
+            f.write('  [./pk2_21]\n')
+            f.write('    type = MaterialStdVectorAux\n')
+            f.write('    property = PK2\n')
+            f.write('    index = 3\n')
+            f.write('    variable = pk2_21\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+            f.write('\n')
+            f.write('[AuxKernels]\n')
+            f.write('  [./pk2_23]\n')
+            f.write('    type = MaterialStdVectorAux\n')
+            f.write('    property = PK2\n')
+            f.write('    index = 5\n')
+            f.write('    variable = pk2_23\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+            f.write('\n')
+            f.write('[AuxKernels]\n')
+            f.write('  [./pk2_31]\n')
+            f.write('    type = MaterialStdVectorAux\n')
+            f.write('    property = PK2\n')
+            f.write('    index = 6\n')
+            f.write('    variable = pk2_31\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+            f.write('\n')
+            f.write('[AuxKernels]\n')
+            f.write('  [./pk2_32]\n')
+            f.write('    type = MaterialStdVectorAux\n')
+            f.write('    property = PK2\n')
+            f.write('    index = 7\n')
+            f.write('    variable = pk2_32\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+            f.write('\n')
+            f.write('[AuxKernels]\n')
+            f.write('  [./sigma_12]\n')
+            f.write('    type = MaterialStdVectorAux\n')
+            f.write('    property = SIGMA\n')
+            f.write('    index = 1\n')
+            f.write('    variable = sigma_12\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+            f.write('\n')
+            f.write('[AuxKernels]\n')
+            f.write('  [./sigma_13]\n')
+            f.write('    type = MaterialStdVectorAux\n')
+            f.write('    property = SIGMA\n')
+            f.write('    index = 3\n')
+            f.write('    variable = sigma_13\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+            f.write('\n')
+            f.write('[AuxKernels]\n')
+            f.write('  [./sigma_23]\n')
+            f.write('    type = MaterialStdVectorAux\n')
+            f.write('    property = SIGMA\n')
+            f.write('    index = 5\n')
+            f.write('    variable = sigma_23\n')
+            f.write('  [../]\n')
+            f.write('[]\n')
+        if higher_order_stress_output == 'on':
+            moose_tools.write_higher_order_stress_auxkernels(f)
         if material_type == 'plastic':
             f.write('## plastic Aux kernels\n')
             f.write('[AuxKernels]\n')
@@ -997,8 +1063,8 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
         f.write('  start_time = 0.0\n')
         f.write(f'  end_time = {duration}\n')
         f.write('  dtmin = 1e-6\n')
-        f.write('  dtmax= 0.1\n')
-        f.write('\n')
+        f.write('  dtmax = 0.1\n')
+        f.write('  dt = 0.05\n')
         #f.write('  [TimeStepper]\n')
         #f.write('    type = IterationAdaptiveDT\n')
         #f.write('    growth_factor=2.0\n')
@@ -1064,8 +1130,13 @@ def get_parser():
         help='Optional string specifying nodeset to force micro deformation components to be zero')
     parser.add_argument('--phis', type=str, required=False, default='on',
         help='Either "on" to activate phi coupling kernels, or "off" to deactivate')
+    parser.add_argument('--extra-stress-output', type=str, required=False, default='off',
+        help='Either "on" to output second order stress variables, or "off" to deactivate')
+    parser.add_argument('--higher-order-stress-output', type=str, required=False, default='off',
+        help='Either "on" to output higher order stress variables, or "off" to deactivate')
 
     return parser
+
 
 if __name__ == '__main__':
     parser = get_parser()
@@ -1090,4 +1161,6 @@ if __name__ == '__main__':
                          material_type=args.material_type,
                          phi_BC=args.phi_BC,
                          phis=args.phis,
+                         extra_stress_output=args.extra_stress_output,
+                         higher_order_stress_output=args.higher_order_stress_output,
                          ))
