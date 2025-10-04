@@ -176,6 +176,15 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
         # Option for damage
         if damage == True:
             unique_damage = unpack_diagnostic(tree, diagnostic_path, damage_field).reshape((-1,1))
+            # "clamp" values within [0, 1]
+            n_damages_below_zero = numpy.shape(unique_damage[unique_damage < 0.])[0]
+            n_damages_above_one = numpy.shape(unique_damage[unique_damage > 1.])[0]
+            if n_damages_below_zero > 0:
+                print(f'\tnumber of points with damage < 0 = {n_damages_below_zero}. Setting values to zero.')
+                unique_damage[unique_damage < 0.] = 0.
+            if n_damages_above_one > 0:
+                print(f'\tnumber of points with damage > 1 = {n_damages_above_one}. Setting values to one.')
+                unique_damage[unique_damage > 1.] = 1.
             print(f"shape of damage = {numpy.shape(unique_damage)}")
             xdmf.addData(grid, "damage", unique_damage, "Node", dtype='d')
 

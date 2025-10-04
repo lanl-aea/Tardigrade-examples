@@ -353,6 +353,31 @@ def opti_options_7(X, Y, inputs, e_params, cal_norm, case, element, nqp, calibra
         return XX
 
 
+def opti_options_13(X, Y, inputs, e_params, p_params, cal_norm, case, element, nqp, calibrate=True, increment=None):
+    '''Case 13 - Calibrate micro-gradient-plasticity initial cohesion and hardening parameters with a previous macro- and micro-plasticity calibration provided. For case 13.
+
+    :param array-like X: Array of micromorphic plasticity parameters to calibrate
+    :param list Y: List storing dictionaries of DNS quantities for PK2, SIGMA, and M
+    :param list inputs: A list storing DNS quantities for Green-Lagrange strain (dict), displacements (dict), displacement gradient (dict), micro-deformation (dict), micro-deformation gradient (dict), and time increments (list)
+    :param array e_params: The elastic fparams
+    :param array p_params: The previously calibrated plastic fparams including macro- and micro-plasticity initial cohesion and hardening
+    :param str cal_norm: The form of the norm for the residual, use "L1" or "L2"
+    :param int case: The calibration "case".
+    :param int element: The macro (filter) element to calibration
+    :param int nqp: The number of quadrature points (1 if filter data is averaged, 8 otherwise)
+    :param bool calibrate: A flag specifying whether to perform calibration for "True" or to return the stacked list of parameters for "False"
+    :param int increment: An optional list of one or more increments to perform calibration
+
+    :returns: objective function evaluation by calling primary objective function if calibrate=True or return stacked list of parameters if calibrate=False
+    '''
+
+    XX = numpy.hstack([p_params[0:4], X, e_params])
+    if calibrate:
+        return(objective(XX, Y, inputs, cal_norm, case, element, nqp, increment=increment, stresses_to_include=['M']))
+    else:
+        return XX
+
+
 def calibrate_plasticity(input_file, output_file, case, input_parameters, element=0, increment=None, plot_file=None, average=False, UQ_file=None, cal_norm='L1'):
     ''' Unpack DNS data and run plasticity calibration routine
 
@@ -523,9 +548,9 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         params = opti_options_6(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
     elif case == 7:
         # Case 7 - Calibrate macro-plasticity, micro-plasticity, and micro-gradient-plasticity initial cohesion and hardening parameters
-        parameter_bounds = [[1.0, 20.], [1.e-8, 500.], [1.0, 20.], [1.e-8, 500.], [1.e-3, 20.], [1.e-8, 500.]]
+        parameter_bounds = [[1.0, 20.], [1.e-8, 500.], [1.0, 20.], [1.e-8, 500.], [1.e-10, 5.], [1.e-10, 5000.]]
         param_est = [3.0, 1.e-4, 3.0, 1.e-4, 0.1, 1.]
-        workers = 4
+        workers = 3
         res = scipy.optimize.differential_evolution(func=opti_options_7,
                                                     bounds=parameter_bounds,
                                                     maxiter=maxit,
@@ -614,6 +639,20 @@ def calibrate_plasticity(input_file, output_file, case, input_parameters, elemen
         print(f"res = {res}")
         print(f"fit params = {list(res.x)}")
         params = opti_options_6(list(res.x), Y, inputs, e_params, cal_norm, case, element, nqp, calibrate=False)
+    elif case == 13:
+        # Case 13 - Calibrate micro-gradient-plasticity initial cohesion and hardening parameters with a previous macro- and micro-plasticity calibration provided
+        parameter_bounds = [[1.e-10, 10.], [1.e-10, 2000.]]
+        param_est = [0.1, 1.e-4]
+        workers = 3
+        res = scipy.optimize.differential_evolution(func=opti_options_13,
+                                                    bounds=parameter_bounds,
+                                                    maxiter=maxit,
+                                                    x0=param_est,
+                                                    workers=workers,
+                                                    args=(Y, inputs, e_params, f_params, cal_norm, case, element, nqp, True, increment))
+        print(f"res = {res}")
+        print(f"fit params = {list(res.x)}")
+        params = opti_options_13(list(res.x), Y, inputs, e_params, f_params, cal_norm, case, element, nqp, calibrate=False)
     else:
         print('Select valid calibration case!')
     end_time = time.time()

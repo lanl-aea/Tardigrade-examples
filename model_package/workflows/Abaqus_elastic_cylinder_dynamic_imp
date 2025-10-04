@@ -74,7 +74,7 @@ if env['filter']:
 # # ---------- CALIBRATE ---------------------------------------------------------
 # # Run common calibration sconscript
 # case = params['calibration_case']
-# if env['calibrate']:
+# if env['calibrate_elasticity']:
     # filter_file = str(build_directory / filter_targs[0])
     # params['filter_file'] = filter_file
     # workflow.extend(

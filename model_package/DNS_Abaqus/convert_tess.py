@@ -5,6 +5,8 @@ import argparse
 import pathlib
 import re
 
+sys.path.append('/apps/Cubit-16.12/bin')
+
 import numpy
 import cubit
 import pandas
@@ -13,6 +15,12 @@ import pandas
 def parse_contents(input_file):
     """Parse content of Neper output
 
+    :params str input_file: Input tesselation (.tess) file
+
+    :returns: DataFrame containing rows of vertex coordinates,
+        DataFrame containing rows of edge-to-vertex connectivity,
+        dictionary containing ids of faces with lists of face-to-edge connectivity, and
+        dictionary containing ids of polyhedra with lists of polyhedra-to-face connectivity
     """
 
     lines = []
@@ -72,6 +80,13 @@ def parse_contents(input_file):
 def create_geometry(vertices, edges, faces, bounds, polyhedra, stl_file):
     """Create geometry from Neper output
 
+    :params DataFrame vertices: Pandas DataFrame containing rows of vertex coordinates
+    :params DataFrame edges: Pandas DataFrame containing rows of edge-to-vertex connectivity
+    :params dict faces: Dictionary containing ids of faces with lists of face-to-edge connectivity
+    :params dict polyhedra: Dictionary containing ids of polyhedra with lists of polyhedra-to-face connectivity
+    :params str stl_file: Optional filename to save STL geometry without extension
+
+    :returns: Write ``{stl_file}.cub`` and ``{stl_file}.stl``
     """
 
     cubit.init(['cubit', '-noecho', '-nojournal', '-nographics', '-batch'])
@@ -105,9 +120,16 @@ def create_geometry(vertices, edges, faces, bounds, polyhedra, stl_file):
     return 0
 
 
-def create_mesh(stl_file, mesh_file, polyhedra, sidesets):
+def create_mesh(stl_file, mesh_file, polyhedra, sidesets, seed_size):
     """Create mesh from Neper output
 
+    :params str stl_file: Optional filename to save STL geometry without extension
+    :params str mesh_file: Optional filename to create an Abaqus mesh without extension
+    :params dict polyhedra: Dictionary containing ids of polyhedra with lists of polyhedra-to-face connectivity
+    :params dict sidesets: Dictionary containing names of surfaces and geometric search strings
+    :params float seed_size: The approximate mesh size
+
+    :returns: Write ``{mesh_file}.cub`` and ``{mesh_file}.inp``
     """
 
     cubit.init(['cubit', '-noecho', '-nojournal', '-nographics', '-batch'])
@@ -117,8 +139,6 @@ def create_mesh(stl_file, mesh_file, polyhedra, sidesets):
     cubit.cmd(f'import stl "{stl_file}.stl" feature_angle 135.0 merge')
     #cubit.cmd('set developer commands on')
     cubit.cmd('imprint all')
-    #cubit.cmd('merge all')
-    #cubit.cmd('volume all scheme Polyhedron')
     cubit.cmd('volume all scheme tetmesh')
     cubit.cmd('mesh volume all')
     for cell in polyhedra.keys():
@@ -141,8 +161,12 @@ def create_mesh(stl_file, mesh_file, polyhedra, sidesets):
 
 
 def convert_tess(input_file, stl_file=None, mesh_file=None, seed_size=1.0):
-    """Convert a tesslation file output by Neper to STL and create Abaqus mesh
+    """Convert a 2D tesselation file output by Neper to STL and create an Abaqus mesh
 
+    :params str input_file: Input tesselation (.tess) file
+    :params str stl_file: Optional filename to save STL geometry without extension
+    :params str mesh_file: Optional filename to create an Abaqus mesh without extension
+    :params float seed_size: The approximate mesh size
     """
 
     vertices, edges, faces, bounds, polyhedra = parse_contents(input_file)
@@ -174,7 +198,7 @@ def get_parser():
 
     script_name = pathlib.Path(__file__)
     prog = f"python {script_name.name} "
-    cli_description = "Convert a tesslation file output by Neper to STL and create Abaqus mesh"
+    cli_description = "Convert a 3D tesselation file output by Neper to STL and create an Abaqus mesh"
 
     parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument("--input-file", type=str, required=True,

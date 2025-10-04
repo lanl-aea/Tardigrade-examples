@@ -10,34 +10,39 @@ before_script:
   - module use ${aea_modulefiles}
   - module use ${PWD}/modulefiles
   # Prefer the CI environment and fall back to AEA environment(s)
-  - project_environment="trust-setc-eabm-env"
-  - environment_choices="${project_environment} aea-beta aea-release"
-  - for env in ${environment_choices}; do if [[ -d "${aea_compute_path}/${env}" ]]; then environment=${env}; break; fi; done
-  - echo ${environment}
-  - module load ${environment}
-  - conda info
+  - project_environment="tardigrade-examples-env"
+  #- environment_choices="${project_environment}"
+  #- for env in ${environment_choices}; do if [[ -d "${aea_compute_path}/${env}" ]]; then environment=${env}; break; fi; done
+  #- echo ${environment}
+  #- module load ${environment}
+  #- conda info
   # TODO: kick off 'environment' job for missing environments instead of re-creating the environment build logic here
   # https://re-git.lanl.gov/aea/python-projects/waves/-/issues/8
   - environment_path="${aea_compute_path}/${project_environment}"
-  - conda_options='--force --solver=libmamba'
+  - conda_options='--force --solver=libmamba -y'
   - |
       if [[ ! -d ${environment_path} ]]; then
+          source /apps/anaconda/2023.07-2-python-3.11.4/bin/activate
           conda env create --prefix ${environment_path} --file environment.yml ${conda_options}
           chmod -R 755 ${environment_path}
       fi
-  - if [[ ${project_environment} != ${environment} ]]; then module unload ${environment}; module load ${project_environment}; fi
+  - module load ${project_environment}
+  - conda info
+  #- if [[ ${project_environment} != ${environment} ]]; then module unload ${environment}; module load ${project_environment}; fi
 
 environment:
   stage: environment
   variables:
     GIT_STRATEGY: clone
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"
-      changes:
-        - "modulefiles/*"
-        - "environment.yml"
+  #rules:
+  #  - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"
+  #    changes:
+  #      - "modulefiles/*"
+  #      - "environment.yml"
   script:
     # Re-build the Conda environment on changes to environment files
+    - conda_options='--force --solver=libmamba -y'
+    - source /apps/anaconda/2023.07-2-python-3.11.4/bin/activate
     - conda env create --prefix ${environment_path} --file environment.yml ${conda_options}
     # Remove write permissions from group to avoid accidental environment changes
     - chmod -R 755 ${environment_path}

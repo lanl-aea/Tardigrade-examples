@@ -16,7 +16,7 @@ Micromorphic Linear Elasticity
 Eringen and Suhubi :cite:`eringen_nonlinear_1964` proposed unique sets of elastic deformation measures as functions
 of the macroscopic deformation gradient :math:`\mathbf{F}` and the micro-deformation tensor :math:`\mathbf{\chi}`.
 These deformation measures include the left Cauchy-Green deformation tensor
-:math:`\mathbf{\mathcal{C}}`, a micro-deformation tensor :math:`\mathbf{\Psi}`,
+:math:`\mathbf{\mathcal{C}}`, a tensor including both macro- and micro-deformations :math:`\mathbf{\Psi}`,
 and the micro-deformation gradient :math:`\mathbf{\Gamma}`, as calculated in
 Eq. :math:numref:`{number} <deformation_measures_1>`.
 From the deformation measures introduced in Eq. :math:numref:`{number} <deformation_measures_1>`,

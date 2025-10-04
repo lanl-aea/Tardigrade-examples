@@ -16,10 +16,13 @@ New Features
   BCs on micro displacements. Add objective functions to elastoplastic calibration for
   softening plasticity. Write parser for ExodusII files (:issue:`29`, :merge:`18``).
   By `Thomas Allard`_.
+- Create workflows for GEOS elastic cylinder verification and I43.01 studies (:issue:`8`, :merge:`19`).
+  By`Thomas Allard`_.
 
 Documentation
 =============
 - Reformat API and CLI by section (:issue:`24`, :merge:`16`). By `Thomas Allard`_.
+- Document GEOS elastic cylinder verification and I43.01 studies(:issue:`8`, :merge:`19`). By `Thomas Allard`_.
 
 ******************
 0.2.0 (2024-12-18)

@@ -16,12 +16,12 @@ Unique material calibrations are produced for each filtering domain
 which are prescribed to their corresponding elements in the
 macroscale simulations.
 
-A variety of simulation variables are provided in the :code:`I43_damage_coarse_finetime`
+A variety of simulation variables are provided in the :code:`I43_best_DNS`
 dictionary in the :code:`model_package/DNS_Ratel/simulation_variables_nominal.py` file.
 This dictionary is loaded into the workflow as the :code:`params` dictionary.
 
 .. literalinclude:: DNS_Ratel_simulation_variables_nominal.py
-   :lines: 176-219
+   :lines: 276-305
    :linenos:
 
 .. warning::
@@ -40,24 +40,24 @@ A user will be asked for their identikey, password, and two factor authenticatio
       $ scons --peta-data-copy
 
 The analysis is executed in individual stages by the
-:code:`Ratel_I41_02_elastic_multi_domain` SConscript.
+:code:`Ratel_I43_09_multi_domain_best_DNS` SConscript.
 First, the existing
 DNS results are processed into the required XDMF file format for
 the Micromorphic Filter using the following command:
 
    .. code-block:: bash
 
-      $ scons Ratel_I43_09_multi_domain
+      $ scons Ratel_I43_09_multi_domain_best_DNS
 
 Next the homogenization is performed. Macroscale meshes with
 1, 24, 48, 264, 768, and 2160 elements are considered for the default configuration.
 The micromorphic filter is parallelized to run on 8 cpus. This value may be
-modified by changing the value of "filter_parallel" in the :code:`I43_damage_coarse_finetime`
+modified by changing the value of "filter_parallel" in the :code:`I43_best_DNS`
 parameter dictionary.
 
    .. code-block:: bash
 
-      $ scons Ratel_I43_09_multi_domain --filter
+      $ scons Ratel_I43_09_multi_domain_best_DNS --filter
 
 Calibration is then performed for each macroscale element (i.e. filtering domain).
 This process can be rather expensive depending on what model is being calibrated,
@@ -74,9 +74,9 @@ One may choose to only calibrate parameter sets 0, 1, and 2 using the
 
    .. code-block:: bash
 
-      $ scons Ratel_I43_09_multi_domain --calibrate
-      $ scons Ratel_I43_09_multi_domain --calibrate --jobs=10
-      $ scons Ratel_I43_09_multi_domain --calibrate --jobs=10 --selected-parameter-sets='0 1 2'
+      $ scons Ratel_I43_09_multi_domain_best_DNS --calibrate
+      $ scons Ratel_I43_09_multi_domain_best_DNS --calibrate --jobs=10
+      $ scons Ratel_I43_09_multi_domain_best_DNS --calibrate --jobs=10 --selected-parameter-sets='0 1 2'
 
 Once calibration is completed, Tardigrade-MOOSE simulations may be performed.
 A Tardigrade-MOOSE simulation is performed for each case of filtering domains.
@@ -90,12 +90,6 @@ There are three different types of macroscale simulations that may specified:
 * The :code:`--macro-platen` command line option will run simulations with loading platens
 * The :code:`--macro-damage` command line option will run simulations using gradient-enhanced damage plasticity if Tardigrade-MOOSE is configured properly.
 
-Finally, the results across filtering domains may be summarized into several
-plots and csv files using the "summary" command:
-
-   .. code-block:: bash
-
-        $ scons Ratel_I41_02_elastic_multi_domain --summary
 
 ***************************
 DNS Description and Results

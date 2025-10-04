@@ -188,6 +188,7 @@ if env['filter']:
     params['filter_config_basename'] = f"FILTER_config_{model}_default"
     print(params['filter_config_basename'])
     params['viz_targs'] = tuple((option, f'default_{target}') for option, target in viz_targs)
+    params['model_override'] = f"{model}_default"
     # Run common filter sconscript
     workflow.extend(
         SConscript("filter.scons",
@@ -201,6 +202,7 @@ if env['filter']:
     params['viz_targs'] = tuple((option, f'sets_{target}') for option, target in viz_targs)
     params['filter_config_basename'] = f"FILTER_config_{model}_grain_domains"
     params['sets_file'] = set_file
+    params['model_override'] = f"{model}_grain_domains"
     # Run common filter sconscript
     if env['filter']:
         workflow.extend(

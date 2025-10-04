@@ -37,7 +37,8 @@ params = simulation_variables_nominal.Brazilian_disk_platens
 workflow = []
 
 # Calculations for rigid platens
-rad_diff = params['app_rad'] - params['spec_rad']
+#rad_diff = params['app_rad'] - params['spec_rad']
+rad_diff = params['rad_diff']
 bottom_platen_center_x = 0.
 bottom_platen_center_y = rad_diff
 top_platen_center_x = 0.
@@ -54,9 +55,20 @@ parameter_schema = dict(
 normalized_QoI_csvs = []
 plot_labels = []
 
+parameter_flag = False
+if env['selected_parameter_sets'] != "All":
+    parameter_flag = True
+    selected_parameter_sets = [int(i) for i in env['selected_parameter_sets'].split(' ')]
+
 parameter_generator = waves.parameter_generators.CustomStudy(parameter_schema)
 for set_name, parameters in parameter_generator.parameter_study_to_dict().items():
     set_name = pathlib.Path(f'{build_directory/set_name}')
+
+    # Optionally skip certain parameter sets
+    if parameter_flag == True:
+        set = int(str(set_name).split('parameter_set')[-1])
+        if set not in selected_parameter_sets:
+            continue
 
     geometry = parameters['geometry']
     force_factor = parameters['force_factor']
@@ -88,7 +100,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     input_options += f" --material-E {simulation_variables['material_E']}"
     input_options += f" --material-nu {simulation_variables['material_nu']}"
     input_options += f" --platen-radius {simulation_variables['app_rad']}"
-    input_options += f" --disp {simulation_variables['macro_disp']}"
+    input_options += f" --disp {simulation_variables['macro_disp']/2}"
     input_options += f" --duration {simulation_variables['macro_duration']}"
     input_options += f" --xc-bot {bottom_platen_center_x}"
     input_options += f" --yc-bot {bottom_platen_center_y}"
@@ -98,7 +110,6 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     ## conditionals
     if 'symmetry' in geometry:
         mesh_script = 'brazilian_disk_apparatus_symmetry.py'
-        simulation_variables['macro_disp'] = simulation_variables['macro_disp']/2
         input_options += " --top-symmetry top_sym"
         input_options += " --back-symmetry back_sym"
         input_options += " --specimen-bottom-surface specimen_contact"
@@ -117,20 +128,11 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
         print('Specify a valid geometry type!')
 
     # Build mesh
-    if env['cubit']:
-        workflow.extend(env.PythonScript(
-            target=[str(set_name / tardi_mesh)],
-            source=[str(Tardigrade_MOOSE_source_abspath / mesh_script)],
-            script_options=mesh_options
-            ))
-    ## TODO: update template meshes!
-    else:
-        mesh_copy = f"{simulation_variables['mesh_copy_root']}_{geometry}.e"
-        workflow.extend(env.Command(
-            target=[str(set_name / tardi_mesh)],
-            source=[f"{mesh_templates_abspath}/{mesh_copy}"],
-            action=SCons.Defaults.Copy("${TARGET}", "${SOURCE}", False)
-            ))
+    workflow.extend(env.PythonScript(
+        target=[str(set_name / tardi_mesh)],
+        source=[str(Tardigrade_MOOSE_source_abspath / mesh_script)],
+        script_options=mesh_options
+        ))
 
     # build input file
     tardigrade_input_script = "build_elastic_MOOSE_input_deck_brazil_disk_rigid_platens.py"
@@ -203,8 +205,8 @@ script_options += f" --output-file {output_targets[0]}"
 script_options += f" --output-csv {output_targets[1]}"
 script_options += " --disp-field norm_disp"
 script_options += " --force-field norm_force"
-script_options += " --x-label 'Displacement, $\delta / D$ (%)'"
-script_options += " --y-label 'Applied Load, $ P / (BR) $ (MPa)'"
+script_options += r" --x-label 'Displacement, $\delta / D$ (%)'"
+script_options += r" --y-label 'Applied Load, $ P / (BR) $ (MPa)'"
 workflow.extend(env.PythonScript(
     target=output_targets,
     source=[f"{Tardigrade_MOOSE_source_abspath / summary_script}"] + normalized_QoI_csvs,

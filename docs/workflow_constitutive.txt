@@ -53,10 +53,11 @@ and are more conceptually intuitive.
 
 If parameters :math:`\tau^*`, :math:`\sigma^*`, :math:`\eta^*`,
 :math:`\kappa^*`, :math:`\nu^*`, and :math:`\tau_1^*` through 
-:math:`\tau_{11}^*` are set to zero (with the exception of :math:`\tau_7^*`
-which must be non-zero to satisfy positive definiteness of the free energy
-function :cite:`smith_inequalities_1968`), then Equation
+:math:`\tau_{11}^*` are set to zero, then Equation
 :math:numref:`{number} <constitutive_case_4>` reduces as follows.
+When running Tardigrade-MOOSE, :math:`\tau_7^*` must be non-zero to satisfy positive
+definiteness of the free energy function :cite:`smith_inequalities_1968` unless the
+degrees of freedom for :math:`\mathbf{Phi}` are set to zero.
 
 .. math::
     :label: constitutive_case_1
@@ -66,8 +67,6 @@ function :cite:`smith_inequalities_1968`), then Equation
 
     \Sigma_{KL} &= \lambda^* E_{MM} \delta_{KL} 
         + 2\mu^* E_{KL}
-
-    M_{KLM} &= \tau_7^* \Gamma_{LMK}
 
 Here the second Piola-Kirchhoff and symmetric micro-stresses are equivalent
 and classical Saint Venant Kirchhoff elasticity is recovered. The Saint
@@ -97,8 +96,7 @@ to :math:`\tau_{11}` to zero, the simplified equations become:
         &+ \left(\nu^* + \kappa^* - \sigma\right) 
         \left(\mathcal{E}_{KL} + \mathcal{E}_{LK}\right)
 
-    M_{KLM} &= 
-        + \tau_7^* \Gamma_{LMK}
+    M_{KLM} &= \tau_7^* \Gamma_{LMK}
 
 Here :math:`\tau_7` may be either set to a fixed value or determined through
 a calibration process.

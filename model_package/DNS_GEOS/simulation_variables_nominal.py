@@ -66,3 +66,103 @@ I43_01 = {
 I43_01['DNS_fileroot'] = 'GEOS_2025-03-02_I43-01_take2'
 I43_01['DNS_file'] = 'vtkOutput_short.pvd'
 I43_01['DNS_forces'] = 'reactionHistory.csv'
+
+I43_elastic = {
+    # DNS parameters
+    'diam': 5.0501088,
+    'height': 4.6736,
+    'material_E': 250.,
+    'material_nu': 0.2,
+    'rho_binder': 1.935e-9,
+    'cut': True,
+    # Mesh file root to copy if Cubit is not found
+    'mesh_copy_root': 'GEOS_cylinder',
+    # parameters for micromorphic filter
+    'acceleration': False,
+    'velocity': False,
+    'filter_parallel': 8,
+    # parameters for calibration
+    'calibration_case': 3,
+    'calibration_increment': [5],
+    'ignore_boundary': True,
+    # paramters for Tardigrade-MOOSE
+    'macro_disp': 0.1250143659720484,
+    'macro_duration': 1.0,
+    'macro_BC': 'slip',
+}
+
+I43_elastic['DNS_fileroot'] = 'lowRes_elasticPuck_04252025'
+I43_elastic['DNS_file'] = 'vtkOutput_trimmed.pvd'
+I43_elastic['DNS_forces'] = 'reactionHistory.csv'
+
+I43_sim38 = {
+    # DNS parameters
+    'diam': 5.0501088,
+    'height': 4.6736,
+    'material_E': 250.,
+    'material_nu': 0.2,
+    'rho_binder': 1.935e-9,
+    'cut': True,
+    # Mesh file root to copy if Cubit is not found
+    'mesh_copy_root': 'GEOS_cylinder',
+    # parameters for micromorphic filter
+    'acceleration': False,
+    'velocity': False,
+    'filter_parallel': 8,
+    # parameters for calibration
+    'calibration_case': 3,
+    'calibration_increment': [5],
+    'ignore_boundary': True,
+    # paramters for Tardigrade-MOOSE
+    'macro_disp': 0.1250143659720484,
+    'macro_duration': 1.0,
+    'macro_BC': 'slip',
+}
+
+I43_sim38['DNS_fileroot'] = 'lowRes_ceramicPuck_I43p01_sim38'
+I43_sim38['DNS_file'] = 'vtkOutput_trimmed.pvd'
+I43_sim38['DNS_forces'] = 'reactionHistory.csv'
+
+I43_sim38['DNS_fileroot'] = 'lowRes_ceramicPuck_I43p01_sim38'
+I43_sim38['DNS_file'] = 'vtkOutput_trimmed.pvd'
+I43_sim38['DNS_forces'] = 'reactionHistory.csv'
+
+# I43_01_sim38 newer
+I43_01_sim38 = {
+    # DNS parameters
+    'diam': 5.0501088,
+    'height': 4.6736,
+    'material_E': 250.,
+    'material_nu': 0.2,
+    'rho_binder': 1.935e-9,
+    'cut': True,
+    # Mesh file root to copy if Cubit is not found
+    'mesh_copy_root': 'GEOS_cylinder',
+    # parameters for micromorphic filter
+    'acceleration': False,
+    'velocity': False,
+    'filter_parallel': 8,
+    # parameters for calibration
+    'calibration_case': 3,
+    'calibration_increment': [5],
+    'ignore_boundary': True,
+    # paramters for Tardigrade-MOOSE
+    'macro_disp': 0.1250143659720484,
+    'macro_duration': 1.0,
+    'macro_BC': 'slip',
+}
+# Handle DNS files for petalibrary copy
+root = 'GEOS-MPM/ITT08/lowRes_ceramicPuck_I43p01_sim38'
+levels = ['000000', '013228', '020129', '027031', '033357', '040259',
+          '047161', '053487', '058664', '066716', '069597']
+ranks = 216
+I43_01_sim38['DNS_files'] = {
+    'main': [f'{root}/vtkOutput.pvd'],
+    'force': [f'{root}/reactionHistory.csv'],
+    'vtms': [f'{root}/vtkOutput/{level}.vtm' for level in levels]}
+for level in levels:
+    for j in [2,3]: #ParticleRegion1 is the loading platen
+        I43_01_sim38['DNS_files'][f'{level}_region{j}'] = [f'{root}/vtkOutput/{level}/particles/Level0/ParticleRegion{j}/rank_{str(i).zfill(3)}.vtu' for i in range(0, ranks)]
+I43_01_sim38['DNS_file'] = 'vtkOutput_trimmed.pvd'
+I43_01_sim38['DNS_fileroot'] = 'GEOS_I43_01_sim38'
+I43_01_sim38['DNS_forces'] = 'reactionHistory.csv'

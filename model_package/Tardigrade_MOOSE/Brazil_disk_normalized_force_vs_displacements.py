@@ -31,7 +31,7 @@ def Brazil_disk_normalized_force_vs_displacements(input_file, plot_file, csv_fil
     # plot
     matplotlib.pyplot.figure()
     matplotlib.pyplot.plot(disps, forces, 'o-')
-    matplotlib.pyplot.xlabel('Displacement, $\delta / D$ (%)')
+    matplotlib.pyplot.xlabel(r'Displacement, $\delta / D$ (%)')
     matplotlib.pyplot.ylabel(r'Applied Load, $P / \left(BR\right)$ (MPa)')
     matplotlib.pyplot.tight_layout()
     matplotlib.pyplot.savefig(plot_file)

@@ -54,19 +54,27 @@ AddOption(
          " (default: '%default')"
 )
 AddOption(
-    "--calibrate",
-    dest="calibrate",
+    "--calibrate-elasticity",
+    dest="calibrate_elasticity",
     default=False,
     action="store_true",
-    help="Boolean speciyfing whether or not to run calibration for a particular upscaling study."\
+    help="Boolean speciyfing whether or not to run elastic calibration for a particular upscaling study."\
          " (default: '%default')"
 )
 AddOption(
-    "--calibrate-softening",
-    dest="calibrate_softening",
+    "--calibrate-plasticity",
+    dest="calibrate_plasticity",
     default=False,
     action="store_true",
-    help="Boolean speciyfing whether or not to run softening calibration for certain upscaling studies."\
+    help="Boolean speciyfing whether or not to run plastic calibration for a particular upscaling study."\
+         " (default: '%default')"
+)
+AddOption(
+    "--calibrate-plastic-softening",
+    dest="calibrate_plastic_softening",
+    default=False,
+    action="store_true",
+    help="Boolean speciyfing whether or not to run plastic softening calibration for certain upscaling studies."\
          " (default: '%default')"
 )
 AddOption(
@@ -171,8 +179,9 @@ env = waves.scons_extensions.WAVESEnvironment(
     solve_cpus=GetOption("solve_cpus"),
     print_build_failures=GetOption("print_build_failures"),
     filter=GetOption("filter"),
-    calibrate=GetOption("calibrate"),
-    calibrate_softening=GetOption("calibrate_softening"),
+    calibrate_elasticity=GetOption("calibrate_elasticity"),
+    calibrate_plasticity=GetOption("calibrate_plasticity"),
+    calibrate_plastic_softening=GetOption("calibrate_plastic_softening"),
     calibrate_qp=GetOption("calibrate_qp"),
     macro=GetOption("macro"),
     macro_platen=GetOption("macro_platen"),
@@ -303,6 +312,7 @@ tardigrade_solver_mpi = Builder(
             ${mpi_location} \
             -n ${tardigrade_cpus} ${tardigrade_program} \
             -i ${tardigrade_input} \
+            --n-threads=2 \
             --no-color --color off > ${stdout_file} || true",
             "cd ${TARGET.dir.abspath} && grep -i 'Finished Executing' ${stdout_file}"])
 tardigrade_solver_sbatch = Builder(
@@ -323,9 +333,11 @@ def tardigrade_builder_select():
         return tardigrade_solver
 
 # Neper
+## Only allow neper to use up to 8 threads for a single run
 neper_tesselate = Builder(
     action=["cd ${TARGET.dir.abspath} && \
-             neper -T -n ${num_grains} -o ${output_name} ${arguments} \
+            OMP_NUM_THREADS=8 \
+             ${neper_program} -T -n ${num_grains} -o ${output_name} ${arguments} \
              > ${stdout_file}"])
 
 # # Custom Paraview image generator
@@ -342,7 +354,7 @@ neper_tesselate = Builder(
 project_configuration = pathlib.Path(inspect.getfile(lambda: None))
 project_dir = project_configuration.parent
 project_name = project_dir.name
-version = "0.2.0"
+version = "0.3.0"
 author_list = ["Thomas Allard"]
 author_latex = r" \and ".join(author_list)
 latex_project_name = project_name.replace("_", "-")
@@ -453,7 +465,7 @@ else:
     print(f"The 'ignore_documentation' option was set to 'True'. Skipping documentation SConscript file(s)")
     docs_aliases = []
 
-# Add simulation targets
+# Workflow Targets
 workflow_configurations = [
     # Abaqus quasistatic elastic cylinder
     "Abaqus_elastic_cylinder",
@@ -463,6 +475,8 @@ workflow_configurations = [
     # Abaqus dynamic implicit elastic cylinder
     "Abaqus_elastic_cylinder_dynamic_imp",
     "Abaqus_elastic_cylinder_dynamic_imp_multi_domain",
+    # Abaqus axisymmetric wave study
+    "Abaqus_dynamic_axisymmetric_wave_study",
     # GEOS elastic cylinder
     "GEOS_elastic_cylinder",
     "GEOS_elastic_cylinder_multi_domain",
@@ -470,6 +484,8 @@ workflow_configurations = [
     # GEOS I43.01
     "GEOS_I43_01",
     "GEOS_I43_01_annular",
+    "GEOS_I43_01_sim38",
+    "GEOS_I43_elastic",
     # Ratel quasistatic elastic cylinder
     "Ratel_elastic_cylinder",
     "Ratel_elastic_cylinder_multi_domain",
@@ -479,35 +495,34 @@ workflow_configurations = [
     "Ratel_F83_multi_domain",
     # Ratel I41_02 workflows
     "Ratel_I41_02_elastic_multi_domain",
-    #"Ratel_I41_02_elastic_single_domains",
     # Ratel I43_09 workflow
     "Ratel_I43_09_multi_domain",
     "Ratel_I43_09_damage_multi_domain",
     "Ratel_I43_09_multi_domain_CGNS",
+    "Ratel_I43_09_multi_domain_best_DNS",
+    "Ratel_I43_09_MAP",
     # Tardigrade solo studies
     "Tardigrade_convergence",
     "Tardigrade_dynamic_convergence",
     "plastic_refinement_clamp_H-10percent_mu",
-    # Brazilian Disk Compression
+    # Brazilian Disk Compression - elastic
     "Abaqus_Brazilian_disk_rigid_platens_study",
     "MOOSE_Brazilian_disk_rigid_platens_study",
     "Tardigrade_Brazilian_disk_rigid_platens_study",
-    #"Abaqus_Brazilian_disk_platens",
-    #"Abaqus_Brazilian_disk_platens_quarter_symmetry",
-    #"Abaqus_Brazilian_disk_platens_eighth_symmetry",
-    #"MOOSE_Brazilian_disk_platens",
-    #"MOOSE_Brazilian_disk_platens_quarter_symmetry",
-    #"MOOSE_Brazilian_disk_platens_eighth_symmetry",
-    #"Tardigrade_Brazilian_disk",
-    #"Tardigrade_Brazilian_disk_platens",
-    #"Tardigrade_Brazilian_disk_platens_eighth_symmetry",
-    #"Tardigrade_Brazilian_disk_platens_elastic",
-    #"Tardigrade_Brazilian_disk_platens_quarter_symmetry_elastic",
-    #"Tardigrade_Brazilian_disk_platens_eighth_symmetry_elastic",
-    #Neper studies
+    "Tardigrade_Brazilian_disk_rigid_platens_study_no_phi",
+    "Tardigrade_Brazilian_disk_rigid_platens_micromorphic_elasticity_study",
+    # Brazilid Disck Compression - plastic
+    "Tardigrade_Brazilian_disk_rigid_platens_plasticity_study",
+    "Tardigrade_Brazilian_disk_rigid_flat_platens_plasticity_study",
+    "Tardigrade_Brazilian_disk_rigid_line_load_plasticity_study",
+    "Tardigrade_Brazilian_disk_kernel_platens_plasticity_study",
+    "Tardigrade_Brazilian_disk_kernel_platens_softening_study",
+    # Neper studies
+    "neper_rectangle",
     "neper_cube",
+    "neper_cube_multi_grain",
     "neper_cylinder",
-    #Filter convergence studies
+    # Filter convergence studies
     "Filter_convergence_cylinder",
     "Filter_convergence_cube",
 ]
@@ -604,7 +619,7 @@ print(r"""\
 # Add default target list to help message
 # Add aliases to help message so users know what build target options are available
 # This must come *after* all expected Alias definitions and SConscript files.
-waves.scons_extensions.project_help_message()
+env.ProjectHelp()
 
 # Write targets to .scon_autocomplete file
 with open('.scons_autocomplete', 'w') as f:

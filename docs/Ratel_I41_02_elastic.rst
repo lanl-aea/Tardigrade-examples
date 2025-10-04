@@ -184,7 +184,7 @@ Filter Preparation
 ******************
 
 DNS results are converted to the required XDMF file format in a very similar
-way to what is describd in :ref:`Ratel_elastic_cylinder`.
+way to what is described in :ref:`Ratel_elastic_cylinder`.
 Here, filtering domains with 1, 24, 48, 192, and 960
 macroscale elements are used, however, only the results
 of the 48, 192, and 960 element cases will be discussed.

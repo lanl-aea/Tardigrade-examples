@@ -5,7 +5,7 @@ channels:
 dependencies:
   - waves
   - scons>=4
-  - boost>=1.59,<=1.80
+  - boost>=1.59
   - breathe>=4.30.0
   - cmake>=3.18
   - cython
@@ -32,6 +32,9 @@ dependencies:
   - meshio
   - tqdm
   - compilers
-  - neper
   - yaml
   - pycgns
+  - vtk
+  - moose-dev>=2025.09.18*=mpich
+  - moose-libmesh
+  - hdbscan

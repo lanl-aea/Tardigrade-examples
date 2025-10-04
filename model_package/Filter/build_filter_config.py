@@ -5,10 +5,29 @@ import sys
 import yaml
 
 
+def get_set_yaml_depth(data, depth=0):
+    '''Determine the levels of a yaml file containing set information for prescribed micro-averaging domains
+
+    :params dict/list data: Data unpacked from a yaml file containing prescribed micro-averaging set information
+    :param int depth: default depth of yaml file
+
+    :returns: Integer depth value
+    '''
+
+    if isinstance(data, dict):
+        return max((get_set_yaml_depth(v, depth + 1) for v in data.values()), default=depth)
+    elif isinstance(data, list):
+        return max((get_set_yaml_depth(item, depth + 1) for item in data), default=depth)
+    else:
+        return depth
+
+
 def write_filter_config(output_file, job_name, dns_file, macro_file,
                         volume, density, displacement, cauchy_stress,
                         velocity=None, acceleration=None, damage=None,
-                        max_parallel=None, sets_file=None, spectral=None):
+                        max_parallel=None, sets_file=None, micro_averaging_domains='auto',
+                        update_filter_domains=False,
+                        plot_micro_domains=False):
     '''Write the configuration file for the Micromorphic Filter
 
     :param str output_file: The output filename for filter configuration
@@ -23,7 +42,10 @@ def write_filter_config(output_file, job_name, dns_file, macro_file,
     :param str acceleration:  Optional string identifying acceleration quantities located in "dns-file"
     :param str damage: Optional string identifying damage quantities located in "dns-file"
     :param int max_parallel: Optional parameter defining the number of parallel processes for the Micromorphic Filter
-    :param str sets_file: Optional yaml file containing prescribed micro-averaging domains
+    :param str sets_file: Optional yaml file containing prescribed micro-averaging domains, required if micro_averaging_domains='prescribed'
+    :param bool micro_averaging_domains: Micro-averaging domain detection method. Options include "auto," "prescribed," "spectral," or "HDBSCAN_recursive"
+    :param bool update_file_domains: Option ot update filter and micro-averaging domains for each time step
+    :param bool plot_micro_domains: Option to request filter to plot micro-averaging domains
 
     returns ``output_file``
     '''
@@ -45,19 +67,36 @@ def write_filter_config(output_file, job_name, dns_file, macro_file,
     if damage:
         quantity_dict["damage"] = damage
 
-    # Prescribed or spectral domains
-    if (sets_file is not None) and (spectral is None):
+    # micro-averaging domain detection method
+    if micro_averaging_domains == 'prescribed':
+        assert sets_file != None, "sets_file must be provided if micro_averaging_domains='prescribed'!"
         filter_dict["micro_averaging_domains"] = 'prescribed'
         stream = open(sets_file, 'r')
         sets = yaml.load(stream, Loader=yaml.FullLoader)
         stream.close()
-        quantity_dict["prescribed_micro_averaging_domains"] = list(sets.keys())
-    elif (sets_file is None) and (spectral is not None):
+        # Figure out yaml depth. If depth < 3, sets are defined only for a single filter domains
+        depth = get_set_yaml_depth(sets)
+        if depth < 3:
+            sets_out = {0: list(sets.keys())}
+        else:
+            sets_out = {key: list(sets[key]) for key in sets.keys()}
+        quantity_dict["prescribed_micro_averaging_domains"] = sets_out
+    elif micro_averaging_domains == 'spectral':
         filter_dict["micro_averaging_domains"] = 'spectral'
-    elif (sets_file is None) and (spectral is None):
-        print('Using the default "nearest qpt" micro averaging domain method')
+    elif micro_averaging_domains == 'HDBSCAN_recursive':
+        filter_dict["micro_averaging_domains"] = 'HDBSCAN_recursive'
+    elif (micro_averaging_domains is None) or (micro_averaging_domains=='auto'):
+        filter_dict["micro_averaging_domains"] = 'auto'
     else:
         print('Invalid configuration for "sets_file" and "spectral"')
+
+    # Option to update filter and micro-averaging domains for each timestep
+    if bool(update_filter_domains) == True:
+        filter_dict["update_filter_domains"] = True
+
+    # Option to plot micro domains
+    if bool(plot_micro_domains) == True:
+        filter_dict["plot_micro_domains"] = True
 
     # assemble main dictionary
     data = {
@@ -117,6 +156,12 @@ def get_parser():
               Micromorphic Filter')
     parser.add_argument('--sets-file', type=str, required=False, default=None,
         help='Optional yaml file containing prescribed micro-averaging domains')
+    parser.add_argument('--micro-averaging-domains', type=str, required=False, default=None,
+        help='Micro-averaging domain detection method. Options include "auto," "prescribed," "spectral," or "HDBSCAN_recursive"')
+    parser.add_argument('--update-filter-domains', type=str, required=False, default=None,
+        help='Option to update filter and microaveraging domains for each time step')
+    parser.add_argument('--plot-micro-domains', type=str, required=False, default=None,
+        help='Option to request filter to plot micro averaging domains')
 
     # TODO: add non-required arguments for optional quantities
     return parser
@@ -139,4 +184,7 @@ if __name__ == '__main__':
                                  damage=args.damage,
                                  max_parallel=args.max_parallel,
                                  sets_file=args.sets_file,
+                                 micro_averaging_domains=args.micro_averaging_domains,
+                                 update_filter_domains=args.update_filter_domains,
+                                 plot_micro_domains=args.plot_micro_domains,
                                  ))

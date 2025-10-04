@@ -28,7 +28,7 @@ def parse_sets_from_inp(input_file, output_file):
         if "N O D E S E T S" in text:
             end = index
 
-    # construct dictionary of start and end indices to search of elements in each set
+    # construct dictionary of start and end indices to search for elements in each set
     set_search = {}
     for position, set_name in enumerate(set_names):
         if position == len(indices)-1:

@@ -23,3 +23,8 @@
 **
 **
 **
+*MATERIAL, NAME=mock
+*DENSITY
+2.0E-9
+*ELASTIC
+2000.0, 0.25

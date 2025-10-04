@@ -113,6 +113,20 @@ figure_pictures = [
     "Ratel_I41_pk2_colorbar.jpg",
     "Ratel_I41_all_force_displacements_case_3.png",
     # Ratel I43
+    # GEOS elastic cylinder
+    "GEOS_elastic_cylinder_displacement.jpeg",
+    "GEOS_elastic_cylinder_force_displacement.png",
+    "GEOS_elastic_cylinder_stress.jpeg",
+    "GEOS_elastic_cylinder_192_displacement.jpeg",
+    "GEOS_elastic_cylinder_192_cauchy33.jpeg",
+    # GEOS I43
+    "GEOS_I43_01_sim38_force_displacement.png",
+    "GEOS_I43_01_sim38_displacement.jpeg",
+    "GEOS_I43_01_sim38_stress.jpeg",
+    "GEOS_I43_01_sim38_damage.jpeg",
+    "GEOS_I43_01_sim38_6912_displacement.jpeg",
+    "GEOS_I43_01_sim38_6912_cauchy33.jpeg",
+    "GEOS_I43_01_sim38_6912_damage.jpeg",
     # Neper
     "neper_cube_grain_geometry.jpg",
     "neper_cylinder_grain_geometry.jpg",
@@ -175,6 +189,8 @@ documentation_file_list = [
     "Tardigrade_MOOSE_dynamic_convergence.rst",
     "Ratel_I41_02_elastic.rst",
     "Ratel_I43_09_elastoplastic.rst",
+    "GEOS_elastic_cylinder.rst",
+    "GEOS_I43_01.rst",
     "Neper_cube.rst",
     "Neper_cylinder.rst",
     # Pictures

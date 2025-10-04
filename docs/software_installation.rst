@@ -541,16 +541,24 @@ to the :code:`config_software.yml` entry for "mpi".
 Neper
 *****
 
-Neper should be installed to the Python environment discussed in :ref:`build`.
-One may test if neper has been installed using:
+Neper can either be installed using conda or compiled from source.
+Recent issues with conflicting Python versions and dependencies
+have required that neper is not explicitly included in the conda
+environment build files (see :ref:`build`).
+One may try to install Neper through conda using
+:code:`conda install neper`.
+
+One may test if neper has been installed with conda using:
 
    .. code-block:: console
 
       $ which neper
 
-This command will provide the path to the Neper program.
-If Neper is not found, one may try installing it into the Python environment
-using :code:`conda install neper`.
+Alternatively, neper may be installed from source following these instructions:
+https://neper.info/doc/introduction.html#installing-neper.
+Installation of neper using cmake may require the installation of the
+GSL library, which is available through conda forge.
+Note the location of the neper installation for the following step.
 
 Add Neper to software configuration path
 =========================================

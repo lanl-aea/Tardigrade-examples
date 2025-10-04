@@ -18,6 +18,7 @@
 .. _MOOSE_conda: https://mooseframework.inl.gov/getting_started/installation/conda.html
 .. _MOOSE_up_to_date: https://mooseframework.inl.gov/getting_started/new_users.html#update
 .. _MOOSE_parallel: https://mooseframework.inl.gov/getting_started/examples_and_tutorials/tutorial01_app_development/step07_parallel.html
+.. _MOOSE_dev_mpich: https://mooseframework.inl.gov/getting_started/installation/conda.html
 .. _PSAAP: https://micromorph.gitlab.io
 .. _RATEL: https://ratel.micromorph.org
 .. _gitlfs: https://git-lfs.com
@@ -223,17 +224,22 @@ Local environments
 
 For users external to LANL systems, an environment to run workflows in this repository can be installed in a
 `Conda`_ environment with the `Conda`_ package manager.
-Users are recommended to follow the conda installation instructions provided by `MOOSE_conda`_ and
-to keep MOOSE packages up to date whenever rebuilding software required by this project
-(`MOOSE_up_to_date`_).
 See the `Conda installation`_ and `Conda environment management`_ documentation
 for more details about using `Conda`_.
 
-1. Create the base environment with Mamba and Python 3.10 if it doesn't exist
+Users are recommended to follow the conda installation instructions provided by `MOOSE_conda`_ and
+to keep MOOSE packages up to date whenever rebuilding software required by this project
+(`MOOSE_up_to_date`_).
+Past experience has shown that an environment should be initially installed using the latest
+`moose-dev=XXXX.YY.ZZ=mpich` before installing other packages.
+The version of this package at the time of release is `moose-dev=2025.09.04=mpich`.
+See `MOOSE_dev_mpich`_ for more details.
+
+1. Create the environment using the latest `moose-dev=XXXX.YY.ZZ=mpich`
 
    .. code-block::
 
-      $ conda create --name tardigrade-examples-env mamba python=3.10 moose-dev --channel https://conda.software.inl.gov/public --channel conda-forge
+      $ conda create --name tardigrade-examples-env moose-dev=XXXX.YY.ZZ=mpich --channel https://conda.software.inl.gov/public --channel conda-forge --solver=libmamba
 
 2. Activate the environment
 
@@ -245,7 +251,7 @@ for more details about using `Conda`_.
 
    .. code-block::
 
-      $ mamba install --file environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge
+      $ conda install --file environment.txt --channel https://conda.software.inl.gov/public --channel conda-forge --solver=libmamba
 
 .. warning::
 

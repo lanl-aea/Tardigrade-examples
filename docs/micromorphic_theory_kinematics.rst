@@ -225,9 +225,9 @@ with the following definitions.
 
    \mathcal{C}_{IJ} &= F_{iI} F_{iJ}
 
-   \Psi_{IJ} &= F_{iI} \xi_{iJ}
+   \Psi_{IJ} &= F_{iI} \chi_{iJ}
 
-   \Gamma_{IJK} &= F_{iI} \xi_{iJ,K}
+   \Gamma_{IJK} &= F_{iI} \chi_{iJ,K}
 
 These measures may be used to define the Green-Lagrange strain (Eq. :math:numref:`{number} <GL_strain>`)
 and the Micro strain (Eq. :math:numref:`{number} <micro_strain>`) which will be used for an elastic

@@ -104,9 +104,26 @@ neper_cylinder = {
     'filter_parallel': 8,
 }
 
+neper_rectangle = {
+    'width': 1.0,
+    'number_grains': 10,
+    'material_name': 'mock',
+    'pressure': 10.,
+    'displacement': -0.1,
+    'block_name': 'GRAINS',
+    'material_rho': 2.8,
+    'cut': True,
+    # parameters for micromorphic filter
+    'acceleration': False,
+    'velocity': False,
+    'filter_parallel': 8,
+    'plot_micro_domains': True,
+    'dimension': 2,
+}
+
 neper_cube = {
     'width': 1.0,
-    'number_grains': 50,
+    'number_grains': 10,
     'material_name': 'alum6061',
     'pressure': 10.,
     'displacement': -0.1,
@@ -117,4 +134,19 @@ neper_cube = {
     'acceleration': False,
     'velocity': False,
     'filter_parallel': 8,
+    'plot_micro_domains': True,
+}
+
+axisymmetric_wave_study = {
+    'seed_size': 0.2,
+    'domain_width': 20.,
+    'domain_height': 20.,
+    'receiver_radius': 5.,
+    'receiver_depth': 5.,
+    'density': 1000.,
+    'modulus': 2.5e6,
+    'poisson': 0.25,
+    'duration': 0.5,
+    'increment': 0.0025,
+    'load': 100.,
 }

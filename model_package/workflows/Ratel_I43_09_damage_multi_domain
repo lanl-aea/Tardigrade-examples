@@ -38,7 +38,7 @@ build_directory = pathlib.Path(Dir('.').abspath)
 workflow_name = build_directory.name
 output_file_type = "h5"
 model = "I43_09_damage_coarse_finetime"
-params = simulation_variables_nominal.I43_damage_CGNS
+params = simulation_variables_nominal.I43_homogenize_damage_CGNS
 
 # Collect the target nodes to build a concise alias for all targets
 workflow = []
@@ -82,7 +82,6 @@ workflow.extend(env.PythonScript(
     target=filter_inputs,
     source=[str(DNS_Ratel_abspath / XDMF_script)] + results_files,
     script_options=script_options))
-params['homogenize_damage'] = True
 
 # Get bounding information from DNS extents
 bounding_csv = f"{model}_bounds.csv"
@@ -199,7 +198,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     # ---------- CALIBRATE ------------------------------------------------------------
     # Run common calibration sconscript
     case = params['plastic_calibration_case']
-    if env['calibrate']:
+    if env['calibrate_plasticity']:
         filter_file = str(build_directory / set_name / filter_targs[0])
         params['filter_file'] = filter_file
         variant_dir = build_directory / set_name

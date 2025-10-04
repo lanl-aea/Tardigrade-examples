@@ -10,7 +10,7 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
                 disp, duration, specimen_bottom_surface, specimen_top_surface=None, 
                 top_symmetry=None, back_symmetry=None, side_symmetry=None,
                 xc_bot=0., yc_bot=0., xc_top=0., yc_top=0., geometry='full',
-                material_type='elastic', phi_BC=None):
+                material_type='elastic', phi_BC=None, platens='cylinder'):
     '''Write Tardigrade-MOOSE input file for Brazilian disk simulation with platens
     
     :param str output_file: The name of Tardigrade-MOOSE file to write
@@ -24,15 +24,16 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
     :param str specimen_bottom_surface: The name of the specimen bottom contact surface
     :param str specimen_top_surface: The name of the specimen top contact surface. Required if "geometry" = "full."
     :param str top_symmetry: The name of the top symmetry surface. Required if "geometry" = "quarter" or "eighth."
-    :param str back_symmetry: The name of the back symmetry surface. Required if "geometry" = "quarter" or "eighth."
+    :param str back_symmetry: The name of the back symmetry surface. Required if "geometry" = "quarter" or "eighth" or "half."
     :param str side_set: The name of the side symmetry surface. Required if "geometry" = "quarter" or "eighth."
     :param float xc_bot: The x-position of the center of the circular bottom surface arc
     :param float yc_bot: The y-position of the center of the circular bottom surface arc
     :param float xc_top: The x-position of the center of the circular top surface arc
     :param float yc_top: The y-position of the center of the circular top surface arc
-    :param str geometry: The geometry/symmetry type: "full," "quarter," or "eighth"
+    :param str geometry: The geometry/symmetry type: "full," "half," "quarter," or "eighth"
     :param str material_type: The material type, either "elastic" or "plastic"
     :param str phi_BC: Optional string specifying nodeset to force micro deformation components to be zero
+    :param str platens: Either "cylinder" for cylindrical BCs or "flat" for flat plane BCs
 
     :returns: ``output_file``
     '''
@@ -40,22 +41,32 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
     assert os.path.exists(mesh_file), f"Mesh file not found: {mesh_file}"
 
     if geometry == 'full':
-        active_BCs = 'bottom_y top_y'
+        solver_type = 'PJFNK'
+        active_BCs = 'bottom_y bottom_x top_y top_x'
         react_surface = specimen_top_surface
-        stress_boundary = f'{specimen_bottom_surface} {specimen_top_surface}'
         assert specimen_top_surface != None, "Specimen top surface must be defined if 'geometry' = 'full'!"
     else:
-        react_surface = top_symmetry
-        stress_boundary = f'{specimen_bottom_surface}'
-        assert top_symmetry != None, "Specimen top symmetry must be defined if 'geometry' = 'quarter' or 'eighth'!"
-        assert back_symmetry != None, "Specimen back symmetry must be defined if 'geometry' = 'quarter' or 'eighth'!"
+        solver_type = 'NEWTON'
+        assert back_symmetry != None, "Specimen back symmetry must be defined if 'geometry' = 'quarter' or 'eighth' or 'half'!"
         if geometry == 'quarter':
-            active_BCs = 'bottom_y top_sym back_sym'
+            assert top_symmetry != None, "Specimen top symmetry must be defined if 'geometry' = 'quarter' or 'eighth'!"
+            react_surface = top_symmetry
+            active_BCs = 'bottom_y bottom_x top_sym back_sym'
         elif geometry == 'eighth':
-            active_BCs = 'bottom_y top_sym back_sym side_sym'
+            assert top_symmetry != None, "Specimen top symmetry must be defined if 'geometry' = 'quarter' or 'eighth'!"
+            react_surface = top_symmetry
+            active_BCs = 'bottom_y bottom_x top_sym back_sym side_sym'
             assert side_symmetry != None, "Specimen side symmetry must be defined if 'geometry' = 'eighth'!"
+        elif geometry == 'half':
+            active_BCs = 'bottom_y bottom_x back_sym top_y top_x'
+            react_surface = specimen_top_surface
+            assert specimen_top_surface != None, "Specimen top surface must be defined if 'geometry' = 'full'!"
         else:
             print('Specify a valid geometry type!')
+    if phi_BC is not None:
+        active_BCs += ' fix_phi_xx fix_phi_yy fix_phi_zz'
+        active_BCs += ' fix_phi_yz fix_phi_xz fix_phi_xy'
+        active_BCs += ' fix_phi_zy fix_phi_zx fix_phi_yx'
 
     # Write input file
     with open(output_file, 'w') as f:
@@ -63,7 +74,7 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
         f.write('[Mesh]\n')
         f.write('  type = FileMesh\n')
         f.write(f'  file = "{mesh_file}"\n')
-        f.write('  patch_update_strategy = iteration\n')
+        #f.write('  patch_update_strategy = iteration\n')
         f.write('[]\n')
         f.write('\n')
         f.write('[GlobalParams]\n')
@@ -485,6 +496,8 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
         f.write('    index = 8\n')
         f.write('    variable = sigma_33\n')
         f.write('  [../]\n')
+        f.write('[]\n')
+        f.write('\n')
         if material_type == 'plastic':
             f.write('## plastic Aux kernels\n')
             f.write('[AuxKernels]\n')
@@ -575,7 +588,7 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
             f.write('    index = 54\n')
             f.write('    variable = micro_gradient_isv_3\n')
             f.write('  [../]\n')
-        f.write('[]\n')
+            f.write('[]\n')
         f.write('\n')
         # Reaction Force
         sample_force = 'force_y'
@@ -591,25 +604,129 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
         # BCs
         f.write('# BCs\n')
         f.write('[BCs]\n')
-        f.write(f'  active = "{active_BCs}"\n')
-        f.write('  [./bottom_y]\n')
-        f.write('    type = FunctionPenaltyDirichletBC\n')
-        f.write('    variable = disp_y\n')
-        f.write(f'    boundary = "{specimen_bottom_surface}"\n')
-        f.write('    function = bottom_bc_y\n')
-        f.write('    penalty = 1000000.\n')
-        f.write('  [../]\n')
-        if geometry == 'full':
-            # cut displacement in half to share between top and bottom
-            disp = 0.5*disp
-            f.write('  [./top_y]\n')
-            f.write('    type = FunctionPenaltyDirichletBC\n')
+        #f.write(f'  active = "{active_BCs}"\n')
+        if platens == 'cylinder':
+            f.write('  [./bottom_y]\n')
+            f.write('    type = CylindricalSurfaceDirichletBC\n')
             f.write('    variable = disp_y\n')
-            f.write(f'    boundary = "{specimen_top_surface}"\n')
-            f.write('    function = top_bc_y\n')
-            f.write('    penalty = 1000000.\n')
+            f.write(f'    boundary = "{specimen_bottom_surface}"\n')
+            f.write(f'    center = "{xc_bot} {yc_bot} 0"\n')
+            f.write(f'    radius = {platen_radius}\n')
+            f.write(f'    velocity = {disp}\n')
+            f.write('    axis = "0. 0. 1."\n')
+            f.write('    normal = "0. 1. 0."\n')
+            f.write('    use_sector = true\n')
+            f.write('    angle_min = 3.14159265359\n')
+            f.write('    angle_max = 6.28318530718\n')
+            f.write('    invert_displacement = true\n')
+            f.write('    use_displaced_mesh = true\n')
+            f.write('    displacements = "disp_x disp_y disp_z"\n')
+            f.write('    preset = false\n')
             f.write('  [../]\n')
+            f.write('  [./bottom_x]\n')
+            f.write('    type = CylindricalSurfaceDirichletBC\n')
+            f.write('    variable = disp_x\n')
+            f.write(f'    boundary = "{specimen_bottom_surface}"\n')
+            f.write(f'    center = "{xc_bot} {yc_bot} 0"\n')
+            f.write(f'    radius = {platen_radius}\n')
+            f.write(f'    velocity = {disp}\n')
+            f.write('    axis = "0. 0. 1."\n')
+            f.write('    normal = "0. 1. 0."\n')
+            f.write('    use_sector = true\n')
+            f.write('    angle_min = 3.14159265359\n')
+            f.write('    angle_max = 6.28318530718\n')
+            f.write('    invert_displacement = true\n')
+            f.write('    use_displaced_mesh = true\n')
+            f.write('    displacements = "disp_x disp_y disp_z"\n')
+            f.write('    preset = false\n')
+        elif platens == 'flat':
+            f.write('  [./bottom_y]\n')
+            f.write('    type = MovingPlaneDirichletBC\n')
+            f.write('    variable = disp_y\n')
+            f.write(f'    boundary = "{specimen_bottom_surface}"\n')
+            f.write(f'    point = "{xc_bot} {yc_bot} 0"\n')
+            f.write(f'    velocity = {disp}\n')
+            f.write('    normal = "0. 1. 0."\n')
+            f.write('  [../]\n')
+            f.write('  [./bottom_x]\n')
+            f.write('    type = MovingPlaneDirichletBC\n')
+            f.write('    variable = disp_x\n')
+            f.write(f'    boundary = "{specimen_bottom_surface}"\n')
+            f.write(f'    point = "{xc_bot} {yc_bot} 0"\n')
+            f.write(f'    velocity = {disp}\n')
+            f.write('    normal = "0. 1. 0."\n')
+        elif platens == 'line_load':
+            f.write('  [./bottom_y]\n')
+            f.write('    type = FunctionDirichletBC\n')
+            f.write('    variable = disp_y\n')
+            f.write('    boundary = "bottom_line_load"\n')
+            f.write('    preset = true\n')
+            f.write('    function = bottom_bc\n')
         else:
+            print('Specify valid platen type!')
+        f.write('  [../]\n')
+        if (geometry == 'full') or (geometry == 'half'):
+            if platens == 'cylinder':
+                f.write('  [./top_y]\n')
+                f.write('    type = CylindricalSurfaceDirichletBC\n')
+                f.write('    variable = disp_y\n')
+                f.write(f'    boundary = "{specimen_top_surface}"\n')
+                f.write(f'    center = "{xc_top} {yc_top} 0"\n')
+                f.write(f'    radius = {platen_radius}\n')
+                f.write(f'    velocity = {disp}\n')
+                f.write('    axis = "0. 0. 1."\n')
+                f.write('    normal = "0. -1. 0."\n')
+                f.write('    use_sector = true\n')
+                f.write('    angle_min = 0.\n')
+                f.write('    angle_max = 3.14159265359\n')
+                f.write('    invert_displacement = true\n')
+                f.write('    use_displaced_mesh = true\n')
+                f.write('    displacements = "disp_x disp_y disp_z"\n')
+                f.write('    preset = false\n')
+                f.write('  [../]\n')
+                f.write('  [./top_x]\n')
+                f.write('    type = CylindricalSurfaceDirichletBC\n')
+                f.write('    variable = disp_x\n')
+                f.write(f'    boundary = "{specimen_top_surface}"\n')
+                f.write(f'    center = "{xc_top} {yc_top} 0"\n')
+                f.write(f'    radius = {platen_radius}\n')
+                f.write(f'    velocity = {disp}\n')
+                f.write('    axis = "0. 0. 1."\n')
+                f.write('    normal = "0. -1. 0."\n')
+                f.write('    use_sector = true\n')
+                f.write('    angle_min = 0.\n')
+                f.write('    angle_max = 3.14159265359\n')
+                f.write('    invert_displacement = true\n')
+                f.write('    use_displaced_mesh = true\n')
+                f.write('    displacements = "disp_x disp_y disp_z"\n')
+                f.write('    preset = false\n')
+            elif platens == 'flat':
+                f.write('  [./top_y]\n')
+                f.write('    type = MovingPlaneDirichletBC\n')
+                f.write('    variable = disp_y\n')
+                f.write(f'    boundary = "{specimen_top_surface}"\n')
+                f.write(f'    point = "{xc_top} {yc_top} 0"\n')
+                f.write(f'    velocity = {disp}\n')
+                f.write('    normal = "0. -1. 0."\n')
+                f.write('  [../]\n')
+                f.write('  [./top_x]\n')
+                f.write('    type = MovingPlaneDirichletBC\n')
+                f.write('    variable = disp_x\n')
+                f.write(f'    boundary = "{specimen_top_surface}"\n')
+                f.write(f'    point = "{xc_top} {yc_top} 0"\n')
+                f.write(f'    velocity = {disp}\n')
+                f.write('    normal = "0. -1. 0."\n')
+            elif platens == 'line_load':
+                f.write('  [./top_y]\n')
+                f.write('    type = FunctionDirichletBC\n')
+                f.write('    variable = disp_y\n')
+                f.write('    boundary = "top_line_load"\n')
+                f.write('    preset = true\n')
+                f.write('    function = top_bc\n')
+            else:
+                print('Specify valid platen type!')
+            f.write('  [../]\n')
+        if geometry != 'full':
             f.write('  [./back_sym]\n')
             f.write('    type = DirichletBC\n')
             f.write('    variable = disp_z\n')
@@ -617,21 +734,22 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
             f.write('    preset = true\n')
             f.write('    value = 0\n')
             f.write('  [../]\n')
-            f.write('  [./top_sym]\n')
-            f.write('    type = DirichletBC\n')
-            f.write('    variable = disp_y\n')
-            f.write(f'    boundary = "{top_symmetry}"\n')
-            f.write('    preset = true\n')
-            f.write('    value = 0\n')
-            f.write('  [../]\n')
-            if geometry == 'eighth':
-                f.write('  [./side_sym]\n')
+            if geometry != 'half':
+                f.write('  [./top_sym]\n')
                 f.write('    type = DirichletBC\n')
-                f.write('    variable = disp_x\n')
-                f.write(f'    boundary = "{side_symmetry}"\n')
+                f.write('    variable = disp_y\n')
+                f.write(f'    boundary = "{top_symmetry}"\n')
                 f.write('    preset = true\n')
                 f.write('    value = 0\n')
                 f.write('  [../]\n')
+                if geometry == 'eighth':
+                    f.write('  [./side_sym]\n')
+                    f.write('    type = DirichletBC\n')
+                    f.write('    variable = disp_x\n')
+                    f.write(f'    boundary = "{side_symmetry}"\n')
+                    f.write('    preset = true\n')
+                    f.write('    value = 0\n')
+                    f.write('  [../]\n')
         # Option to force Phis to be zero
         if phi_BC is not None:
             f.write('  [fix_phi_xx]\n')
@@ -689,25 +807,19 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
             f.write('    value = 0 \n')
             f.write('  [../]\n')
         f.write('[]\n')
-        # Loading functions
-        r_sq = platen_radius**2
-        # only include center x-position if it is non-zero, assume xc-top = xc_bot
-        if abs(xc_top) > 1.e-4:
-            top_load_string = f'({yc_top}-{disp}*t+sqrt({r_sq}-((x-{xc_top})*(x-{xc_top}))))'
-            bottom_load_string = f'({yc_bot}+{disp}*t-sqrt({r_sq}-((x-{xc_bot})*(x-{xc_bot}))))'
-        else:
-            top_load_string = f'({yc_top}-{disp}*t+sqrt({r_sq}-(x*x)))'
-            bottom_load_string = f'({yc_bot}+{disp}*t-sqrt({r_sq}-(x*x)))'
-        f.write('[Functions]\n')
-        f.write('  [./top_bc_y]\n')
-        f.write('    type  = ParsedFunction\n')
-        f.write(f'    expression = if(y-{top_load_string}<=0,0,-1*(y-{top_load_string}))\n')
-        f.write('  [../]\n')
-        f.write('  [./bottom_bc_y]\n')
-        f.write('    type  = ParsedFunction\n')
-        f.write(f'    expression = if({bottom_load_string}-y<=0,0,{bottom_load_string}-y)\n')
-        f.write('  [../]\n')
-        f.write('[]\n')
+        # Function for line load(s)
+        if platens == 'line_load':
+            f.write('[Functions]\n')
+            f.write('  [./bottom_bc]\n')
+            f.write('    type  = ParsedFunction\n')
+            f.write(f'    expression = {disp}*t\n')
+            f.write('  [../]\n')
+            if (geometry == 'half') or (geometry == 'full'):
+                f.write('  [./top_bc]\n')
+                f.write('    type  = ParsedFunction\n')
+                f.write(f'    expression = -{disp}*t\n')
+                f.write('  [../]\n')
+            f.write('[]\n')
         # Materials
         f.write('# Materials\n')
         f.write('[Materials]\n')
@@ -890,29 +1002,30 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
         f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
-        dt = duration / 100
+        dt = duration / 20
         f.write('[Executioner]\n')
         f.write('  type = Transient\n')
-        f.write('  solve_type = PJFNK\n')
+        f.write(f'  solve_type = {solver_type}\n')
         f.write('  petsc_options_iname = "-pc_type -pc_factor_mat_solver_type"\n')
         f.write('  petsc_options_value = "lu    superlu_dist"\n')
         f.write('  line_search = "none"\n')
         f.write('  automatic_scaling = true\n')
-        f.write('  nl_rel_tol = 1e-8\n')
-        f.write('  nl_abs_tol = 1e-8\n')
-        f.write('  l_tol = 1e-3\n')
-        f.write('  l_max_its = 60\n')
-        f.write('  nl_max_its = 50\n')
+        f.write('  nl_rel_tol = 1e-7\n')
+        f.write('  nl_abs_tol = 1e-7\n')
+        #f.write('  l_tol = 1e-3\n')
+        f.write('  l_max_its = 100\n')
+        f.write('  nl_max_its = 10\n')
         f.write('  start_time = 0.0\n')
         f.write(f'  end_time = {duration}\n')
         f.write('  dtmin = 1e-6\n')
         f.write('  dtmax= 0.1\n')
         f.write('\n')
-        f.write('  [TimeStepper]\n')
-        f.write('    type = IterationAdaptiveDT\n')
-        f.write('    growth_factor=1.2\n')
-        f.write(f'    dt = {dt}\n')
-        f.write('  []\n')
+        #f.write('  [TimeStepper]\n')
+        #f.write('    type = IterationAdaptiveDT\n')
+        #f.write('    growth_factor=2.0\n')
+        #f.write('    cutback_factor=0.5\n')
+        #f.write(f'    dt = {dt}\n')
+        #f.write('  []\n')
         f.write('[]\n')
         f.write('[Outputs]\n')
         f.write('  exodus = true\n')
@@ -953,7 +1066,7 @@ def get_parser():
     parser.add_argument('--top-symmetry', type=str, required=False, default=None,
         help='Specify the name of the top symmetry surface. Required if "geometry" = "quarter" or "eighth."')
     parser.add_argument('--back-symmetry', type=str, required=False, default=None,
-        help='Specify the name of the back symmetry surface. Required if "geometry" = "quarter" or "eighth."')
+        help='Specify the name of the back symmetry surface. Required if "geometry" = "quarter" or "eighth" or "half"')
     parser.add_argument('--side-symmetry', type=str, required=False, default=None,
         help='Specify the name of the side symmetry surface. Required if "geometry" = "quarter" or "eighth."')
     parser.add_argument('--xc-bot', type=float, required=False, default=0.,
@@ -965,9 +1078,14 @@ def get_parser():
     parser.add_argument('--yc-top', type=float, required=False, default=0.,
         help='Specify the y-position of the center of the circular top surface arc')
     parser.add_argument('--geometry', type=str, required=False, default='full',
-        help='Specify the geometry/symmetry type: "full," "quarter," or "eighth"')
+        help='Specify the geometry/symmetry type: "full," "half," "quarter," or "eighth"')
     parser.add_argument('--material-type', type=str, required=False, default='elastic',
         help='Specify the material type: "elastic" or "plastic"')
+    parser.add_argument('--phi-BC', type=str, required=False, default=None,
+        help='Optional string specifying nodeset to force micro deformation components to be zero')
+    parser.add_argument('--platens', type=str, required=False, default='cylinder',
+        help='Either "cylinder" for cylindrical BCs or "flat" for flat plane BCs')
+
     return parser
 
 if __name__ == '__main__':
@@ -991,4 +1109,6 @@ if __name__ == '__main__':
                          yc_top=args.yc_top,
                          geometry=args.geometry,
                          material_type=args.material_type,
+                         phi_BC=args.phi_BC,
+                         platens=args.platens,
                          ))
