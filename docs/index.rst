@@ -57,17 +57,17 @@
 
 .. toctree::
    :maxdepth: 1
+   :caption: GEOS Homogenization
+
+   GEOS_elastic_cylinder
+   GEOS_I43_01
+
+.. toctree::
+   :maxdepth: 1
    :caption: Micro-averaging Domain Studies
 
    Neper_cube
    Neper_cylinder
-
-.. toctree::
-   :maxdepth: 1
-   :caption: GEOS Homogenization
-
-   GEOS_elastic
-   GEOS_I43_01
 
 .. raw:: latex
 
