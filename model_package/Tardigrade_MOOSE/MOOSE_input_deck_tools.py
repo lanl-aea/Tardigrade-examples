@@ -591,7 +591,8 @@ def write_default_auxkernels(file):
     file.write('    index = 8\n')
     file.write('    variable = sigma_33\n')
     file.write('  [../]\n')
-
+    file.write('[]\n')
+    file.write('\n')
 
     return 0
 
@@ -818,17 +819,16 @@ def write_phi_BCs(file, phi_BC):
     '''
 
 
-    phis = ['phi_xx', 'phi_yy', 'phi_zz',
-            'phi_yz', 'phi_xz', 'phi_xy',
-            'phi_zy', 'phi_zx', 'phi_xy']
+    phis = ['phi_xx', 'phi_xy', 'phi_xz',
+            'phi_yx', 'phi_yy', 'phi_yz',
+            'phi_zx', 'phi_zy', 'phi_zz']
 
     for phi in phis:
-
         file.write(f'  [fix_{phi}]\n')
         file.write('    type = DirichletBC\n')
         file.write(f'    variable = {phi}\n')
         file.write(f'    boundary = "{phi_BC}"\n')
-        file.write('    value = 0 \n')
+        file.write('    value = 0\n')
         file.write('  [../]\n')
 
     return 0
