@@ -100,7 +100,6 @@ def build_input(output_file, mesh_file, BCs, disp, duration, disp_point=None, ca
         # Aux kernels
         f.write('# Aux kernels\n')
         moose_tools.write_default_auxkernels(f)
-        f.write('[]\n')
         f.write('\n')
 
         # Postprocessor(s)
