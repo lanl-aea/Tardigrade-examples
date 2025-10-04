@@ -3,7 +3,8 @@ import argparse
 import os
 import pathlib
 import sys
-import yaml
+
+import MOOSE_input_deck_tools as moose_tools
 
 
 def build_input(output_file, mesh_file, material_E, material_nu, platen_E, platen_nu,
@@ -52,6 +53,8 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
         f.write('[GlobalParams]\n')
         f.write('  displacements = "disp_x disp_y disp_z"\n')
         f.write('[]\n')
+
+        # Variables
         f.write('[Variables]\n')
         f.write('  [./disp_x]\n')
         f.write('  [../]\n')
@@ -61,6 +64,19 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
         f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
+
+        # Kernels
+        f.write('[Kernels]\n')
+        f.write('  #Define the internal force balance equations\n')
+        f.write('  [./rxn]\n')
+        f.write('    type = Reaction\n')
+        f.write('    variable  = disp_y\n')
+        f.write('    save_in = force_y\n')
+        f.write('  [../]\n')
+        f.write('[]\n')
+        f.write('\n')
+
+        # Aux variables
         f.write('[AuxVariables]\n')
         f.write('  [./force_x]\n')
         f.write('  [../]\n')
@@ -76,18 +92,12 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
         f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
+
+        # Aux kernels
         f.write('[AuxKernels]\n')
         f.write('[]\n')
         f.write('\n')
-        f.write('[Kernels]\n')
-        f.write('  #Define the internal force balance equations\n')
-        f.write('  [./rxn]\n')
-        f.write('    type = Reaction\n')
-        f.write('    variable  = disp_y\n')
-        f.write('    save_in = force_y\n')
-        f.write('  [../]\n')
-        f.write('[]\n')
-        f.write('\n')
+
         # Postprocessors
         f.write('[Postprocessors]\n')
         f.write('  [./bot_react_y]\n')
@@ -114,6 +124,7 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
         f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
+
         # Finite deformation
         f.write('[Physics/SolidMechanics/QuasiStatic]\n')
         f.write('  [./all]\n')
@@ -127,6 +138,7 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
         f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
+
         # BCs
         f.write('[BCs]\n')
         f.write('  active = "bottom_x bottom_y bottom_z top_x top_y top_z spec_z"\n')
@@ -182,6 +194,7 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
         f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
+
         # Loading function
         f.write('[Functions]\n')
         f.write('  [./top_bc]\n')
@@ -190,6 +203,7 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
         f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
+
         # Materials
         f.write('[Materials]\n')
         f.write('  [./elasticity_tensor_specimen]\n')
@@ -218,14 +232,11 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
         f.write('  [../]\n')
         f.write('[]\n')
         f.write('\n')
+
+        # Preconditioner
+        moose_tools.write_preconditioner_block(f)
+
         # Execution and Timestepping
-        f.write('[Preconditioning]\n')
-        f.write('  [./SMP]\n')
-        f.write('    type = SMP\n')
-        f.write('    full = true\n')
-        f.write('  [../]\n')
-        f.write('[]\n')
-        f.write('\n')
         dt = duration / 100
         f.write('[Executioner]\n')
         f.write('  type = Transient\n')
@@ -251,15 +262,11 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
         f.write(f'    dt = {dt}\n')
         f.write('  []\n')
         f.write('[]\n')
-        f.write('[Outputs]\n')
-        f.write('  exodus = true\n')
-        f.write('  perf_graph = true\n')
-        f.write('  csv = true\n')
-        f.write('  [./console]\n')
-        f.write('    type = Console\n')
-        f.write('  [../]\n')
-        f.write('[]\n')
+
+        # Outputs
+        moose_tools.write_outputs_block(f)
         f.write('\n')
+
         # Contact
         if contact_type == 'frictionless':
             f.write('[Contact]\n')
