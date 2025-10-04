@@ -120,7 +120,6 @@ def build_input(output_file, mesh_file, parameter_sets, platen_radius,
             moose_tools.write_higher_order_stress_auxkernels(f)
         if material_type == 'plastic':
             moose_tools.write_plastic_auxkernels(f)
-        f.write('[]\n')
         f.write('\n')
 
         # Reaction Force
