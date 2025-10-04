@@ -217,7 +217,8 @@ script_options += f" --duration {params['macro_duration']}"
 script_options += f" --damage-parameter 0.001"
 workflow.extend(env.PythonScript(
     target = [tardigrade_build_targs],
-    source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh_2, parameter_csv],
+    source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh_2, parameter_csv,
+              f"{Tardigrade_MOOSE_source_abspath}/MOOSE_input_deck_tools.py"],
     script_options = script_options
 ))
 

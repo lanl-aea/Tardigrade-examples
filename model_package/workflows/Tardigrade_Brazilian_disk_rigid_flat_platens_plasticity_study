@@ -185,7 +185,8 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
         target = [str(set_name / tardigrade_build_targs)],
         source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}",
                   str(set_name / tardi_mesh),
-                  str(set_name / material_card)],
+                  str(set_name / material_card),
+                  f"{Tardigrade_MOOSE_source_abspath}/MOOSE_input_deck_tools.py"],
         script_options = input_options
     ))
 
