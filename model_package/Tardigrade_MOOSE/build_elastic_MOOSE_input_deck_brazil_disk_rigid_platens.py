@@ -39,9 +39,11 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_radius,
     if geometry == 'full':
         active_BCs = 'bottom_y bottom_x top_y top_x'
         react_surface = specimen_top_surface
+        stress_boundary = f'{specimen_bottom_surface} {specimen_top_surface}'
         assert specimen_top_surface != None, "Specimen top surface must be defined if 'geometry' = 'full'!"
     else:
         assert back_symmetry != None, "Specimen back symmetry must be defined if 'geometry' = 'quarter' or 'eighth' or 'half'!"
+        stress_boundary = specimen_bottom_surface
         if geometry == 'quarter':
             assert top_symmetry != None, "Specimen top symmetry must be defined if 'geometry' = 'quarter' or 'eighth'!"
             react_surface = top_symmetry
