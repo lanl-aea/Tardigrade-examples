@@ -62,6 +62,13 @@
    Neper_cube
    Neper_cylinder
 
+.. toctree::
+   :maxdepth: 1
+   :caption: GEOS Homogenization
+
+   GEOS_elastic
+   GEOS_I43_01
+
 .. raw:: latex
 
    \part{Model Repository}
