@@ -107,7 +107,6 @@ def build_input(output_file, mesh_file, calibration_map, BCs, disp, duration):
         f.write('# Aux kernels\n')
         moose_tools.write_default_auxkernels(f)
         moose_tools.write_plastic_auxkernels(f)
-        f.write('[]\n')
         f.write('\n')
 
         # BCs
