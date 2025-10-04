@@ -32,7 +32,7 @@ Next the homogenization is performed. Macroscale meshes with
 
    .. code-block:: bash
 
-      $ scons Ratel_I41_02_elastic_multi_domain --filter
+      $ scons GEOS_elastic_cylinder_multi_domain --filter
 
 ***
 DNS
