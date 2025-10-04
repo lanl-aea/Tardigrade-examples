@@ -35,6 +35,6 @@ dependencies:
   - yaml
   - pycgns
   - vtk
-  - moose-dev>=2025.06.*=mpich
+  - moose-dev>=2025.09.18*=mpich
   - moose-libmesh
   - hdbscan
