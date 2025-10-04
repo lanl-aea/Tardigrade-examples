@@ -108,8 +108,8 @@ convert the results from the default format to the XDMF file format required
 by the Micromorphic Filter. See the following scripts for specific details:
 
 * Abaqus: :py:mod:`model_package.DNS_Abaqus.ODBextract_to_XDMF`
-* Ratel: :py:mod:`model_package.DNS_Ratel.vtk_to_xdmf`
-* GEOS: Coming soon!
+* Ratel: :py:mod:`model_package.DNS_Ratel.vtk_to_xdmf` and :py:mod:`model_package.DNS_Ratel.cgns_to_xdmf`
+* GEOS: :py:mod:`model_package.DNS_GEOS.vtk_to_xdmf` and :py:mod:`model_package.DNS_GEOS.vtk_to_xdmf_fast_multi`
 
 For Abaqus DNS, :py:mod:`model_package.DNS_Abaqus.ODBextract_to_XDMF` calculates
 density and collocates relevant kinematics from the finite element nodes to
