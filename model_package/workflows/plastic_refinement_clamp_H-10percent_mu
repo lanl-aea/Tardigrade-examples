@@ -47,13 +47,15 @@ fraction = 0.10
 # specify mesh refinement study
 parameter_schema = dict(
     parameter_samples = numpy.array([
-        [192],
-        [960],
-        [2160],
-        [6912],
+        [192, 1],
+        [960, 1],
+        [2160, 2],
+        [6912, 5],
         ], dtype=object),
-    parameter_names = numpy.array(["elements"])
+    parameter_names = numpy.array(["elements", "cpus"])
 )
+
+force_csvs, element_labels = [], []
 
 # Refinement study
 output_csvs = []
@@ -63,6 +65,7 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     set_name = pathlib.Path(set_name)
 
     elements = parameters['elements']
+    solve_cpus = parameters['cpus']
 
     # Specify output name
     hardening = str(fraction*params['mu']).split('.')
@@ -110,7 +113,8 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
     workflow.extend(env.PythonScript(
         target = [f"{set_name}/{tardigrade_build_input}"],
         source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}",
-        f"{set_name}/{tardi_mesh}", f"{set_name}/{material_card}"],
+                  f"{set_name}/{tardi_mesh}", f"{set_name}/{material_card}",
+                  f"{Tardigrade_MOOSE_source_abspath}/MOOSE_input_deck_tools.py",],
         script_options = script_options
     ))
 
@@ -121,15 +125,15 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
             mpi_location = env["mpi"]
         else:
             mpi_location = []
-        tardigrade_moose_targs = [f'{tardi_sim_name}_out.e', f'{tardi_sim_name}_out.csv']
+        tardigrade_moose_targs = [str(set_name / targ) for targ in [f'{tardi_sim_name}_out.e', f'{tardi_sim_name}_out.csv']]
         workflow.extend(env.TardigradeSolver(
             target = tardigrade_moose_targs,
             source = [f"{set_name}/{tardigrade_build_input}", f"{set_name}/{tardi_mesh}"],
             LD_LIBRARY_PATH = env['LD_PATH'],
             tardigrade_program = env['Tardigrade'],
             tardigrade_input = tardigrade_build_input,
-            tardigrade_cpus =  env['solve_cpus'],
-            stdout_file = f"{tardigrade_moose_targs[0]}.stdout",
+            tardigrade_cpus =  solve_cpus,
+            stdout_file = f"{tardi_sim_name}_out.e.stdout",
             mpi_location = mpi_location,
         ))
 
@@ -141,23 +145,26 @@ for set_name, parameters in parameter_generator.parameter_study_to_dict().items(
         script_options += f" --output-csv {plot_targets[1]}"
         script_options += f" --final-disp {params['macro_disp']}"
         workflow.extend(env.PythonScript(
-            target=[plot_targets],
-            source=[str(Tardigrade_MOOSE_source_abspath / plot_script)],
+            target=[str(set_name / targ) for targ in plot_targets],
+            source=[str(Tardigrade_MOOSE_source_abspath / plot_script), tardigrade_moose_targs[-1]],
             script_options=script_options,
             ))
+        force_csvs.append(str(set_name / plot_targets[1]))
+        element_labels.append(elements)
 
 if env['summary']:
+
     # summarize results
-    summary_script = "summarize_force_displacements.py"
-    output_targets = [f"{model}_force_summary.png", f"{model}_force_summary.csv"]
-    script_options = f"--csv-files {' '.join(output_csvs)}"
-    script_options += f" --plot-labels {' '.join(all_meshes)}"
+    summary_script = "summarize_micro_macro_force_displacements.py"
+    output_targets = ["all_force_displacements.png", "all_force_displacements.csv"]
+    plot_labels = [f'"{element} elements"' for element in element_labels]
+    script_options = f"--csv-files {' '.join(force_csvs)}"
+    script_options += f" --plot-labels {' '.join(plot_labels)}"
     script_options += f" --output-file {output_targets[0]}"
     script_options += f" --output-csv {output_targets[1]}"
-    script_options += f" --plot-title {model}"
     workflow.extend(env.PythonScript(
         target=output_targets,
-        source=[f"{Tardigrade_MOOSE_source_abspath / summary_script}"] + output_csvs,
+        source=[f"{Tardigrade_MOOSE_source_abspath / summary_script}"] + force_csvs,
         script_options=script_options
         ))
 
