@@ -10,6 +10,8 @@ import numpy
 import xarray
 
 
+
+
 def extract_cell_data(exofile, num_times, cell_variable_keys, num_elements=None):
     """Extract cell variables from exodus file
 
@@ -72,7 +74,7 @@ def extract_node_data(exofile, node_variable_keys, x, y, z):
     return data_dict
 
 
-def plot_cell_data_over_time(output_file, cell_data, data_key, times):
+def plot_cell_data_over_time(output_file, cell_data, data_key, times, dataset=None):
     """Plot cell data over time for all elements
 
     :param str output_file: The output plot file name
@@ -83,7 +85,10 @@ def plot_cell_data_over_time(output_file, cell_data, data_key, times):
     :returns: Write ``{output_file}`` plot
     """
 
-    data_array = cell_data[data_key]
+    if dataset is not None:
+        data_array = dataset[data_key]
+    else:
+        data_array = cell_data[data_key]
     num_elements = numpy.shape(data_array)[1]
 
     matplotlib.pyplot.figure()
@@ -129,8 +134,55 @@ def decode_chunk(chunk):
     return ''.join(byte.decode('utf-8') for byte in chunk if byte != b'')
 
 
+def deviatoric_norm(dataset, prefix="sigma",postfix=""):
+    """Calculate the deviatoric norm of a second order stress tensor
+
+    :params xarray_DataSet dataset: The xarray dataset containing stress data
+    :params str prefix: The variable name of the stress tensor
+    :params str postfix: Optional third order index for higher order stress tensors
+
+    :returns: deviatoric norm
+    """
+
+    s11 = dataset[f"{prefix}_11{postfix}"]
+    s12 = dataset[f"{prefix}_12{postfix}"]
+    s13 = dataset[f"{prefix}_13{postfix}"]
+    s22 = dataset[f"{prefix}_22{postfix}"]
+    s23 = dataset[f"{prefix}_23{postfix}"]
+    s33 = dataset[f"{prefix}_33{postfix}"]
+    if prefix == 'sigma':
+        s31 = s13
+        s21 = s12
+        s32 = s23
+    else:
+        s31 = dataset[f"{prefix}_31{postfix}"]
+        s21 = dataset[f"{prefix}_21{postfix}"]
+        s32 = dataset[f"{prefix}_32{postfix}"]
+
+    # mean normal stress (1/3 tr)
+    p = (s11 + s22 + s33) / 3.
+
+    # deviatoric components (off-diagonals unchanged)
+    d11 = s11 - p
+    d22 = s22 - p
+    d33 = s33 - p
+    d12 = s12
+    d13 = s13
+    d23 = s23
+    d31 = s31
+    d21 = s21
+    d32 = s32
+
+    # Frobenius norm of deviator (remember off-diagonals counted twice)
+    dev2 = d11**2 + d22**2 + d33**2 + d12**2 + d21**2 + d13**2 + d31**2 + d23**2 + d32**2
+
+    return numpy.sqrt(dev2).rename(f"{prefix}_dev_norm")
+
+
 def extract_exodus_data(exodus_file, output_cell_data=None, output_node_data=None,
-                        output_plot_base_name=None, output_dt_plot_base_name=None):
+                        output_plot_base_name=None, output_dt_plot_base_name=None,
+                        stress_norms_plot_base=None, xdmf_file=None,
+                        higher_order_stresses='off'):
     """Process results from a MOOSE exodus simulation results file
 
     :params str exodus_file: The MOOSE exodus simulation results file
@@ -138,6 +190,9 @@ def extract_exodus_data(exodus_file, output_cell_data=None, output_node_data=Non
     :params str output_node_data: Optional output netcdf file containing xarray of collected node data
     :params str output_plot_base_name: Optional basename for field output plots
     :params str output_dt_plot_base_name: Optional basename for dt history plots
+    :params str stress_norms_plot_base: Optional basename for stress norm history plot
+    :params str xdmf_file: Optional basename for writing cell data to an XDMF file
+    :params str higher_order_stresses: Either "on" to include higher order stresses in norm calculation, or "off
 
     :returns: Write ``{output_cell_data}`` and ``{output_node_data}``
     """
@@ -165,7 +220,7 @@ def extract_exodus_data(exodus_file, output_cell_data=None, output_node_data=Non
         element_ids = list(range(1,num_elements+1))
         if output_cell_data:
             cell_dataset = xarray.Dataset({key: (('time', 'element'), value) for key, value in cell_data.items()},
-                                        coords={'time': times, 'element': element_ids})
+                                           coords={'time': times, 'element': element_ids})
             cell_dataset.to_netcdf(output_cell_data)
 
     # Node Data
@@ -173,7 +228,7 @@ def extract_exodus_data(exodus_file, output_cell_data=None, output_node_data=Non
         node_data = extract_node_data(exofile, node_variable_keys, x, y, z)
         node_ids = list(range(1, num_nodes+1))
         node_dataset = xarray.Dataset({key: (('time', 'node'), value) for key, value in node_data.items()},
-                                    coords={'time': times, 'node': node_ids})
+                                       coords={'time': times, 'node': node_ids})
         node_dataset.to_netcdf(output_node_data)
 
     # Cell quantity plots
@@ -185,6 +240,51 @@ def extract_exodus_data(exodus_file, output_cell_data=None, output_node_data=Non
     # dt plots
     if output_dt_plot_base_name:
         plot_delta_t(times, f'{output_dt_plot_base_name}_delta_ts.png')
+
+    # Calculate Pk2 and Sigma norms
+    if stress_norms_plot_base:
+        if higher_order_stresses == 'on':
+            quantities = ['pk2', 'sigma', 'M', 'M', 'M']
+            post_fixes = ['', '', '1', '2', '3']
+        else:
+            quantities = ['pk2', 'sigma']
+            post_fixes = ['', '']
+        for quantity, post_fix in zip(quantities, post_fixes):
+            ## norm calc
+            quantity_norm = deviatoric_norm(cell_dataset, prefix=quantity, post_fix=post_fix)
+            quantity_norm = quantity_norm.broadcast_like(cell_dataset[f'{quantity}_11{post_fix}'])
+            cell_dataset = cell_dataset.assign({f"{quantity}{post_fix}_dev_norm": quantity_norm})
+            ## plot
+            output_plot_file = f'{stress_norms_plot_base}_{quantity}{post_fix}.png'
+            plot_cell_data_over_time(output_plot_file, cell_data, f"{quantity}{post_fix}_dev_norm", times, cell_dataset)
+
+    # Write to XDMF
+    if xdmf_file:
+        sys.path.append('/projects/tea/damage_tardigrade_filter/tardigrade_filter/src/python')
+        import file_io.xdmf
+
+        # Set up
+        xdmf_file_out = file_io.xdmf.XDMF(output_filename=xdmf_file)
+        incs = list(range(0, num_times))
+        reference_positions = numpy.vstack([x,y,z]).T
+        ## Subtract 1 from the connectivity because Exodus indexes on 1 but we need 0
+        connectivity = numpy.array(exofile.variables['connect1'][:].data).reshape((1,-1)).T - 1
+
+        # Loop over time
+        for t in times:
+            grid = xdmf_file_out.addGrid(xdmf_file_out.output_timegrid, {})
+            xdmf_file_out.addTime(grid, t)
+            xdmf_file_out.addPoints(grid, reference_positions,
+                                    duplicate='points')
+            xdmf_file_out.addConnectivity(grid, "HEXAHEDRON", connectivity,
+                                          duplicate='connectivity')
+
+            # Add each cell variable
+            for variable in list(cell_dataset.data_vars.keys()):
+                array_out = numpy.array(cell_dataset.sel(time=t)[variable]).reshape((1,-1)).T
+                xdmf_file_out.addData(grid, variable, array_out, center='Cell', dtype='d')
+
+        xdmf_file_out.write()
 
     return 0
 
@@ -207,6 +307,12 @@ def get_parser():
         help="Optional basename for field output plots")
     parser.add_argument('--output-dt-plot-base-name', type=str, required=False, default=None,
         help="Optional basename for dt history plots")
+    parser.add_argument('--stress-norms-plot-base', type=str, required=False, default=None,
+        help="Optional basename for stress norm history plots")
+    parser.add_argument('--xdmf-file', type=str, required=False, default=None,
+        help="Optional basename for writing cell data to an XDMF file")
+    parser.add_argument('--higher-order-stresses', type=str, required=False, default="off",
+        help="Either 'on' to include higher order stresses in norm calculation, or 'off'")
 
     return parser
 
@@ -219,4 +325,7 @@ if __name__ == '__main__':
                                  output_node_data=args.output_node_data,
                                  output_plot_base_name=args.output_plot_base_name,
                                  output_dt_plot_base_name=args.output_dt_plot_base_name,
+                                 stress_norms_plot_base=args.stress_norms_plot_base,
+                                 xdmf_file=args.xdmf_file,
+                                 higher_order_stresses=args.higher_order_stresses,
                                  ))
