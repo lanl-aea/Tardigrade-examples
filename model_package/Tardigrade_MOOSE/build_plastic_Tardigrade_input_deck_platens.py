@@ -112,7 +112,7 @@ def build_input(output_file, mesh_file, calibration_map, disp, duration,
         f.write('# Aux kernels\n')
         moose_tools.write_default_auxkernels(f)
         moose_tools.write_plastic_auxkernels(f)
-        f.write('  # Contact Kernels\n')
+        f.write('# Contact Kernels\n')
         f.write('[AuxKernels]\n')
         f.write('  [./inc_slip_top_x]\n')
         f.write('    type = PenetrationAux\n')
