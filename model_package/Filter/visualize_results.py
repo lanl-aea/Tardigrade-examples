@@ -524,6 +524,7 @@ def triple_deviatoric(stress, dim=3):
     elif dim == 2:
         return(stress_1 + stress_2)
 
+
 def plot_better_stress_norm(PK2, SIGMA, M, E, Ecal, Gamma, nqp, nel, ninc, output_name, dim=3):
     '''Plot the infinity norms of deviatoric Cauchy, symmetric micro, and higher stresses
 
