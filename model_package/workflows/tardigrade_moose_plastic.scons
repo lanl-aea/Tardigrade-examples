@@ -149,7 +149,8 @@ script_options += f" --disp {params['macro_disp']}"
 script_options += f" --duration {params['macro_duration']}"
 workflow.extend(env.PythonScript(
     target = [tardigrade_build_targs],
-    source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh_2, calibration_map],
+    source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh_2, calibration_map,
+              f"{Tardigrade_MOOSE_source_abspath}/MOOSE_input_deck_tools.py"],
     script_options = script_options
 ))
 

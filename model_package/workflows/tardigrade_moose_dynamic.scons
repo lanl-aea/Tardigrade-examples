@@ -142,7 +142,8 @@ script_options += f" --ref-density {params['material_rho'] * 1.e-9}"
 script_options += f" --height {params['height']}"
 workflow.extend(env.PythonScript(
     target = [tardigrade_build_targs],
-    source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh_2, parameter_sets],
+    source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh_2, parameter_sets,
+              f"{Tardigrade_MOOSE_source_abspath}/MOOSE_input_deck_tools.py"],
     script_options = script_options
 ))
 

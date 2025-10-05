@@ -113,7 +113,8 @@ workflow.extend(env.PythonScript(
 # script_options += f" --disp-point '{rad} 0. 0.'"
 # workflow.extend(env.PythonScript(
     # target = [str(set_name / tardigrade_build_targs)],
-    # source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", ],
+    # source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}",
+    #           f"{Tardigrade_MOOSE_source_abspath}/MOOSE_input_deck_tools.py"],
     # script_options = script_options
     # ))
 # tardigrade_build_sources.append(str(set_name / tardigrade_build_targs))

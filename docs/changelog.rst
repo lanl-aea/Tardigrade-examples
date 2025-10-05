@@ -17,7 +17,9 @@ New Features
   softening plasticity. Write parser for ExodusII files (:issue:`29`, :merge:`18``).
   By `Thomas Allard`_.
 - Create workflows for GEOS elastic cylinder verification and I43.01 studies (:issue:`8`, :merge:`19`).
-  By`Thomas Allard`_.
+  By `Thomas Allard`_.
+- Create common templates for MOOSE and Tardigrade-MOOSE simulations (:issue:`32`, :merge:`20`).
+  By `Thomas Allard_`.
 
 Documentation
 =============

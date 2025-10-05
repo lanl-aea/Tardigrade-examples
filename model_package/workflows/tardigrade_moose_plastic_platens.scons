@@ -133,7 +133,8 @@ script_options += " --top-platen-fixture top_platen_top"
 script_options += " --bottom-platen-fixture bottom_platen_bottom"
 workflow.extend(env.PythonScript(
     target = [tardigrade_build_targs],
-    source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh_2, calibration_map],
+    source = [f"{Tardigrade_MOOSE_source_abspath / tardigrade_input_script}", tardi_mesh_2, calibration_map,
+              f"{Tardigrade_MOOSE_source_abspath}/MOOSE_input_deck_tools.py"],
     script_options = script_options
 ))
 
