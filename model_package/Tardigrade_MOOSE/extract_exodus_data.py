@@ -10,8 +10,6 @@ import numpy
 import xarray
 
 
-
-
 def extract_cell_data(exofile, num_times, cell_variable_keys, num_elements=None):
     """Extract cell variables from exodus file
 

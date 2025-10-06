@@ -233,7 +233,7 @@ def convert_to_XDMF(results, reference_positions, output_file, dist_factor, stre
 
 
 def convert_VTK_to_XDMF(input_file, file_root, output_file, dist_factor=1, stress_factor=1, density_factor=1):
-    '''Driving function to call functions for parsing GEOS VTK results and writing XDMF output
+    '''Convert GEOS DNS results to XDMF format using XML element tree
 
     :param str input_file: The main VTK PVD file containing GEOS DNS results
     :param str file_root: The root directory containing DNS results
@@ -241,7 +241,7 @@ def convert_VTK_to_XDMF(input_file, file_root, output_file, dist_factor=1, stres
     :param float dist_factor: Optional argument to scale DNS displacements and coordinates, default=1
     :param float stress_factor: Optional argument to scale DNS stresses, default=1
     :param float density_factor: Optional factor to scale current density (if provided in the DNS results\
-                                 to Mg/tonne^3, default=1
+                                 to Mg/mm^3, default=1
     '''
     start_time = time.time()
 
@@ -262,7 +262,7 @@ def get_parser():
     script_name = pathlib.Path(__file__)
 
     prog = f"python {script_name.name} "
-    cli_description = "Convert GEOS DNS results to XDMF format"
+    cli_description = "Convert GEOS DNS results to XDMF format using XML element tree"
     parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-i', '--input-file', type=str, required=True,
         help='Specify the main VTK PVD file containing GEOS DNS results')
@@ -276,7 +276,7 @@ def get_parser():
         help='Optional argument to scale DNS stresses')
     parser.add_argument('--density-factor', type=float, required=False, default=1,
          help='Optional factor to scale current density (if provided in the DNS results\
-               to Mg/tonne^3')
+               to Mg/mm^3')
 
     return parser
 

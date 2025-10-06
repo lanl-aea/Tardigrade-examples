@@ -5,7 +5,7 @@ Changelog
 #########
 
 ******************
-0.3.0 (unreleased)
+0.3.0 (2025-10-06)
 ******************
 
 New Features
@@ -25,6 +25,7 @@ Documentation
 =============
 - Reformat API and CLI by section (:issue:`24`, :merge:`16`). By `Thomas Allard`_.
 - Document GEOS elastic cylinder verification and I43.01 studies(:issue:`8`, :merge:`19`). By `Thomas Allard`_.
+- Update documentation for all workflows (:issue:`33`, :merge:`21``). By `Thomas Allard_`.
 
 ******************
 0.2.0 (2024-12-18)

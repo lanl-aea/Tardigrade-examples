@@ -56,7 +56,7 @@ def mesh(rad, height, annulus_ratio, x0, y0, z0, seed_size, output_file):
 
 
 def annulus_from_bounds(output_file, bounds_file, seed_size, annulus_ratio):
-    '''Create a cylinder mesh from the bounds of a DNS file
+    '''Create an annular mesh from the bounds of a DNS file
 
     :param str output_file: The output filename
     :param str bounds_file: The file containing the bounds of the DNS
@@ -97,7 +97,7 @@ def get_parser():
     script_name = pathlib.Path(__file__)
 
     prog = f"python {script_name.name} "
-    cli_description = "Create a cylinder mesh from the bounds of a DNS file."
+    cli_description = "Create an annular mesh from the bounds of a DNS file"
     parser = argparse.ArgumentParser(description=cli_description,
                                      prog=prog)
     parser.add_argument('--output-file', type=str, required=True,

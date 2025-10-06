@@ -14,7 +14,7 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
                 bottom_platen_fixture,
                 contact_type='friction', friction_coefficient=None,
                 symmetry='eighth'):
-    '''Write MOOSE input file for symmetric Brazilian disk simulation with platens
+    '''Write MOOSE input file for eighth symmetry Brazilian disk simulation with platens
 
     :param str output_file: The name of Tardigrade-MOOSE file to write
     :param str mesh_file: The name of the mesh file
