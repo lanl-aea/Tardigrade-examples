@@ -262,7 +262,7 @@ def get_parser():
     script_name = pathlib.Path(__file__)
 
     prog = f"python {script_name.name} "
-    cli_description = "Convert GEOS DNS results to XDMF format"
+    cli_description = "Convert GEOS DNS results to XDMF format using XML element tree"
     parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-i', '--input-file', type=str, required=True,
         help='Specify the main VTK PVD file containing GEOS DNS results')
