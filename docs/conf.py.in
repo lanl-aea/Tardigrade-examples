@@ -23,7 +23,7 @@ mock_modules = ["abaqus", "abaqusConstants", "mesh", "cubit", "scipy", "scipy.st
                 "micromorphic", "summarize_calibration_results", "finite_stVK_calculation",
                 "summarize_micro_macro_lateral_displacements", "calibration_tools", "calibrate_element",
                 "build_plastic_Tardigrade_input_deck", "MOOSE_input_deck_tools", "netCDF4",
-                "CGNS", "CGNS.MAP", "CGNS.PAT.cgnsutils"]
+                "CGNS", "CGNS.MAP", "CGNS.PAT.cgnsutils", "vtk", "vtk.util.numpy_support"]
 for mod_name in mock_modules:
     sys.modules[mod_name] = unittest.mock.Mock()
 
