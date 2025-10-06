@@ -59,7 +59,7 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
     :param float dist_factor: Argument to scale DNS displacements and coordinates
     :param float stress_factor: Argument to scale DNS stresses
     :param float density_factor: Factor to scale current density (if provided in the DNS results\
-                                 to Mg/tonne^3
+                                 to Mg/mm^3
 
     :returns: ``{output_file}.xdmf`` and ``{outptu_file}.h5``
     '''
@@ -202,7 +202,7 @@ def convert_CGNS_to_XDMF(input_files, output_file, dist_factor=1, stress_factor=
     :param float dist_factor: Optional argument to scale DNS displacements and coordinates, default=1
     :param float stress_factor: Optional argument to scale DNS stresses, default=1
     :param float density_factor: Optional factor to scale current density (if provided in the DNS results\
-                                 to Mg/tonne^3, default=1
+                                 to Mg/mm^3, default=1
     '''
     # collect VTU results and convert to XDMF
     collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_factor, density_factor, damage)
@@ -234,7 +234,7 @@ def get_parser():
         help='Optional argument to scale DNS stresses')
     parser.add_argument('--density-factor', type=float, required=False, default=1,
          help='Optional factor to scale current density (if provided in the DNS results\
-               to Mg/tonne^3')
+               to Mg/mm^3')
     parser.add_argument('--dump-all-33-stresses', type=str, required=False, default=None,
         help='Optional filename to dump all 33 stresses from DNS')
     parser.add_argument('--damage', type=str, required=False, default=False,
