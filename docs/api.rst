@@ -548,7 +548,7 @@ build_Tardigrade_input_deck_brazil_disk_kernel_platens.py
 build_Tardigrade_input_deck_brazil_disk_rigid_platens.py
 --------------------------------------------------------
 
-.. automodule:: model_package.Tardigrade_MOOSE.build_Tardigrade_input_deck_brazil_disk_kernel_platens
+.. automodule:: model_package.Tardigrade_MOOSE.build_Tardigrade_input_deck_brazil_disk_rigid_platens
     :members:
     :show-inheritance:
     :synopsis: Write MOOSE input file for Brazilian disk simulation with rigid contact platens
