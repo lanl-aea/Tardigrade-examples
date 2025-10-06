@@ -23,7 +23,7 @@ def collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_fa
                               current density by the Jacobian of deformation if current density is
                               not reported in the DNS results, default=2.e-9
     :param float density_factor: Optional factor to scale current density (if provided in the DNS results\
-                                 to Mg/tonne^3, default=1
+                                 to Mg/mm^3, default=1
 
     :returns: ``{output_file}.xdmf`` and ``{outptu_file}.h5``
     '''
@@ -146,7 +146,7 @@ def convert_VTK_to_XDMF(input_files, output_file, dist_factor=1, stress_factor=1
                               current density by the Jacobian of deformation if current density is
                               not reported in the DNS results, default=2.e-9
     :param float density_factor: Optional factor to scale current density (if provided in the DNS results\
-                                 to Mg/tonne^3, default=1
+                                 to Mg/mm^3, default=1
     '''
     # collect VTU results and convert to XDMF
     collect_and_convert_to_XDMF(input_files, output_file, dist_factor, stress_factor, ref_density, density_factor, damage)
@@ -182,7 +182,7 @@ def get_parser():
               not reported in the DNS results')
     parser.add_argument('--density-factor', type=float, required=False, default=1,
          help='Optional factor to scale current density (if provided in the DNS results\
-               to Mg/tonne^3')
+               to Mg/mm^3')
     parser.add_argument('--dump-all-33-stresses', type=str, required=False, default=None,
         help='Optional filename to dump all 33 stresses from DNS')
     parser.add_argument('--damage', type=str, required=False, default=False,
