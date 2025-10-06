@@ -111,7 +111,7 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
     :param float dist_factor: Optional argument to scale DNS displacements and coordinates, default=1
     :param float stress_factor: Optional argument to scale DNS stresses, default=1
     :param float density_factor: Optional factor to scale current density (if provided in the DNS results\
-                                 to Mg/tonne^3, default=1
+                                 to Mg/mm^3, default=1
     :param float annulus_ratio: Optional fraction of the radius of points to keep in the final geometry
     :param str upscale_damage: Option to specify if damage will be upscaled
     :param int num_ranks: The number of ranks to collect data from
@@ -345,7 +345,7 @@ def collect_and_convert_to_XDMF(vtm_file_dict, increments, output_file,
 def convert_VTK_to_XDMF(input_file, file_root, output_file, dist_factor=1, stress_factor=1, density_factor=1,
                         annulus_ratio=None, upscale_damage=None, num_ranks=1000,
                         grain_particle_key=1, binder_particle_key=2):
-    '''Driving function to call functions for parsing GEOS VTK results and writing XDMF output
+    '''Convert multiblock GEOS DNS results to XDMF format using VTK utilities
 
     :param str input_file: The main VTK PVD file containing GEOS DNS results
     :param str file_root: The root directory containing DNS results
@@ -353,7 +353,7 @@ def convert_VTK_to_XDMF(input_file, file_root, output_file, dist_factor=1, stres
     :param float dist_factor: Optional argument to scale DNS displacements and coordinates, default=1
     :param float stress_factor: Optional argument to scale DNS stresses, default=1
     :param float density_factor: Optional factor to scale current density (if provided in the DNS results\
-                                 to Mg/tonne^3, default=1
+                                 to Mg/mm^3, default=1
     :param float annulus_ratio: Optional fraction of the radius of points to keep in the final geometry
     :param str upscale_damage: Option to specify if damage will be upscaled
     :param int num_ranks: The number of ranks to collect data from
@@ -383,7 +383,7 @@ def get_parser():
     script_name = pathlib.Path(__file__)
 
     prog = f"python {script_name.name} "
-    cli_description = "Convert GEOS DNS results to XDMF format"
+    cli_description = "Convert multiblock GEOS DNS results to XDMF format using VTK utilities"
     parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-i', '--input-file', type=str, required=True,
         help='Specify the main VTK PVD file containing GEOS DNS results')
@@ -397,7 +397,7 @@ def get_parser():
         help='Optional argument to scale DNS stresses')
     parser.add_argument('--density-factor', type=float, required=False, default=1,
          help='Optional factor to scale current density (if provided in the DNS results\
-               to Mg/tonne^3')
+               to Mg/mm^3')
     parser.add_argument('--annulus-ratio', type=float, required=False, default=None,
          help='Optional fraction of the radius of points to keep in the final geometry')
     parser.add_argument('--upscale-damage', type=str, required=False, default=None,
