@@ -247,9 +247,9 @@ intermediate configuration as
 
    \bar{\mathcal{C}}^e_{\bar{I}\bar{J}} &= F^e_{i\bar{I}} F^e_{i\bar{J}}
 
-   \bar{\Psi}^e_{\bar{I}\bar{J}} &= F^e_{i\bar{I}} \xi^e_{i\bar{J}}
+   \bar{\Psi}^e_{\bar{I}\bar{J}} &= F^e_{i\bar{I}} \chi^e_{i\bar{J}}
 
-   \bar{\Gamma}^e_{\bar{I}\bar{J}K} &= F^e_{i\bar{I}} \xi^e_{i\bar{J},\bar{K}}
+   \bar{\Gamma}^e_{\bar{I}\bar{J}K} &= F^e_{i\bar{I}} \chi^e_{i\bar{J},\bar{K}}
 
    \bar{E}^e_{\bar{I}\bar{J}} &= \frac{1}{2} \left( \mathcal{C}^e_{\bar{I}\bar{J}} - \delta_{\bar{I}\bar{J}} \right)
 
