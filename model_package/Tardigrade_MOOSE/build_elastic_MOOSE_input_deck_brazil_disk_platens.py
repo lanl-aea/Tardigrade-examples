@@ -13,7 +13,7 @@ def build_input(output_file, mesh_file, material_E, material_nu, platen_E, plate
                 top_platen_fixture, top_platen_side, top_platen_back,
                 bottom_platen_fixture, bottom_platen_side, bottom_platen_back,
                 contact_type='friction', friction_coefficient=None):
-    '''Write MOOSE input file for Brazilian disk simulation with platens
+    '''Write MOOSE input file for symmetric Brazilian disk simulation with platens
     
     :param str output_file: The name of Tardigrade-MOOSE file to write
     :param str mesh_file: The name of the mesh file
@@ -339,7 +339,7 @@ def get_parser():
     script_name = pathlib.Path(__file__)
 
     prog = f"python {script_name.name} "
-    cli_description = "Write MOOSE input file for Brazilian disk simulation with platens"
+    cli_description = "Write MOOSE input file for symmetric Brazilian disk simulation with platens"
     parser = argparse.ArgumentParser(description=cli_description, prog=prog)
     parser.add_argument('-o', '--output-file', type=str, required=True,
         help="Specify the name of Tardigrade-MOOSE file to write")
