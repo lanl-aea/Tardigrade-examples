@@ -56,7 +56,15 @@ convert_tess.py
 .. automodule:: model_package.DNS_Abaqus.convert_tess
     :members:
     :show-inheritance:
-    :synopsis: Convert a tesslation file output by Neper to STL and create Abaqus mesh
+    :synopsis: Convert a tesselation file output by Neper to STL and create Abaqus mesh
+
+convert_tess_2d.py
+------------------
+
+.. automodule:: model_package.DNS_Abaqus.convert_tess_2d
+    :members:
+    :show-inheritance:
+    :synopsis: Convert a 2D tesselation file output by Neper to STL and create an Abaqus mesh
 
 convert_tess_cylinder.py
 ------------------------
@@ -106,6 +114,22 @@ ODBextract_to_XDMF.py
     :show-inheritance:
     :synopsis: Convert Abaqus DNS results to XDMF format
 
+ODBextract_to_XDMF_neper.py
+---------------------------
+
+.. automodule:: model_package.DNS_Abaqus.ODBextract_to_XDMF_neper
+    :members:
+    :show-inheritance:
+    :synopsis: Convert Abaqus DNS results of 3D bonded grains to XDMF format
+
+ODBextract_to_XDMF_neper_2d.py
+------------------------------
+
+.. automodule:: model_package.DNS_Abaqus.ODBextract_to_XDMF_neper_2d
+    :members:
+    :show-inheritance:
+    :synopsis: Convert Abaqus DNS results of 2D bonded grains to XDMF format
+
 parse_sets_from_inp.py
 ----------------------
 
@@ -141,6 +165,22 @@ vtk_to_xdmf.py
     :show-inheritance:
     :synopsis: Convert GEOS DNS results to XDMF format
 
+vtk_to_xdmf_fast.py
+-------------------
+
+.. automodule:: model_package.DNS_GEOS.vtk_to_xdmf_fast
+    :members:
+    :show-inheritance:
+    :synopsis: Convert GEOS DNS results to XDMF format using VTK utilities
+
+vtk_to_xdmf_fast_multi.py
+-------------------------
+
+.. automodule:: model_package.DNS_GEOS.vtk_to_xdmf_fast_multi
+    :members:
+    :show-inheritance:
+    :synopsis: Convert multiblock GEOS DNS results to XDMF format using VTK utilities
+
 DNS_RATEL
 =========
 
@@ -172,14 +212,6 @@ vtk_to_xdmf.py
 --------------
 
 .. automodule:: model_package.DNS_Ratel.vtk_to_xdmf
-    :members:
-    :show-inheritance:
-    :synopsis: Convert Ratel DNS results to XDMF format
-
-vtk_to_xdmf_fast.py
--------------------
-
-.. automodule:: model_package.DNS_Ratel.vtk_to_xdmf_fast
     :members:
     :show-inheritance:
     :synopsis: Convert Ratel DNS results to XDMF format
@@ -326,6 +358,14 @@ calibration_tools.py
     :show-inheritance:
     :synopsis: Collection of utilities for calibration
 
+elastic_map_to_material_card.py
+-------------------------------
+
+.. automodule:: model_package.Calibrate.elastic_map_to_material_card
+    :members:
+    :show-inheritance:
+    :synopsis: Unpack a csv file of elastic parameters and call function to write elastic yaml file
+
 identify_z_boundary_elements.py
 -------------------------------
 
@@ -385,6 +425,14 @@ add_element_blocks_to_mesh.py
     :show-inheritance:
     :synopsis: Take an existing exodus mesh, add element blocks for each element, save with new name
 
+annulus_from_bounds.py
+----------------------
+
+.. automodule:: model_package.Tardigrade_MOOSE.annulus_from_bounds
+    :members:
+    :show-inheritance:
+    :synopsis: Create an annular mesh from the bounds of a DNS file
+
 brazilian_disk_apparatus.py
 ---------------------------
 
@@ -401,6 +449,14 @@ brazilian_disk_apparatus_symmetry.py
     :show-inheritance:
     :synopsis: Create a Brazilian Disk specimen and loading apparatus using 1/8th symmetry
 
+Brazil_disk_normalized_force_vs_displacements.py
+------------------------------------------------
+
+.. automodule:: model_package.Tardigrade_MOOSE.Brazil_disk_normalized_force_vs_displacements
+    :members:
+    :show-inheritance:
+    :synopsis: Process force-displacement from Tardigrade-MOOSE results
+
 build_dynamic_Tardigrade_input_deck.py
 --------------------------------------
 
@@ -408,6 +464,30 @@ build_dynamic_Tardigrade_input_deck.py
     :members:
     :show-inheritance:
     :synopsis: Write a Tardigrade-MOOSE input file for dynamic simulation
+
+build_elastic_MOOSE_input_deck_brazil_disk_platens.py
+-----------------------------------------------------
+
+.. automodule:: model_package.Tardigrade_MOOSE.build_elastic_MOOSE_input_deck_brazil_disk_platens
+    :members:
+    :show-inheritance:
+    :synopsis: Write MOOSE input file for eighth symmetry Brazilian disk simulation with platens
+
+build_elastic_MOOSE_input_deck_brazil_disk_platens_symmetry.py
+--------------------------------------------------------------
+
+.. automodule:: model_package.Tardigrade_MOOSE.build_elastic_MOOSE_input_deck_brazil_disk_platens_symmetry
+    :members:
+    :show-inheritance:
+    :synopsis: Write MOOSE input file for symmetric Brazilian disk simulation with platens
+
+build_elastic_MOOSE_input_deck_brazil_disk_rigid_platens.py
+-----------------------------------------------------------
+
+.. automodule:: model_package.Tardigrade_MOOSE.build_elastic_MOOSE_input_deck_brazil_disk_rigid_platens
+    :members:
+    :show-inheritance:
+    :synopsis: Write MOOSE input file for Brazilian disk simulation with rigid platens
 
 build_GED_Tardigrade_input_deck_from_csv.py
 -------------------------------------------
@@ -457,6 +537,30 @@ build_Tardigrade_input_deck.py
     :show-inheritance:
     :synopsis: Write Tardigrade-MOOSE input file
 
+build_Tardigrade_input_deck_brazil_disk_kernel_platens.py
+---------------------------------------------------------
+
+.. automodule:: model_package.Tardigrade_MOOSE.build_Tardigrade_input_deck_brazil_disk_kernel_platens
+    :members:
+    :show-inheritance:
+    :synopsis: Write MOOSE input file for Brazilian disk simulation with nodal kernel contact
+
+build_Tardigrade_input_deck_brazil_disk_rigid_platens.py
+--------------------------------------------------------
+
+.. automodule:: model_package.Tardigrade_MOOSE.build_Tardigrade_input_deck_brazil_disk_kernel_platens
+    :members:
+    :show-inheritance:
+    :synopsis: Write MOOSE input file for Brazilian disk simulation with rigid contact platens
+
+cube_mesh.py
+------------
+
+.. automodule:: model_package.Tardigrade_MOOSE.cube_mesh
+    :members:
+    :show-inheritance:
+    :synopsis: Create a cube mesh
+
 cylinder_from_bounds.py
 -----------------------
 
@@ -473,6 +577,14 @@ cylinder_from_bounds_with_platens.py
     :show-inheritance:
     :synopsis: Create a cylinder mesh from the bounds of a DNS file with platens
 
+extract_exodus_data.py
+----------------------
+
+.. automodule:: model_package.Tardigrade_MOOSE.extract_exodus_data
+    :members:
+    :show-inheritance:
+    :synopsis: Process results from a MOOSE exodus simulation results file
+
 finite_stVK_calculation.py
 --------------------------
 
@@ -480,6 +592,14 @@ finite_stVK_calculation.py
     :members:
     :show-inheritance:
     :synopsis: Solution for uniaxial stress of a cylinder for finite deformation using the St. Venant-Kirchhoff elasticity model
+
+MOOSE_input_deck_tools.py
+--------------------------
+
+.. automodule:: model_package.Tardigrade_MOOSE.MOOSE_input_deck_tools
+    :members:
+    :show-inheritance:
+    :synopsis: Utility script containing functions for writing common MOOSE input deck blocks
 
 plot_dynamic_displacement.py
 ----------------------------
@@ -505,6 +625,14 @@ plot_lateral_displacement.py
     :show-inheritance:
     :synopsis: Process lateral displacement from Tardigrade-MOOSE results
 
+process_calibration_map_to_parameter_csv.py
+-------------------------------------------
+
+.. automodule:: model_package.Tardigrade_MOOSE.process_calibration_map_to_parameter_csv
+    :members:
+    :show-inheritance:
+    :synopsis: Process a calibration map file to a parameter csv for Tardigrade-MOOSE
+
 summarize_dynamic_displacements.py
 ----------------------------------
 
@@ -528,6 +656,14 @@ summarize_micro_macro_lateral_displacements.py
     :members:
     :show-inheritance:
     :synopsis: Plot mutliple lateral displacement plots against each other
+
+uniformly_refine_mesh.py
+------------------------
+
+.. automodule:: model_package.Tardigrade_MOOSE.uniformly_refine_mesh
+    :members:
+    :show-inheritance:
+    :synopsis: Uniformly refine an exodus mesh and update a calibration map with new element IDs
 
 write_elastic_material_card.py
 ------------------------------

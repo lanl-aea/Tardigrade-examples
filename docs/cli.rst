@@ -76,6 +76,18 @@ ODBextract_to_XDMF.py
 .. argparse::
     :ref: model_package.DNS_Abaqus.ODBextract_to_XDMF.get_parser
 
+ODBextract_to_XDMF_neper.py
+---------------------------
+
+.. argparse::
+    :ref: model_package.DNS_Abaqus.ODBextract_to_XDMF_neper.get_parser
+
+ODBextract_to_XDMF_neper_2d.py
+------------------------------
+
+.. argparse::
+    :ref: model_package.DNS_Abaqus.ODBextract_to_XDMF_neper_2d.get_parser
+
 parse_sets_from_inp.py
 ----------------------
 
@@ -103,6 +115,18 @@ vtk_to_xdmf.py
 .. argparse::
     :ref: model_package.DNS_GEOS.vtk_to_xdmf.get_parser
 
+vtk_to_xdmf_fast.py
+-------------------
+
+.. argparse::
+    :ref: model_package.DNS_GEOS.vtk_to_xdmf_fast.get_parser
+
+vtk_to_xdmf_fast_multi.py
+-------------------------
+
+.. argparse::
+    :ref: model_package.DNS_GEOS.vtk_to_xdmf_fast_multi.get_parser
+
 DNS_Ratel
 =========
 
@@ -129,12 +153,6 @@ vtk_to_xdmf.py
 
 .. argparse::
     :ref: model_package.DNS_Ratel.vtk_to_xdmf.get_parser
-
-vtk_to_xdmf_fast.py
--------------------
-
-.. argparse::
-    :ref: model_package.DNS_Ratel.vtk_to_xdmf_fast.get_parser
 
 Filter
 ======
@@ -244,11 +262,17 @@ identify_z_boundary_elements.py
 .. argparse::
     :ref: model_package.Calibrate.identify_z_boundary_elements.get_parser
 
-joint_probability_distributions.py
-----------------------------------
+identify_z_boundary_elements.py
+-------------------------------
 
 .. argparse::
-    :ref: model_package.Calibrate.joint_probability_distributions.get_parser
+    :ref: model_package.Calibrate.identify_z_boundary_elements.get_parser
+
+elastic_map_to_material_card.py
+-------------------------------
+
+.. argparse::
+    :ref: model_package.Calibrate.elastic_map_to_material_card.get_parser
 
 summarize_calibration_results.py
 --------------------------------
@@ -277,6 +301,12 @@ add_element_blocks_to_mesh.py
 .. argparse::
     :ref: model_package.Tardigrade_MOOSE.cylinder_from_bounds.get_parser
 
+annulus_from_bounds.py
+----------------------
+
+.. argparse::
+    :ref: model_package.Tardigrade_MOOSE.annulus_from_bounds.get_parser
+
 brazilian_disk_apparatus.py
 ---------------------------
 
@@ -289,11 +319,32 @@ brazilian_disk_apparatus_symmetry.py
 .. argparse::
     :ref: model_package.Tardigrade_MOOSE.brazilian_disk_apparatus_symmetry.get_parser
 
+Brazil_disk_normalized_force_vs_displacements.py
+--------------------------------------------------
+
+.. argparse::
+    :ref: model_package.Tardigrade_MOOSE.Brazil_disk_normalized_force_vs_displacements.get_parser
+
 build_dynamic_Tardigrade_input_deck.py
 --------------------------------------
 
 .. argparse::
     :ref: model_package.Tardigrade_MOOSE.build_dynamic_Tardigrade_input_deck.get_parser
+
+build_elastic_MOOSE_input_deck_brazil_disk_platens.py
+-----------------------------------------------------
+.. argparse::
+    :ref: model_package.Tardigrade_MOOSE.build_elastic_MOOSE_input_deck_brazil_disk_platens.get_parser
+
+build_elastic_MOOSE_input_deck_brazil_disk_platens_symmetry.py
+--------------------------------------------------------------
+.. argparse::
+    :ref: model_package.Tardigrade_MOOSE.build_elastic_MOOSE_input_deck_brazil_disk_platens_symmetry.get_parser
+
+build_elastic_MOOSE_input_deck_brazil_disk_rigid_platens.py
+-----------------------------------------------------------
+.. argparse::
+    :ref: model_package.Tardigrade_MOOSE.build_elastic_MOOSE_input_deck_brazil_disk_rigid_platens.get_parser
 
 build_GED_Tardigrade_input_deck_from_csv.py
 -------------------------------------------
@@ -331,6 +382,18 @@ build_Tardigrade_input_deck.py
 .. argparse::
     :ref: model_package.Tardigrade_MOOSE.build_Tardigrade_input_deck.get_parser
 
+build_Tardigrade_input_deck_brazil_disk_kernel_platens.py
+---------------------------------------------------------
+
+.. argparse::
+    :ref: model_package.Tardigrade_MOOSE.build_Tardigrade_input_deck_brazil_disk_kernel_platens.get_parser
+
+build_Tardigrade_input_deck_brazil_disk_rigid_platens.py
+--------------------------------------------------------
+
+.. argparse::
+    :ref: model_package.Tardigrade_MOOSE.build_Tardigrade_input_deck_brazil_disk_rigid_platens.get_parser
+
 cylinder_from_bounds.py
 -----------------------
 
@@ -342,6 +405,12 @@ cylinder_from_bounds_with_platens.py
 
 .. argparse::
     :ref: model_package.Tardigrade_MOOSE.cylinder_from_bounds_with_platens.get_parser
+
+extract_exodus_data.py
+----------------------
+
+.. argparse::
+    :ref: model_package.Tardigrade_MOOSE.extract_exodus_data.get_parser
 
 finite_stVK_calculation.py
 --------------------------
@@ -367,6 +436,12 @@ plot_lateral_displacement.py
 .. argparse::
     :ref: model_package.Tardigrade_MOOSE.plot_lateral_displacement.get_parser
 
+process_calibration_map_to_parameter_csv.py
+-------------------------------------------
+
+.. argparse::
+    :ref: model_package.Tardigrade_MOOSE.process_calibration_map_to_parameter_csv.get_parser
+
 summarize_dynamic_displacements.py
 ----------------------------------
 
@@ -384,6 +459,12 @@ summarize_micro_macro_lateral_displacements.py
 
 .. argparse::
     :ref: model_package.Tardigrade_MOOSE.summarize_micro_macro_lateral_displacements.get_parser
+
+uniformly_refine_mesh.py
+------------------------
+
+.. argparse::
+    :ref: model_package.Tardigrade_MOOSE.uniformly_refine_mesh.get_parser
 
 write_elastic_material_card.py
 ------------------------------
