@@ -471,7 +471,7 @@ def new_XDMF_writer(results, output_file, times, ref_density, sets=None):
 def ODBextract_to_XDMF(input_file, output_file, elem_path, node_path, mesh_path, collocation_option, ref_density, element_type,
                        velocities=False, accelerations=False, specific_frames=None, dump_all_33_stresses=None, init_ref=None,
                        sets_file=None, num_steps=None):
-    '''Convert Abaqus DNS results to XDMF format
+    '''Convert Abaqus DNS results of 3D bonded grains to XDMF format
 
     :param str input_file: HDF5 file of Abaqus results extracted using the
         ODB_extract module of WAVES.
@@ -548,7 +548,7 @@ def get_parser():
     filename = inspect.getfile(lambda: None)
     basename = os.path.basename(filename)
     basename_without_extension, extension = os.path.splitext(basename)
-    cli_description = "Convert Abaqus DNS results to XDMF format"
+    cli_description = "Convert Abaqus DNS results of 3D bonded grains to XDMF format"
     parser = argparse.ArgumentParser(description=cli_description,
                                      prog=os.path.basename(filename))
     parser.add_argument('-i', '--input-file', type=str,
