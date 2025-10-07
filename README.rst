@@ -33,7 +33,7 @@ Tardigrade-Examples
 
 .. project-description-start-do-not-remove
 
-Tardigrade-examples (LANL code O4735) is a repository of computational workflows that
+Tardigrade-examples (LANL code O4925) is a repository of computational workflows that
 exercise the Tardigrade software package.
 
 The Tardigrade software package is an implementation of Eringen's
