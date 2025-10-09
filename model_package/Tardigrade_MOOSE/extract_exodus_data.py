@@ -243,18 +243,18 @@ def extract_exodus_data(exodus_file, output_cell_data=None, output_node_data=Non
     if stress_norms_plot_base:
         if higher_order_stresses == 'on':
             quantities = ['pk2', 'sigma', 'M', 'M', 'M']
-            post_fixes = ['', '', '1', '2', '3']
+            postfixes = ['', '', '1', '2', '3']
         else:
             quantities = ['pk2', 'sigma']
-            post_fixes = ['', '']
-        for quantity, post_fix in zip(quantities, post_fixes):
+            postfixes = ['', '']
+        for quantity, postfix in zip(quantities, postfixes):
             ## norm calc
-            quantity_norm = deviatoric_norm(cell_dataset, prefix=quantity, post_fix=post_fix)
-            quantity_norm = quantity_norm.broadcast_like(cell_dataset[f'{quantity}_11{post_fix}'])
-            cell_dataset = cell_dataset.assign({f"{quantity}{post_fix}_dev_norm": quantity_norm})
+            quantity_norm = deviatoric_norm(cell_dataset, prefix=quantity, postfix=postfix)
+            quantity_norm = quantity_norm.broadcast_like(cell_dataset[f'{quantity}_11{postfix}'])
+            cell_dataset = cell_dataset.assign({f"{quantity}{postfix}_dev_norm": quantity_norm})
             ## plot
-            output_plot_file = f'{stress_norms_plot_base}_{quantity}{post_fix}.png'
-            plot_cell_data_over_time(output_plot_file, cell_data, f"{quantity}{post_fix}_dev_norm", times, cell_dataset)
+            output_plot_file = f'{stress_norms_plot_base}_{quantity}{postfix}.png'
+            plot_cell_data_over_time(output_plot_file, cell_data, f"{quantity}{postfix}_dev_norm", times, cell_dataset)
 
     # Write to XDMF
     if xdmf_file:
