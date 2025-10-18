@@ -72,7 +72,7 @@ relate the differential micro-elements positions :math:`d\mathbf{X}^{\left(\alph
 .. math::
    :label: Fprime_1
 
-   F_{iI}^{\left(\alpha\right)} &= \frac{\partial}{\partial X_I^{\left(\alpha\right)}} (x_i + \xi_i)
+   F_{iI}^{\left(\alpha\right)} &= \frac{\partial x^{\left(\alpha\right)_i}{\partial X_I^{\left(\alpha\right)}} = \frac{\partial}{\partial X_I^{\left(\alpha\right)}} (x_i + \xi_i)
 
    &= \frac{\partial x_i}{\partial X_L} \frac{\partial X_L}{\partial X_{I}^{\left(\alpha\right)}}
       + \frac{\partial}{\partial X_{I}^{\left(\alpha\right)}} (\chi_{iK} \Xi_{K})
@@ -146,17 +146,34 @@ general form of deformation gradient!
 Simplification for small variation in density
 =============================================
 
-The micro-position deformation gradient may be further simplified for different cases. One such case is when
-:math:`\frac{\partial \mathbf{\Xi}}{\partial \mathbf{X}} << 1` which indicates that the distribution of
-:math:`\mathbf{\Xi}` is nearly the same at every location within the body. Thus, the variation in the mass
-distribution is small between different :math:`dV`, however, the variation in mass itself is not necessarily small.
+The micro-position deformation gradient may be further simplified for different cases.
+One such case is when :math:`||\frac{\partial \mathbf{\Xi}}{\partial \mathbf{X}}|| << 1`,
+where :math:`||\mathbf{M}||` indicates some norm of a matrix :math:`\mathbf{M}`.
+This condition indicates that the distribution of
+:math:`\mathbf{\Xi}` is nearly the same at every location within the body.
+Thus, the variation in the mass distribution is small between different :math:`dV`,
+however, the variation in mass itself is not necessarily small.
 
-If :math:`\frac{\partial \mathbf{\Xi}}{\partial \mathbf{X}} << 1`, then
+First consider :math:`\left( \mathbf{I} + \mathbf{M}\right)^{-1}`.
+This inverse may be approximated using a Neumann series in which
+
+.. math::
+
+   \left( \mathbf{I} + \mathbf{M}\right)^{-1} \approx \sum_{k=0}^{\infty} \left(-1 \right)^k \mathbf{M}^k = \mathbf{I} - \mathbf{M} + \mathbf{M}^2 - \mathbf{M}^3 + ...
+
+For the condition in which some tensor norm of the matrix, :math:`||\mathbf{M}|| << 1`, indicating
+that the largest singular value of the matrix is much less than 1,
+then the higher order terms of the Neumann series may be truncated, leaving the following linear approximation.
+
+.. math::
+
+   \left( \mathbf{I} + \mathbf{M}\right)^{-1} \approx \mathbf{I} - \mathbf{M}
+
+If :math:`||\frac{\partial \mathbf{\Xi}}{\partial \mathbf{X}}|| << 1`, then
 
 .. math::
 
 	\left( \delta_{IM} + \frac{\partial \Xi_I}{\partial X_M}\right)^{-1} \approx \left( \delta_{IM} - \frac{\partial \Xi_I}{\partial X_M}\right)
-
 
 which we may substitute into Eq. :math:numref:`{number} <XidelXprime>`
 
