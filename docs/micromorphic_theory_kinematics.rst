@@ -36,7 +36,7 @@ It is assume that the magnitudes of micro-position vectors are significantly sma
 .. math::
    :label: micro_positions
 
-   X_i^{\left(\alpha\right)} &= X_i + \Xi_i
+   X_I^{\left(\alpha\right)} &= X_I + \Xi_I
 
    x_i^{\left(\alpha\right)} &= x_i + \xi_i
 
@@ -72,7 +72,7 @@ relate the differential micro-elements positions :math:`d\mathbf{X}^{\left(\alph
 .. math::
    :label: Fprime_1
 
-   F_{iI}^{\left(\alpha\right)} &= \frac{\partial x^{\left(\alpha\right)_i}{\partial X_I^{\left(\alpha\right)}} = \frac{\partial}{\partial X_I^{\left(\alpha\right)}} (x_i + \xi_i)
+   F_{iI}^{\left(\alpha\right)} &= \frac{\partial x^{\left(\alpha\right)}_i}{\partial X_I^{\left(\alpha\right)}} = \frac{\partial}{\partial X_I^{\left(\alpha\right)}} (x_i + \xi_i)
 
    &= \frac{\partial x_i}{\partial X_L} \frac{\partial X_L}{\partial X_{I}^{\left(\alpha\right)}}
       + \frac{\partial}{\partial X_{I}^{\left(\alpha\right)}} (\chi_{iK} \Xi_{K})
@@ -127,6 +127,7 @@ substitute the expression from Eq. :math:numref:`{number} <XprimedelX>`.
 
    \frac{\partial \Xi_{L}}{\partial X_{I}^{\left(\alpha\right)}} &= \frac{\partial \Xi_{L}}{\partial X_{M}} \frac{\partial X_{M}}{\partial X_{I}^{\left(\alpha\right)}}
       = \frac{\partial \Xi_{L}}{\partial X_{M}} \left( \frac{\partial X_{I}^{\left(\alpha\right)}}{\partial X_{M}} \right)^{-1}
+      = \frac{\partial \Xi_{L}}{\partial X_{M}} \left( \frac{\partial}{\partial X_{M}} \left( X_I + \Xi_I\right)\right)^{-1}
 
    &= \frac{\partial \Xi_{L}}{\partial X_{M}} \left( \delta_{IM}
       + \frac{\partial \Xi_I}{\partial X_M}\right)^{-1}
