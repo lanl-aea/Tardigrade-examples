@@ -49,6 +49,7 @@ extensions = ["sphinx.ext.autodoc",
               "sphinxcontrib.bibtex",
               "sphinx_subfigure",
               "sphinxarg.ext",
+              "sphinx.ext.mathjax",
               #"sphinx.ext.pngmath",
               #"sphinx_toolbox.source",
               ]
