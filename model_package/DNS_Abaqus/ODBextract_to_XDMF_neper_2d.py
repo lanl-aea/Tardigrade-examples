@@ -255,7 +255,15 @@ def c3d4_volume(node_location, mesh):
 
 
 def collect_tri_areas(points, connectivity):
-    '''Calculate the area of all triangular elements/cells
+    r'''Calculate the area of all triangular elements/cells
+
+    .. math::
+        A = \frac{1}{2} det \left(
+            \begin{bmatrix}
+                1 &  1 & 1\\
+                x1 & x2 & x3\\
+                y1 & y2 & y3
+            \end{bmatrix} \right)
 
     :params array points: nodal coordinates
     :params list connectivity: list of arrays containing element connectivity
@@ -264,13 +272,19 @@ def collect_tri_areas(points, connectivity):
     '''
 
     def tri_area(nodes):
-        r'''
-        A = \frac{1}{2} det \left(
-            \begin{bmatrix}
-                 1 &  1 & 1\\
-                x1 & x2 & x3\\
-                y1 & y2 & y3
-            \end{bmatrix} \right)
+        r''' Calculate the area of the triangle
+
+        .. math::
+           A = \frac{1}{2} det \left(
+               \begin{bmatrix}
+                    1 &  1 & 1\\
+                   x1 & x2 & x3\\
+                   y1 & y2 & y3
+               \end{bmatrix} \right)
+
+        :params array nodes: The nodal coordinates for a triangular element
+
+        :returns: triangular area
         '''
         # Add one to the bottom row for the determinant calculation
         nodes[:,-1] += 1
